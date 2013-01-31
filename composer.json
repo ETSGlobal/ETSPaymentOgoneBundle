@@ -1,0 +1,26 @@
+{
+    "name": "ets/payment-ogone-bundle",
+    "type": "symfony-bundle",
+    "description": "Payment Bundle providing access to Ogone gateway",
+    "keywords": ["payment", "ogone"],
+    "homepage": "https://github.com/ETSGlobal/ETSPaymentOgoneBundle",
+    "license": "Apache2",
+    "authors": [
+        {
+            "name": "Clément Gautier",
+            "email": "clement.gautier@sensiolabs.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.2",
+        "symfony/framework-bundle": ">=2.0,<2.2-dev",
+        "jms/payment-core-bundle": "dev-master"
+    },
+    "require-dev": {
+        "symfony/browser-kit": "2.1.x-dev"
+    },
+    "autoload": {
+        "psr-0": { "ETS\\Payment\\OgoneBundle": "" }
+    },
+    "target-dir": "ETS/Payment/OgoneBundle"
+}
