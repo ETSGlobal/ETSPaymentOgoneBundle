@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="payment.ogone.pspid"/>
+        <parameter key="payment.ogone.shain"/>
+        <parameter key="payment.ogone.shaout"/>
+        <parameter key="payment.ogone.ogone_url"/>
+
+        <parameter key="payment.plugin.ogone.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin</parameter>
+        <parameter key="payment.form.ogone_gateway.class">ETS\Payment\OgoneBundle\Form\GatewayType</parameter>
+        <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
+    </parameters>
+
+    <services>
+        <service id="payment.ogone.client.token" class="%payment.ogone.client.token.class%">
+            <argument>%payment.ogone.pspid%</argument>
+            <argument>%payment.ogone.shain%</argument>
+            <argument>%payment.ogone.shaout%</argument>
+        </service>
+
+        <service id="payment.plugin.ogone_gateway" class="%payment.plugin.ogone.class%">
+            <argument type="service" id="payment.ogone.client.token" />
+            <argument>%payment.ogone.ogone_url%</argument>
+            <tag name="payment.plugin"/>
+        </service>
+
+        <service id="payment.form.ogone_gateway" class="%payment.form.ogone_gateway.class%">
+            <tag name="payment.method_form_type" />
+            <tag name="form.type" alias="ogone_gateway"/>
+        </service>
+    </services>
+</container>
