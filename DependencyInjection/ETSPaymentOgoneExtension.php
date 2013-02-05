@@ -45,8 +45,25 @@ class ETSPaymentOgoneExtension extends Extension
         $xmlLoader->load('services.xml');
 
         $container->setParameter('payment.ogone.pspid', $config['pspid']);
-        $container->setParameter('payment.ogone.ogone_url', $config['ogone_url']);
+        $container->setParameter('payment.ogone.password', $config['password']);
         $container->setParameter('payment.ogone.shain', $config['shain']);
         $container->setParameter('payment.ogone.shaout', $config['shaout']);
+        $container->setParameter('payment.ogone.debug', $config['debug']);
+
+        $container->setParameter('payment.ogone.redirection.accept_url', $config['redirection']['accept_url']);
+        $container->setParameter('payment.ogone.redirection.decline_url', $config['redirection']['decline_url']);
+        $container->setParameter('payment.ogone.redirection.exception_url', $config['redirection']['exception_url']);
+        $container->setParameter('payment.ogone.redirection.cancel_url', $config['redirection']['cancel_url']);
+        $container->setParameter('payment.ogone.redirection.back_url', $config['redirection']['back_url']);
+
+        $container->setParameter('payment.ogone.design.title', $config['design']['title']);
+        $container->setParameter('payment.ogone.design.bgColor', $config['design']['bgColor']);
+        $container->setParameter('payment.ogone.design.txtColor', $config['design']['txtColor']);
+        $container->setParameter('payment.ogone.design.tblBgColor', $config['design']['tblBgColor']);
+        $container->setParameter('payment.ogone.design.tblTxtColor', $config['design']['tblTxtColor']);
+        $container->setParameter('payment.ogone.design.buttonBgColor', $config['design']['buttonBgColor']);
+        $container->setParameter('payment.ogone.design.buttonTxtColor', $config['design']['buttonTxtColor']);
+        $container->setParameter('payment.ogone.design.fontType', $config['design']['fontType']);
+        $container->setParameter('payment.ogone.design.logo', $config['design']['logo']);
     }
 }

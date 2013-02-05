@@ -5,26 +5,60 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>
-        <parameter key="payment.ogone.pspid"/>
-        <parameter key="payment.ogone.shain"/>
-        <parameter key="payment.ogone.shaout"/>
-        <parameter key="payment.ogone.ogone_url"/>
-
         <parameter key="payment.plugin.ogone.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin</parameter>
         <parameter key="payment.form.ogone_gateway.class">ETS\Payment\OgoneBundle\Form\GatewayType</parameter>
         <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
+
+        <parameter key="payment.ogone.tools.shain.class">ETS\Payment\OgoneBundle\Tools\Shain</parameter>
+        <parameter key="payment.ogone.tools.shaout.class">ETS\Payment\OgoneBundle\Tools\Shaout</parameter>
+
+        <parameter key="payment.ogone.plugin.configuration.redirection.class">ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection</parameter>
+        <parameter key="payment.ogone.plugin.configuration.design.class">ETS\Payment\OgoneBundle\Plugin\Configuration\Design</parameter>
     </parameters>
 
     <services>
         <service id="payment.ogone.client.token" class="%payment.ogone.client.token.class%">
             <argument>%payment.ogone.pspid%</argument>
+            <argument>%payment.ogone.password%</argument>
             <argument>%payment.ogone.shain%</argument>
             <argument>%payment.ogone.shaout%</argument>
         </service>
 
+        <service id="payment.ogone.plugin.configuration.redirection" class="%payment.ogone.plugin.configuration.redirection.class%">
+            <argument>%payment.ogone.redirection.accept_url%</argument>
+            <argument>%payment.ogone.redirection.decline_url%</argument>
+            <argument>%payment.ogone.redirection.exception_url%</argument>
+            <argument>%payment.ogone.redirection.cancel_url%</argument>
+            <argument>%payment.ogone.redirection.back_url%</argument>
+        </service>
+
+        <service id="payment.ogone.plugin.configuration.design" class="%payment.ogone.plugin.configuration.design.class%">
+            <argument>%payment.ogone.design.title%</argument>
+            <argument>%payment.ogone.design.bgColor%</argument>
+            <argument>%payment.ogone.design.txtColor%</argument>
+            <argument>%payment.ogone.design.tblBgColor%</argument>
+            <argument>%payment.ogone.design.tblTxtColor%</argument>
+            <argument>%payment.ogone.design.buttonBgColor%</argument>
+            <argument>%payment.ogone.design.buttonTxtColor%</argument>
+            <argument>%payment.ogone.design.fontType%</argument>
+            <argument>%payment.ogone.design.logo%</argument>
+        </service>
+
+        <service id="payment.ogone.tools.shain" class="%payment.ogone.tools.shain.class%">
+            <argument type="service" id="payment.ogone.client.token" />
+        </service>
+
+        <service id="payment.ogone.tools.shaout" class="%payment.ogone.tools.shaout.class%">
+            <argument type="service" id="payment.ogone.client.token" />
+        </service>
+
         <service id="payment.plugin.ogone_gateway" class="%payment.plugin.ogone.class%">
             <argument type="service" id="payment.ogone.client.token" />
-            <argument>%payment.ogone.ogone_url%</argument>
+            <argument type="service" id="payment.ogone.tools.shain" />
+            <argument type="service" id="payment.ogone.tools.shaout" />
+            <argument type="service" id="payment.ogone.plugin.configuration.redirection" />
+            <argument type="service" id="payment.ogone.plugin.configuration.design" />
+            <argument>%payment.ogone.debug%</argument>
             <tag name="payment.plugin"/>
         </service>
 

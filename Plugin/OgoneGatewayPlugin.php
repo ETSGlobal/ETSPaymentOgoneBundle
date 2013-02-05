@@ -2,13 +2,21 @@
 
 namespace ETS\Payment\OgoneBundle\Plugin;
 
-use JMS\Payment\CoreBundle\Plugin\Exception\Action\VisitUrl,
+use JMS\Payment\CoreBundle\Plugin\PluginInterface,
+    JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException,
+    JMS\Payment\CoreBundle\Plugin\Exception\FinancialException,
+    JMS\Payment\CoreBundle\BrowserKit\Request,
+    JMS\Payment\CoreBundle\Plugin\ErrorBuilder,
+    JMS\Payment\CoreBundle\Plugin\Exception\Action\VisitUrl,
     JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException,
     JMS\Payment\CoreBundle\Model\FinancialTransactionInterface,
     JMS\Payment\CoreBundle\Model\PaymentInstructionInterface,
     JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
 
-use ETS\Payment\OgoneBundle\Client\TokenInterface;
+use ETS\Payment\OgoneBundle\Client\TokenInterface,
+    ETS\Payment\OgoneBundle\Direct\Response,
+    ETS\Payment\OgoneBundle\Tools\Shain,
+    ETS\Payment\OgoneBundle\Tools\Shaout;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -33,35 +41,48 @@ use ETS\Payment\OgoneBundle\Client\TokenInterface;
  */
 class OgoneGatewayPlugin extends GatewayPlugin
 {
-    protected $ogoneUrl;
+    /**
+     * @var TokenInterface
+     */
     protected $token;
 
     /**
-     * @param TokenInterface $token
-     * @param string $ogoneUrl
+     * @var Shain
      */
-    public function __construct(TokenInterface $token, $ogoneUrl)
-    {
-        $this->token    = $token;
-        $this->ogoneUrl = $ogoneUrl;
-    }
+    protected $shaInTool;
 
     /**
-     * This method executes an approve transaction.
-     *
-     * By an approval, funds are reserved but no actual money is transferred. A
-     * subsequent deposit transaction must be performed to actually transfer the
-     * money.
-     *
-     * A typical use case, would be Credit Card payments where funds are first
-     * authorized.
-     *
-     * @param FinancialTransactionInterface $transaction The transaction
-     * @param boolean                       $retry       Whether this is a retry transaction
+     * @var Shaout
      */
-    public function approve(FinancialTransactionInterface $transaction, $retry)
+    protected $shaOutTool;
+
+    /**
+     * @var Configuration\Redirection
+     */
+    protected $redirectionConfig;
+
+    /**
+     * @var Configuration\Design
+     */
+    protected $designConfig;
+
+    /**
+     * @param TokenInterface            $token
+     * @param Shain                     $shaInTool
+     * @param Shaout                    $shaOutTool
+     * @param Configuration\Redirection $redirectionConfig
+     * @param Configuration\Design      $designConfig
+     * @param boolean                   $debug
+     */
+    public function __construct(TokenInterface $token, Shain $shaInTool, Shaout $shaOutTool, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug)
     {
-        $this->createCheckoutBillingAgreement($transaction, 'Authorization');
+        parent::__construct($debug);
+
+        $this->token      = $token;
+        $this->shaInTool  = $shaInTool;
+        $this->shaOutTool = $shaOutTool;
+        $this->redirectionConfig = $redirectionConfig;
+        $this->designConfig = $designConfig;
     }
 
     /**
@@ -78,8 +99,79 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
      public function approveAndDeposit(FinancialTransactionInterface $transaction, $retry)
      {
-        $this->createCheckoutBillingAgreement($transaction, 'Sale');
+        if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
+            throw $this->createRedirectActionException($transaction);
+        }
+
+        $this->approve($transaction, $retry);
+        $this->deposit($transaction, $retry);
      }
+
+    /**
+     * This method executes an approve transaction.
+     *
+     * By an approval, funds are reserved but no actual money is transferred. A
+     * subsequent deposit transaction must be performed to actually transfer the
+     * money.
+     *
+     * A typical use case, would be Credit Card payments where funds are first
+     * authorized.
+     *
+     * @param FinancialTransactionInterface $transaction The transaction
+     * @param boolean                       $retry       Whether this is a retry transaction
+     */
+    public function approve(FinancialTransactionInterface $transaction, $retry)
+    {
+        $response = $this->requestDoDirectRequest($transaction);
+
+        if ($response->isApproving()) {
+            throw new PaymentPendingException(sprintf('Payment is still approving, status: %s.', $response->getStatus()));
+        }
+
+        if (!$response->isApproved()) {
+            $ex = new FinancialException(sprintf('Payment status is not valid for approvment: ', $response->getStatus()));
+            $ex->setFinancialTransaction($transaction);
+            $transaction->setResponseCode($response->getErrorCode());
+            $transaction->setReasonCode($response->getErrorDescription());
+        }
+
+        $transaction->setProcessedAmount($response->getAmount());
+        $transaction->setResponseCode(PluginInterface::RESPONSE_CODE_SUCCESS);
+        $transaction->setReasonCode(PluginInterface::REASON_CODE_SUCCESS);
+    }
+
+    /**
+     * This method executes a deposit transaction (aka capture transaction).
+     *
+     * This method requires that the Payment has already been approved in
+     * a prior transaction.
+     *
+     * A typical use case are Credit Card payments.
+     *
+     * @param FinancialTransactionInterface $transaction The transaction
+     * @param boolean                       $retry       Retry
+     *
+     * @return mixed
+     */
+    public function deposit(FinancialTransactionInterface $transaction, $retry)
+    {
+        $response = $this->requestDoDirectRequest($transaction);
+
+        if ($response->isDepositing()) {
+            throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
+        }
+
+        if (!$response->isDeposited()) {
+            $ex = new FinancialException(sprintf('Payment status is not valid for depositing: ', $response->getStatus()));
+            $ex->setFinancialTransaction($transaction);
+            $transaction->setResponseCode($response->getErrorCode());
+            $transaction->setReasonCode($response->getErrorDescription());
+        }
+
+        $transaction->setProcessedAmount($response->getAmount());
+        $transaction->setResponseCode(PluginInterface::RESPONSE_CODE_SUCCESS);
+        $transaction->setReasonCode(PluginInterface::REASON_CODE_SUCCESS);
+    }
 
     /**
      * This method checks whether all required parameters exist in the given
@@ -97,21 +189,16 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     public function checkPaymentInstruction(PaymentInstructionInterface $paymentInstruction)
     {
-    }
+        $errorBuilder = new ErrorBuilder();
+        $data = $paymentInstruction->getExtendedData();
 
-    /**
-     * This method validates the correctness, and existence of any account
-     * associated with the PaymentInstruction object.
-     *
-     * This method performs a more thorough validation than checkPaymentInstruction,
-     * in that it may actually connect to the payment backend system; no funds should
-     * be transferred, though.
-     *
-     * @throws JMS\Payment\CoreBundle\Plugin\Exception\InvalidPaymentInstructionException if the PaymentInstruction is not valid
-     * @param  PaymentInstructionInterface                                                $paymentInstruction
-     */
-    public function validatePaymentInstruction(PaymentInstructionInterface $paymentInstruction)
-    {
+        if (!$data->has('lang')) {
+            $errorBuilder->addDataError('lang', 'form.error.required');
+        }
+
+        if ($errorBuilder->hasErrors()) {
+            throw $errorBuilder->getException();
+        }
     }
 
     /**
@@ -138,11 +225,43 @@ class OgoneGatewayPlugin extends GatewayPlugin
      *
      * @throws ActionRequiredException
      */
-    public function createCheckoutBillingAgreement(FinancialTransactionInterface $transaction, $paymentAction)
+    public function createRedirectActionException(FinancialTransactionInterface $transaction)
     {
         $actionRequest = new ActionRequiredException('User must authorize the transaction');
         $actionRequest->setFinancialTransaction($transaction);
-        $actionRequest->setAction(new VisitUrl($this->ogoneUrl));
+
+        $instruction = $transaction->getPayment()->getPaymentInstruction();
+        $extendedData = $transaction->getExtendedData();
+        $datas = array();
+
+        $additionalDatas = array(
+            // Client
+            "CN", "EMAIL", "OWNERZIP", "OWNERADDRESS", "OWNERCTY",
+            "OWNERTOWN", "OWNERTELNO", "OWNERTELNO2",
+        );
+
+        foreach ($additionalDatas as $value) {
+            if ($extendedData->has($value)) {
+                $datas[$value] = $extendedData->get($value);
+            }
+        }
+
+        $parameters = array_merge(
+            $datas,
+            $this->redirectionConfig->getRequestParameters($extendedData),
+            $this->designConfig->getRequestParameters($extendedData),
+            array(
+                "PSPID"    => $this->token->getPspid(),
+                "ORDERID"  => $instruction->getId(),
+                "AMOUNT"   => $transaction->getRequestedAmount() * 100,
+                "CURRENCY" => $instruction->getCurrency(),
+                "LANGUAGE" => $extendedData->get('lang')
+            )
+        );
+
+        $parameters['SHASIGN'] = $this->shaInTool->generate($parameters);
+
+        $actionRequest->setAction(new VisitUrl($this->getStandardOrderUrl() . '?' . http_build_query($parameters)));
 
         throw $actionRequest;
     }
@@ -150,11 +269,32 @@ class OgoneGatewayPlugin extends GatewayPlugin
     /**
      * Perform direct online payment operations
      *
-     * @param array $parameters
+     * @param FinancialTransactionInterface $transaction
+     *
+     * @throws FinancialException
+     * @return \ETS\Payment\OgoneBundle\Direct\ResponseInterface
      */
-    public function requestDoDirectPayment(array $parameters)
+    public function requestDoDirectRequest(FinancialTransactionInterface $transaction)
     {
-       $this->sendApiRequest($parameters);
+        $response = $this->sendApiRequest(array(
+            'PSPID' => $this->token->getPspid(),
+            'PSWD' => $this->token->getPassword(),
+            'orderID' => $transaction->getPayment()->getPaymentInstruction()->getId(),
+        ));
+
+        $transaction->setReferenceNumber($response->getPaymentId());
+
+        if (!$response->isSuccessful()) {
+            $transaction->setResponseCode($response->getErrorCode());
+            $transaction->setReasonCode($response->getErrorDescription());
+
+            $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
+            $ex->setFinancialTransaction($transaction);
+
+            throw $ex;
+        }
+
+        return $response;
     }
 
     /**
@@ -163,53 +303,39 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @param array $parameters
      *
      * @throws CommunicationException
+     * @return \ETS\Payment\OgoneBundle\Direct\ResponseInterface
      */
     public function sendApiRequest(array $parameters)
     {
-        $request = new Request(
-            $this->ogoneUrl,
-            'POST',
-            $parameters
-        );
-
+        $request = new Request($this->getDirectQueryUrl(), 'POST', $parameters);
         $response = $this->request($request);
 
         if (200 !== $response->getStatus()) {
             throw new CommunicationException('The API request was not successful (Status: '.$response->getStatus().'): '.$response->getContent());
         }
+
+        $xml = new \SimpleXMLElement($response->getContent());
+
+        return new Response($xml);
     }
 
     /**
-     * Generate ShaIn String using payment parameters
-     *
-     * @param array $parameters
+     * @return string
      */
-    public function getShaInString(array $parameters)
+    protected function getStandardOrderUrl()
     {
-        $shainString ='';
-        krsort($parameters);
-
-        foreach ($parameters as $key => $parameter) {
-            $shainString = $shainString.$key.'='.$parameter.$this->token->getShain();
-        }
-
-        return sha1($shainString);
+        return $this->debug
+            ? 'https://secure.ogone.com/ncol/test/orderstandard.asp'
+            : 'https://secure.ogone.com/ncol/prod/orderstandard.asp';
     }
 
     /**
-     * Get payment info (used to fill ogone request form)
-     *
-     * @param FinancialTransactionInterface $transaction
+     * @return string
      */
-    public function getPaymentFormArray(FinancialTransactionInterface $transaction)
+    protected function getDirectQueryUrl()
     {
-        $paymentInfo = array();
-
-        $paymentInfo['PSPID']    = $this->token->getPspid();
-        $paymentInfo['AMOUNT']   = $transaction->getRequestedAmount();
-        $paymentInfo['CURRENCY'] = $transaction->getPayment()->getPaymentInstruction()->getCurrency();
-        $paymentInfo['SHASIGN']  = $this->getShaInString($paymentInfo);
-
-        return $paymentInfo;
+        return $this->debug
+            ? 'https://secure.ogone.com/ncol/test/querydirect.asp'
+            : 'https://secure.ogone.com/ncol/prod/querydirect.asp';
     }
 }

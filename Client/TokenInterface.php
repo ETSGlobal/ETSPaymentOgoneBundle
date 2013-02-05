@@ -33,6 +33,13 @@ interface TokenInterface
     function getPspid();
 
     /**
+     * Return password
+     *
+     * @return string
+     */
+    function getPassword();
+
+    /**
      * Return the sha in
      *
      * @return string
