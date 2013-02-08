@@ -98,7 +98,7 @@ class Response implements ResponseInterface
      */
     public function getPaymentId()
     {
-        return $this->xml->PAYID;
+        return (string) $this->xml->attributes()->PAYID;
     }
 
     /**
@@ -114,7 +114,7 @@ class Response implements ResponseInterface
      */
     public function getAmount()
     {
-        return $this->xml->amount;
+        return (float) $this->xml->attributes()->amount;
     }
 
     /**
@@ -122,7 +122,7 @@ class Response implements ResponseInterface
      */
     public function getStatus()
     {
-        return $this->xml->STATUS;
+        return (int) $this->xml->attributes()->STATUS;
     }
 
     /**
@@ -130,7 +130,7 @@ class Response implements ResponseInterface
      */
     public function getErrorCode()
     {
-        return $this->xml->NCERROR;
+        return (string) $this->xml->attributes()->NCERROR;
     }
 
     /**
@@ -138,6 +138,6 @@ class Response implements ResponseInterface
      */
     public function getErrorDescription()
     {
-        return $this->xml->NCERRORPLUS;
+        return (string) $this->xml->attributes()->NCERRORPLUS;
     }
 }

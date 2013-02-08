@@ -15,8 +15,7 @@ use JMS\Payment\CoreBundle\Plugin\PluginInterface,
 
 use ETS\Payment\OgoneBundle\Client\TokenInterface,
     ETS\Payment\OgoneBundle\Direct\Response,
-    ETS\Payment\OgoneBundle\Tools\Shain,
-    ETS\Payment\OgoneBundle\Tools\Shaout;
+    ETS\Payment\OgoneBundle\Tools\ShaIn;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -47,14 +46,9 @@ class OgoneGatewayPlugin extends GatewayPlugin
     protected $token;
 
     /**
-     * @var Shain
+     * @var ShaIn
      */
     protected $shaInTool;
-
-    /**
-     * @var Shaout
-     */
-    protected $shaOutTool;
 
     /**
      * @var Configuration\Redirection
@@ -68,19 +62,17 @@ class OgoneGatewayPlugin extends GatewayPlugin
 
     /**
      * @param TokenInterface            $token
-     * @param Shain                     $shaInTool
-     * @param Shaout                    $shaOutTool
+     * @param ShaIn                     $shaInTool
      * @param Configuration\Redirection $redirectionConfig
      * @param Configuration\Design      $designConfig
      * @param boolean                   $debug
      */
-    public function __construct(TokenInterface $token, Shain $shaInTool, Shaout $shaOutTool, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug)
+    public function __construct(TokenInterface $token, ShaIn $shaInTool, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug)
     {
         parent::__construct($debug);
 
         $this->token      = $token;
         $this->shaInTool  = $shaInTool;
-        $this->shaOutTool = $shaOutTool;
         $this->redirectionConfig = $redirectionConfig;
         $this->designConfig = $designConfig;
     }
@@ -99,7 +91,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
      public function approveAndDeposit(FinancialTransactionInterface $transaction, $retry)
      {
-        if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
+         if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
             throw $this->createRedirectActionException($transaction);
         }
 
@@ -122,6 +114,10 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     public function approve(FinancialTransactionInterface $transaction, $retry)
     {
+        if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
+            throw $this->createRedirectActionException($transaction);
+        }
+
         $response = $this->requestDoDirectRequest($transaction);
 
         if ($response->isApproving()) {
@@ -155,6 +151,10 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     public function deposit(FinancialTransactionInterface $transaction, $retry)
     {
+        if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
+            throw $this->createRedirectActionException($transaction);
+        }
+
         $response = $this->requestDoDirectRequest($transaction);
 
         if ($response->isDepositing()) {
@@ -247,7 +247,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
         }
 
         $parameters = array_merge(
-            $datas,
+            array_map(array('ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin', 'normalize'), $datas),
             $this->redirectionConfig->getRequestParameters($extendedData),
             $this->designConfig->getRequestParameters($extendedData),
             array(
@@ -337,5 +337,17 @@ class OgoneGatewayPlugin extends GatewayPlugin
         return $this->debug
             ? 'https://secure.ogone.com/ncol/test/querydirect.asp'
             : 'https://secure.ogone.com/ncol/prod/querydirect.asp';
+    }
+
+    /**
+     * Remove all unwanted caracters
+     *
+     * @param string $text
+     *
+     * @return string
+     */
+    public static function normalize($text)
+    {
+        return preg_replace('/\pM*/u', '', normalizer_normalize($text, \Normalizer::FORM_D));
     }
 }

@@ -40,7 +40,7 @@ class Redirection
      * @param string $cancelUrl
      * @param string $backUrl
      */
-    public function __construct($acceptUrl, $declineUrl, $exceptionUrl, $cancelUrl, $backUrl)
+    public function __construct($acceptUrl = null, $declineUrl = null, $exceptionUrl = null, $cancelUrl = null, $backUrl = null)
     {
         $this->acceptUrl = $acceptUrl;
         $this->declineUrl = $declineUrl;

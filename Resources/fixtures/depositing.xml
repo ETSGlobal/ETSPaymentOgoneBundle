@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<ncresponse
+orderID="99999"
+PAYID="1111111"
+NCSTATUS="0"
+NCERROR=""
+NCERRORPLUS=""
+ACCEPTANCE="12345"
+STATUS="91"
+ECI="7"
+amount="125"
+currency="EUR"
+PM="CreditCard"
+BRAND="VISA"
+/>

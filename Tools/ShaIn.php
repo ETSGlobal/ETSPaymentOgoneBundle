@@ -92,7 +92,7 @@ class ShaIn
         'WIN3DS', 'WITHROOT'
     );
 
-    protected static $allowedWillcard = array(
+    protected static $allowedWildcard = array(
         'AIBOOKIND', 'AICARRIER', 'AICLASS', 'AIDESTCITY',
         'AIDESTCITYL', 'AIEXTRAPASNAME', 'AIFLDATE',
         'AIFLNUM', 'AIORCITY',
@@ -140,7 +140,7 @@ class ShaIn
             // All parameter names should be in UPPERCASE (to avoid any case confusion).
             $key = strtoupper($key);
 
-            if (in_array($key, static::$allowed, true) || $this->isWillcarded($key)) {
+            if (in_array($key, static::$allowed, true) || $this->isWildcarded($key)) {
                 $shainString .= $key.'='.$value.$this->token->getShain();
             }
         }
@@ -153,9 +153,9 @@ class ShaIn
      *
      * @return boolean
      */
-    protected function isWillcarded($key)
+    protected function isWildcarded($key)
     {
-        foreach (static::$allowedWillcard as $allowed) {
+        foreach (static::$allowedWildcard as $allowed) {
             if (strpos($key, $allowed) !== false) {
                 return true;
             }

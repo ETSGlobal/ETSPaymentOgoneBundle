@@ -9,7 +9,7 @@
         <parameter key="payment.form.ogone_gateway.class">ETS\Payment\OgoneBundle\Form\GatewayType</parameter>
         <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
 
-        <parameter key="payment.ogone.tools.shain.class">ETS\Payment\OgoneBundle\Tools\Shain</parameter>
+        <parameter key="payment.ogone.tools.shain.class">ETS\Payment\OgoneBundle\Tools\ShaIn</parameter>
         <parameter key="payment.ogone.tools.shaout.class">ETS\Payment\OgoneBundle\Tools\Shaout</parameter>
 
         <parameter key="payment.ogone.plugin.configuration.redirection.class">ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection</parameter>
@@ -55,7 +55,6 @@
         <service id="payment.plugin.ogone_gateway" class="%payment.plugin.ogone.class%">
             <argument type="service" id="payment.ogone.client.token" />
             <argument type="service" id="payment.ogone.tools.shain" />
-            <argument type="service" id="payment.ogone.tools.shaout" />
             <argument type="service" id="payment.ogone.plugin.configuration.redirection" />
             <argument type="service" id="payment.ogone.plugin.configuration.design" />
             <argument>%payment.ogone.debug%</argument>

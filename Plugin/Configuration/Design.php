@@ -45,7 +45,7 @@ class Design
      * @param string $cancelUrl
      * @param string $backUrl
      */
-    public function __construct($title, $bgColor, $txtColor, $tblBgColor, $tblTxtColor, $buttonBgColor, $buttonTxtColor, $fontType, $logo)
+    public function __construct($title = null, $bgColor = null, $txtColor = null, $tblBgColor = null, $tblTxtColor = null, $buttonBgColor = null, $buttonTxtColor = null, $fontType = null, $logo = null)
     {
         $this->title          = $title;
         $this->bgColor        = $bgColor;
