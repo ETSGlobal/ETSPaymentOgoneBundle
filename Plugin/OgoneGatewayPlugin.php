@@ -5,6 +5,7 @@ namespace ETS\Payment\OgoneBundle\Plugin;
 use JMS\Payment\CoreBundle\Plugin\PluginInterface,
     JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException,
     JMS\Payment\CoreBundle\Plugin\Exception\FinancialException,
+    JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException,
     JMS\Payment\CoreBundle\BrowserKit\Request,
     JMS\Payment\CoreBundle\Plugin\ErrorBuilder,
     JMS\Payment\CoreBundle\Plugin\Exception\Action\VisitUrl,
@@ -91,7 +92,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
      public function approveAndDeposit(FinancialTransactionInterface $transaction, $retry)
      {
-         if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
+        if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
             throw $this->createRedirectActionException($transaction);
         }
 
@@ -125,10 +126,12 @@ class OgoneGatewayPlugin extends GatewayPlugin
         }
 
         if (!$response->isApproved()) {
-            $ex = new FinancialException(sprintf('Payment status is not valid for approvment: ', $response->getStatus()));
+            $ex = new FinancialException(sprintf('Payment status "%s" is not valid for approvment', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
             $transaction->setReasonCode($response->getErrorDescription());
+
+            throw $ex;
         }
 
         $transaction->setProcessedAmount($response->getAmount());
@@ -162,10 +165,12 @@ class OgoneGatewayPlugin extends GatewayPlugin
         }
 
         if (!$response->isDeposited()) {
-            $ex = new FinancialException(sprintf('Payment status is not valid for depositing: ', $response->getStatus()));
+            $ex = new FinancialException(sprintf('Payment status "%s" is not valid for depositing', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
             $transaction->setReasonCode($response->getErrorDescription());
+
+            throw $ex;
         }
 
         $transaction->setProcessedAmount($response->getAmount());
@@ -277,7 +282,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @throws FinancialException
      * @return \ETS\Payment\OgoneBundle\Direct\ResponseInterface
      */
-    public function requestDoDirectRequest(FinancialTransactionInterface $transaction)
+    protected function requestDoDirectRequest(FinancialTransactionInterface $transaction)
     {
         $response = $this->sendApiRequest(array(
             'PSPID' => $this->token->getPspid(),
@@ -309,7 +314,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @throws CommunicationException
      * @return \ETS\Payment\OgoneBundle\Direct\ResponseInterface
      */
-    public function sendApiRequest(array $parameters)
+    protected function sendApiRequest(array $parameters)
     {
         $request = new Request($this->getDirectQueryUrl(), 'POST', $parameters);
         $response = $this->request($request);
