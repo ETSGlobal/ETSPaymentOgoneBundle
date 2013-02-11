@@ -1,4 +1,4 @@
-ETSPaymentOgoneBundle [![Build Status](https://secure.travis-ci.org/ClementGautier/ETSPaymentOgoneBundle.png?branch=master)](http://travis-ci.org/ClementGautier/ETSPaymentOgoneBundle)
+ETSPaymentOgoneBundle [![Build Status](https://secure.travis-ci.org/ETSGlobal/ETSPaymentOgoneBundle.png?branch=master)](http://travis-ci.org/ETSGlobal/ETSPaymentOgoneBundle)
 =====================
 
 A Ogone provider for JMSPaymentCoreBundle
