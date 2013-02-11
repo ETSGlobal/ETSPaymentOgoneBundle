@@ -68,9 +68,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
                 $this->fail('The exception should contain a VisitUrl action.');
             }
 
-            $expectedVisitUrl = sprintf('https://secure.ogone.com/ncol/test/orderstandard.asp');
-
-            $this->assertEquals($expectedVisitUrl.'?AMOUNT=4200&CURRENCY=EUR&LANGUAGE=en_US&SHASIGN=4B2119B2245E0D183690B13160034044452384AD', $action->getUrl());
+            $this->assertRegExp('#https://secure.ogone.com/ncol/test/orderstandard.asp\?AMOUNT=4200&CURRENCY=EUR&LANGUAGE=en_US&ORDERID=.*&SHASIGN=.*#', $action->getUrl());
         }
 
         return $transaction;
