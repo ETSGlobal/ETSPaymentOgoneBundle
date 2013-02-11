@@ -232,8 +232,9 @@ class OgoneGatewayPlugin extends GatewayPlugin
 
         $instruction = $transaction->getPayment()->getPaymentInstruction();
         $extendedData = $transaction->getExtendedData();
-        $datas = array();
+        $extendedData->set('ORDERID', uniqid());
 
+        $datas = array();
         $additionalDatas = array(
             // Client
             "CN", "EMAIL", "OWNERZIP", "OWNERADDRESS", "OWNERCTY",
@@ -252,7 +253,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             $this->designConfig->getRequestParameters($extendedData),
             array(
                 "PSPID"    => $this->token->getPspid(),
-                "ORDERID"  => $instruction->getId(),
+                "ORDERID"  => $extendedData->get('ORDERID'),
                 "AMOUNT"   => $transaction->getRequestedAmount() * 100,
                 "CURRENCY" => $instruction->getCurrency(),
                 "LANGUAGE" => $extendedData->get('lang')
@@ -280,8 +281,9 @@ class OgoneGatewayPlugin extends GatewayPlugin
     {
         $response = $this->sendApiRequest(array(
             'PSPID' => $this->token->getPspid(),
-            'PSWD' => $this->token->getPassword(),
-            'orderID' => $transaction->getPayment()->getPaymentInstruction()->getId(),
+            'USERID' => $this->token->getApiUser(),
+            'PSWD' => $this->token->getApiPassword(),
+            'ORDERID' => $transaction->getExtendedData()->get('ORDERID'),
         ));
 
         $transaction->setReferenceNumber($response->getPaymentId());
@@ -315,8 +317,6 @@ class OgoneGatewayPlugin extends GatewayPlugin
         if (200 !== $response->getStatus()) {
             throw new CommunicationException('The API request was not successful (Status: '.$response->getStatus().'): '.$response->getContent());
         }
-
-        die(var_dump($response->getContent()));
 
         $xml = new \SimpleXMLElement($response->getContent());
 

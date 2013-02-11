@@ -3,8 +3,11 @@
 namespace ETS\Payment\OgoneBundle\Plugin;
 
 use Symfony\Component\BrowserKit\Response;
+
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
 use ETS\Payment\OgoneBundle\Tools\ShaIn;
+
+use JMS\Payment\CoreBundle\BrowserKit\Request;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>

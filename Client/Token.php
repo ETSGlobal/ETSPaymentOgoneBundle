@@ -28,20 +28,23 @@ use ETS\Payment\OgoneBundle\Client\TokenInterface;
 class Token implements TokenInterface
 {
     protected $pspid;
-    protected $password;
+    protected $apiPassword;
+    protected $apiUser;
     protected $shain;
     protected $shaout;
 
     /**
-     * @param string $pspid    The PSPID
-     * @param string $password The user password
-     * @param string $shain    The sha in
-     * @param string $shaout   The sha out
+     * @param string $pspid       The PSPID
+     * @param string $apiUser     The API user
+     * @param string $apiPassword The API user password
+     * @param string $shain       The sha in
+     * @param string $shaout      The sha out
      */
-    public function __construct($pspid, $password, $shain, $shaout)
+    public function __construct($pspid, $apiUser, $apiPassword, $shain, $shaout)
     {
         $this->pspid = $pspid;
-        $this->password = $password;
+        $this->apiUser = $apiUser;
+        $this->apiPassword = $apiPassword;
         $this->shain = $shain;
         $this->shaout = $shaout;
     }
@@ -57,9 +60,17 @@ class Token implements TokenInterface
     /**
      * @return string
      */
-    public function getPassword()
+    public function getApiUser()
     {
-        return $this->password;
+        return $this->apiUser;
+    }
+
+    /**
+     * @return string
+     */
+    public function getApiPassword()
+    {
+        return $this->apiPassword;
     }
 
     /**

@@ -19,7 +19,8 @@
     <services>
         <service id="payment.ogone.client.token" class="%payment.ogone.client.token.class%">
             <argument>%payment.ogone.pspid%</argument>
-            <argument>%payment.ogone.password%</argument>
+            <argument>%payment.ogone.api.user%</argument>
+            <argument>%payment.ogone.api.password%</argument>
             <argument>%payment.ogone.shain%</argument>
             <argument>%payment.ogone.shaout%</argument>
         </service>

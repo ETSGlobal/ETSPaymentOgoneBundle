@@ -33,11 +33,18 @@ interface TokenInterface
     function getPspid();
 
     /**
-     * Return password
+     * Return the API user password
      *
      * @return string
      */
-    function getPassword();
+    function getApiPassword();
+
+    /**
+     * Return the API user id
+     *
+     * @return string
+     */
+    function getApiUser();
 
     /**
      * Return the sha in

@@ -45,10 +45,12 @@ class ETSPaymentOgoneExtension extends Extension
         $xmlLoader->load('services.xml');
 
         $container->setParameter('payment.ogone.pspid', $config['pspid']);
-        $container->setParameter('payment.ogone.password', $config['password']);
         $container->setParameter('payment.ogone.shain', $config['shain']);
         $container->setParameter('payment.ogone.shaout', $config['shaout']);
         $container->setParameter('payment.ogone.debug', $config['debug']);
+
+        $container->setParameter('payment.ogone.api.user', $config['api']['user']);
+        $container->setParameter('payment.ogone.api.password', $config['api']['password']);
 
         $container->setParameter('payment.ogone.redirection.accept_url', $config['redirection']['accept_url']);
         $container->setParameter('payment.ogone.redirection.decline_url', $config['redirection']['decline_url']);
