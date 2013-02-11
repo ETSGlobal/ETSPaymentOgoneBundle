@@ -261,6 +261,8 @@ class OgoneGatewayPlugin extends GatewayPlugin
 
         $parameters['SHASIGN'] = $this->shaInTool->generate($parameters);
 
+        ksort($parameters);
+
         $actionRequest->setAction(new VisitUrl($this->getStandardOrderUrl() . '?' . http_build_query($parameters)));
 
         throw $actionRequest;
@@ -313,6 +315,8 @@ class OgoneGatewayPlugin extends GatewayPlugin
         if (200 !== $response->getStatus()) {
             throw new CommunicationException('The API request was not successful (Status: '.$response->getStatus().'): '.$response->getContent());
         }
+
+        die(var_dump($response->getContent()));
 
         $xml = new \SimpleXMLElement($response->getContent());
 
