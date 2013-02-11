@@ -33,14 +33,16 @@ class TokenTest extends \PHPUnit_Framework_TestCase
     public function testConstruct()
     {
         $pspid = 'foobar';
-        $password = 'foopass';
+        $apiPassword = 'fooapipass';
+        $apiUser = 'fooapiuser';
         $shain = 'fooshain';
         $shaout= 'fooshaout';
 
-        $token = new Token($pspid, $password, $shain, $shaout);
+        $token = new Token($pspid, $apiUser, $apiPassword, $shain, $shaout);
 
         $this->assertEquals($pspid, $token->getPspid());
-        $this->assertEquals($password, $token->getPassword());
+        $this->assertEquals($apiUser, $token->getApiUser());
+        $this->assertEquals($apiPassword, $token->getApiPassword());
         $this->assertEquals($shain, $token->getShain());
         $this->assertEquals($shaout, $token->getShaout());
     }

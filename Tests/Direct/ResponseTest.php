@@ -81,7 +81,6 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(ResponseInterface::AUTHORIZED, $response->getStatus());
         $this->assertEmpty($response->getErrorCode());
-        $this->assertEmpty($response->getErrorDescription());
     }
 
     /**
@@ -99,7 +98,6 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(ResponseInterface::PAYMENT_PROCESSING, $response->getStatus());
         $this->assertEmpty($response->getErrorCode());
-        $this->assertEmpty($response->getErrorDescription());
     }
 
     /**
@@ -117,7 +115,6 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(ResponseInterface::PAYMENT_REQUESTED, $response->getStatus());
         $this->assertEmpty($response->getErrorCode());
-        $this->assertEmpty($response->getErrorDescription());
     }
 
     /**
