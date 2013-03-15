@@ -54,7 +54,7 @@ class Response implements ResponseInterface
      */
     public function isDepositing()
     {
-        return in_array($this->getStatus(), array(
+        if (in_array($this->getStatus(), array(
             static::PAYMENT_UNCERTAIN,
             static::PAYMENT_PROCESSING,
             static::PAYMENT_PROCESSING_1,
@@ -62,7 +62,11 @@ class Response implements ResponseInterface
             static::PAYMENT_PROCESSING_3,
             static::WAITING_CLIENT_PAYMENT,
             static::STORED,
-        ), true);
+        ), true)) {
+            return true;
+        }
+
+        return $this->isApproved();
     }
 
     /**
@@ -70,15 +74,15 @@ class Response implements ResponseInterface
      */
     public function isApproved()
     {
-        // When the payment is already in a depositing state its mean that
-        // it have already been approved
-        if ($this->isDeposited() || $this->isDepositing()) {
+        if (in_array($this->getStatus(), array(
+            static::AUTHORIZED,
+        ), true)) {
             return true;
         }
 
-        return in_array($this->getStatus(), array(
-            static::AUTHORIZED,
-        ), true);
+        // When the payment is already in a depositing state its mean that
+        // it have already been approved
+        return ($this->isDeposited() || $this->isDepositing());
     }
 
     /**
