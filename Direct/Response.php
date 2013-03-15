@@ -43,10 +43,7 @@ class Response implements ResponseInterface
      */
     public function isDeposited()
     {
-        return in_array($this->getStatus(), array(
-            static::PAYMENT_PROCESSED,
-            static::PAYMENT_REQUESTED,
-        ), true);
+        return in_array($this->getStatus(), $this->getDepositedStatuses(), true);
     }
 
     /**
@@ -54,14 +51,11 @@ class Response implements ResponseInterface
      */
     public function isDepositing()
     {
-        if (in_array($this->getStatus(), array(
-            static::PAYMENT_UNCERTAIN,
-            static::PAYMENT_PROCESSING,
-            static::PAYMENT_PROCESSING_1,
-            static::PAYMENT_PROCESSING_2,
-            static::PAYMENT_PROCESSING_3,
-            static::WAITING_CLIENT_PAYMENT,
-            static::STORED,
+        // When the payment is approved, it is in the depositing state
+
+        if (in_array($this->getStatus(), array_merge(
+            $this->getApprovedStatuses(),
+            $this->getDepositingStatuses()
         ), true)) {
             return true;
         }
@@ -74,15 +68,14 @@ class Response implements ResponseInterface
      */
     public function isApproved()
     {
-        if (in_array($this->getStatus(), array(
-            static::AUTHORIZED,
-        ), true)) {
-            return true;
-        }
-
         // When the payment is already in a depositing state its mean that
         // it have already been approved
-        return ($this->isDeposited() || $this->isDepositing());
+
+        return in_array($this->getStatus(), array_merge(
+            $this->getApprovedStatuses(),
+            $this->getDepositedStatuses(),
+            $this->getDepositingStatuses()
+        ), true);
     }
 
     /**
@@ -90,11 +83,7 @@ class Response implements ResponseInterface
      */
     public function isApproving()
     {
-        return in_array($this->getStatus(), array(
-            static::AUTHORIZATION_MANUALLY,
-            static::AUTHORIZATION_UNKNOWN,
-            static::AUTHORIZATION_WAITING,
-        ), true);
+        return in_array($this->getStatus(), $this->getApprovingStatuses(), true);
     }
 
     /**
@@ -143,5 +132,54 @@ class Response implements ResponseInterface
     public function getErrorDescription()
     {
         return (string) $this->xml->attributes()->NCERRORPLUS;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getApprovingStatuses()
+    {
+        return array(
+            static::AUTHORIZATION_MANUALLY,
+            static::AUTHORIZATION_UNKNOWN,
+            static::AUTHORIZATION_WAITING,
+        );
+    }
+
+    /**
+     * @return array
+     */
+    protected function getApprovedStatuses()
+    {
+        return array(
+            static::AUTHORIZED,
+        );
+    }
+
+    /**
+     * @return array
+     */
+    protected function getDepositingStatuses()
+    {
+        return array(
+            static::PAYMENT_UNCERTAIN,
+            static::PAYMENT_PROCESSING,
+            static::PAYMENT_PROCESSING_1,
+            static::PAYMENT_PROCESSING_2,
+            static::PAYMENT_PROCESSING_3,
+            static::WAITING_CLIENT_PAYMENT,
+            static::STORED,
+        );
+    }
+
+    /**
+     * @return array
+     */
+    protected function getDepositedStatuses()
+    {
+        return array(
+            static::PAYMENT_PROCESSED,
+            static::PAYMENT_REQUESTED,
+        );
     }
 }
