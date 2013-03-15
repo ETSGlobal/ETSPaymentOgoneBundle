@@ -77,7 +77,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($response->isApproved());
         $this->assertFalse($response->isApproving());
         $this->assertFalse($response->isDeposited());
-        $this->assertFalse($response->isDepositing());
+        $this->assertTrue($response->isDepositing());
 
         $this->assertEquals(ResponseInterface::AUTHORIZED, $response->getStatus());
         $this->assertEmpty($response->getErrorCode());

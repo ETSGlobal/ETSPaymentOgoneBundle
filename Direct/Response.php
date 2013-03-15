@@ -53,14 +53,10 @@ class Response implements ResponseInterface
     {
         // When the payment is approved, it is in the depositing state
 
-        if (in_array($this->getStatus(), array_merge(
+        return in_array($this->getStatus(), array_merge(
             $this->getApprovedStatuses(),
             $this->getDepositingStatuses()
-        ), true)) {
-            return true;
-        }
-
-        return $this->isApproved();
+        ), true);
     }
 
     /**
