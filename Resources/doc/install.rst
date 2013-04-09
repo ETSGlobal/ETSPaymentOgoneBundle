@@ -13,10 +13,13 @@ Configuration
     // YAML
     ets_payment_ogone:
         pspid:     Your seller id
-        password:  Your seller password
         shain:     Your SHA-1 IN passphrase
         shaout:    Your SHA-1 IN passphrase
         debug:     Set it to true for TEST environment
+
+        api:
+            user: Your api user
+            password: Your api password
 
         design:
             title:
