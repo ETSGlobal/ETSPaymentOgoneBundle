@@ -41,7 +41,7 @@ class Configuration implements ConfigurationInterface
                     ->scalarNode('pspid')->isRequired()->cannotBeEmpty()->end()
                     ->scalarNode('shain')->isRequired()->cannotBeEmpty()->end()
                     ->scalarNode('shaout')->isRequired()->cannotBeEmpty()->end()
-                    ->booleanNode('debug')->defaultValue('%kernel.debug%')->cannotBeEmpty()->end()
+                    ->booleanNode('debug')->defaultValue('%kernel.debug%')->end()
                     ->arrayNode('api')
                         ->children()
                             ->scalarNode('user')->isRequired()->cannotBeEmpty()->end()
