@@ -43,6 +43,7 @@ class Configuration implements ConfigurationInterface
                     ->scalarNode('shaout')->isRequired()->cannotBeEmpty()->end()
                     ->booleanNode('debug')->defaultValue('%kernel.debug%')->end()
                     ->arrayNode('api')
+                        ->isRequired()
                         ->children()
                             ->scalarNode('user')->isRequired()->cannotBeEmpty()->end()
                             ->scalarNode('password')->isRequired()->cannotBeEmpty()->end()
