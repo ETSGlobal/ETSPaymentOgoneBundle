@@ -38,3 +38,17 @@ Configuration
             exception_url:
             cancel_url:
             back_url:
+
+Additional informations
+-------------
+**API:**
+The User API is not your main user account.
+You have to create a new user account into Ogone Administration -> Users -> Create new user.
+Into the creation form you have to select Admin profile and pick the box User "API".
+
+**Design:**
+All design data must be written with quotation marks
+
+**Logo:**
+According to the Ogone Technical Support, the logo must be located behind a https URL.
+If you don't have https, you can store your logo into the Ogone Administration. Image hosting is an option so you need to activate it into Configuration -> Account -> Your options (You will find many hosting options depending on your image size). I recommend to contact sales support to know the cost of theses options (They are all available at 0€ only into test environment).
