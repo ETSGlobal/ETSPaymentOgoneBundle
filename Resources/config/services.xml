@@ -59,6 +59,7 @@
             <argument type="service" id="payment.ogone.plugin.configuration.redirection" />
             <argument type="service" id="payment.ogone.plugin.configuration.design" />
             <argument>%payment.ogone.debug%</argument>
+            <argument>%payment.ogone.utf8%</argument>
             <tag name="payment.plugin"/>
         </service>
 
