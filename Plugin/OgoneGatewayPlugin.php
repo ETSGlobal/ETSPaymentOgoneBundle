@@ -340,12 +340,11 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     protected function getStandardOrderUrl()
     {
-        $url = 'https://secure.ogone.com/ncol/';
-        $url .= $this->debug ? 'test' : 'prod';
-        $url .= '/orderstandard';
-        $url .= $this->utf8 ? '_utf8.asp' : '.asp';
-
-        return $url;
+        return sprintf(
+            'https://secure.ogone.com/ncol/%s/orderstandard%s.asp',
+            $this->debug ? 'test' : 'prod',
+            $this->utf8 ? '_utf8' : ''
+        );
     }
 
     /**
@@ -353,12 +352,11 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     protected function getDirectQueryUrl()
     {
-        $url = 'https://secure.ogone.com/ncol/';
-        $url .= $this->debug ? 'test' : 'prod';
-        $url .= '/querydirect';
-        $url .= $this->utf8 ? '_utf8.asp' : '.asp';
-
-        return $url;
+        return sprintf(
+            'https://secure.ogone.com/ncol/%s/querydirect%s.asp',
+            $this->debug ? 'test' : 'prod',
+            $this->utf8 ? '_utf8' : ''
+        );
     }
 
     /**
