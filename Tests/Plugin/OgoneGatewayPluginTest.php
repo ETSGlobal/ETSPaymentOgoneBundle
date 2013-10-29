@@ -43,23 +43,26 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     public function provideTestTestRequestUrls()
     {
         return array(
-            array(true, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/test/orderstandard.asp'),
-            array(false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard.asp'),
-            array(true, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/test/querydirect.asp'),
-            array(false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect.asp'),
+            array(true, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/test/orderstandard.asp'),
+            array(false, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard.asp'),
+            array(false, true, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard_utf8.asp'),
+            array(true, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/test/querydirect.asp'),
+            array(false, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect.asp'),
+            array(false, true, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect_utf8.asp'),
         );
     }
 
     /**
      * @param boolean $debug    Debug mode
+     * @param boolean $utf8     UTF8 mode
      * @param string  $method   Methd to test
      * @param string  $expected Expected result
      *
      * @dataProvider provideTestTestRequestUrls
      */
-    public function testTestRequestUrls($debug, $method, $expected)
+    public function testTestRequestUrls($debug, $utf8, $method, $expected)
     {
-        $plugin = $this->createPluginMock($debug);
+        $plugin = $this->createPluginMock($debug, $utf8);
 
         $reflectionMethod = new \ReflectionMethod('ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin', $method);
         $reflectionMethod->setAccessible(true);
@@ -136,7 +139,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testApproveAndDepositTrigerApproveAndDeposit(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock(true, 'deposited');
+        $plugin = $this->createPluginMock(true, false, 'deposited');
 
         $plugin->approveAndDeposit($transaction, false);
 
@@ -154,7 +157,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testApprovingTransaction(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock(true, 'approving');
+        $plugin = $this->createPluginMock(true, false, 'approving');
 
         $plugin->approve($transaction, false);
     }
@@ -166,7 +169,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testApprovedTransaction(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock(true, 'approved');
+        $plugin = $this->createPluginMock(true, false, 'approved');
 
         $plugin->approve($transaction, false);
 
@@ -184,7 +187,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testDepositingTransaction(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock(true, 'depositing');
+        $plugin = $this->createPluginMock(true, false, 'depositing');
 
         $plugin->deposit($transaction, false);
     }
@@ -196,7 +199,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testDepositedTransaction(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock(true, 'deposited');
+        $plugin = $this->createPluginMock(true, false, 'deposited');
 
         $plugin->deposit($transaction, false);
 
@@ -214,7 +217,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testApproveWithUnknowStateGenerateAnException(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock(true, 'not_managed');
+        $plugin = $this->createPluginMock(true, false, 'not_managed');
 
         $plugin->approve($transaction, false);
     }
@@ -228,7 +231,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testDepositWithUnknowStateGenerateAnException(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock(true, 'not_managed');
+        $plugin = $this->createPluginMock(true, false, 'not_managed');
 
         $plugin->deposit($transaction, false);
     }
@@ -242,7 +245,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidStateGenerateAnException(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock(true, 'invalid');
+        $plugin = $this->createPluginMock(true, false, 'invalid');
 
         $plugin->deposit($transaction, false);
     }
@@ -256,7 +259,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testSendApiRequestFail(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock(true, '500');
+        $plugin = $this->createPluginMock(true, false, '500');
 
         $plugin->approve($transaction, false);
     }
@@ -267,7 +270,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidCheckPaymentInstruction()
     {
-        $plugin = $this->createPluginMock(true, 'not_managed');
+        $plugin = $this->createPluginMock(true, false, 'not_managed');
         $transaction = $this->createTransaction(42, 'EUR');
 
         $plugin->checkPaymentInstruction($transaction->getPayment()->getPaymentInstruction());
@@ -278,7 +281,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidCheckPaymentInstruction()
     {
-        $plugin = $this->createPluginMock(true, 'not_managed');
+        $plugin = $this->createPluginMock(true, false, 'not_managed');
         $transaction = $this->createTransaction(42, 'EUR');
 
         $transaction->getExtendedData()->set('lang', 'en_US');
@@ -295,7 +298,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testProcesses()
     {
-        $plugin = $this->createPluginMock(true, 'not_managed');
+        $plugin = $this->createPluginMock(true, false, 'not_managed');
 
         $this->assertTrue($plugin->processes('ogone_gateway'));
         $this->assertFalse($plugin->processes('paypal_express_checkout'));
@@ -327,11 +330,11 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @return OgoneGatewayPlugin
      */
-    protected function createPluginMock($debug = false, $state = '')
+    protected function createPluginMock($debug = false, $utf8 = false, $state = '')
     {
         $tokenMock = $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
         $filename = sprintf(__DIR__ . '/../../Resources/fixtures/%s.xml', $state);
 
-        return new OgoneGatewayPluginMock($tokenMock, new ShaIn($tokenMock), new Redirection(), new Design(), $debug, $filename);
+        return new OgoneGatewayPluginMock($tokenMock, new ShaIn($tokenMock), new Redirection(), new Design(), $debug, $utf8, $filename);
     }
 }

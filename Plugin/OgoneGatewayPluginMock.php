@@ -43,11 +43,12 @@ class OgoneGatewayPluginMock extends OgoneGatewayPlugin
      * @param Configuration\Redirection $redirectionConfig
      * @param Configuration\Design      $designConfig
      * @param boolean                   $debug
+     * @param boolean                   $utf8
      * @param string                    $filename
      */
-    public function __construct(TokenInterface $token, ShaIn $shaInTool, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $filename)
+    public function __construct(TokenInterface $token, ShaIn $shaInTool, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8, $filename)
     {
-        parent::__construct($token, $shaInTool, $redirectionConfig, $designConfig, $debug);
+        parent::__construct($token, $shaInTool, $redirectionConfig, $designConfig, $debug, $utf8);
 
         $this->filename = $filename;
     }
@@ -68,6 +69,5 @@ class OgoneGatewayPluginMock extends OgoneGatewayPlugin
         } else {
             return new Response('', 500);
         }
-
     }
 }

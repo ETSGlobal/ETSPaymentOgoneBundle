@@ -48,6 +48,7 @@ class ETSPaymentOgoneExtension extends Extension
         $container->setParameter('payment.ogone.shain', $config['shain']);
         $container->setParameter('payment.ogone.shaout', $config['shaout']);
         $container->setParameter('payment.ogone.debug', $config['debug']);
+        $container->setParameter('payment.ogone.utf8', $config['utf8']);
 
         $container->setParameter('payment.ogone.api.user', $config['api']['user']);
         $container->setParameter('payment.ogone.api.password', $config['api']['password']);

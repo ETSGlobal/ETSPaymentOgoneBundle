@@ -62,20 +62,27 @@ class OgoneGatewayPlugin extends GatewayPlugin
     protected $designConfig;
 
     /**
+     * @var boolean
+     */
+    protected $utf8;
+
+    /**
      * @param TokenInterface            $token
      * @param ShaIn                     $shaInTool
      * @param Configuration\Redirection $redirectionConfig
      * @param Configuration\Design      $designConfig
      * @param boolean                   $debug
+     * @param boolean                   $utf8
      */
-    public function __construct(TokenInterface $token, ShaIn $shaInTool, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug)
+    public function __construct(TokenInterface $token, ShaIn $shaInTool, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8)
     {
         parent::__construct($debug);
 
-        $this->token      = $token;
-        $this->shaInTool  = $shaInTool;
+        $this->token             = $token;
+        $this->shaInTool         = $shaInTool;
         $this->redirectionConfig = $redirectionConfig;
-        $this->designConfig = $designConfig;
+        $this->designConfig      = $designConfig;
+        $this->utf8              = $utf8;
     }
 
     /**
@@ -333,9 +340,12 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     protected function getStandardOrderUrl()
     {
-        return $this->debug
-            ? 'https://secure.ogone.com/ncol/test/orderstandard.asp'
-            : 'https://secure.ogone.com/ncol/prod/orderstandard.asp';
+        $url = 'https://secure.ogone.com/ncol/';
+        $url .= $this->debug ? 'test' : 'prod';
+        $url .= '/orderstandard';
+        $url .= $this->utf8 ? '_utf8.asp' : '.asp';
+
+        return $url;
     }
 
     /**
@@ -343,9 +353,12 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     protected function getDirectQueryUrl()
     {
-        return $this->debug
-            ? 'https://secure.ogone.com/ncol/test/querydirect.asp'
-            : 'https://secure.ogone.com/ncol/prod/querydirect.asp';
+        $url = 'https://secure.ogone.com/ncol/';
+        $url .= $this->debug ? 'test' : 'prod';
+        $url .= '/querydirect';
+        $url .= $this->utf8 ? '_utf8.asp' : '.asp';
+
+        return $url;
     }
 
     /**
