@@ -302,7 +302,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
 
         if (!$response->isSuccessful()) {
             $transaction->setResponseCode($response->getErrorCode());
-            $transaction->setReasonCode($response->getErrorDescription());
+            $transaction->setReasonCode($response->getStatus());
 
             $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
             $ex->setFinancialTransaction($transaction);
