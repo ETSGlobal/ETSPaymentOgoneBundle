@@ -2,6 +2,8 @@
 
 namespace ETS\Payment\OgoneBundle\Tests\Plugin;
 
+use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin;
+
 use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
 use JMS\Payment\CoreBundle\Entity\FinancialTransaction;
 use JMS\Payment\CoreBundle\Entity\Payment;
@@ -336,5 +338,42 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
         $filename = sprintf(__DIR__ . '/../../Resources/fixtures/%s.xml', $state);
 
         return new OgoneGatewayPluginMock($tokenMock, new ShaIn($tokenMock), new Redirection(), new Design(), $debug, $utf8, $filename);
+    }
+
+    /**
+     * @return array
+     */
+    public function provideAdditionalData()
+    {
+        return array(
+            array(
+                array("OWNERADDRESS" => "aa.bb@test.com", "OWNERCTY" => "city"),
+                array("OWNERADDRESS" => "aa.bb@test.com"),
+            ),
+            array(
+                array("OWNERADDRESS" => "aa.bb@test.com", "OWNERADDRESS" => "main street"),
+                array("OWNERADDRESS" => "aa.bb@test.com", "OWNERADDRESS" => "main street"),
+            ),
+        );
+    }
+
+    /**
+     * @param array $additionalData
+     * @param array $exected
+     *
+     * @dataProvider provideAdditionalData
+     */
+    public function testNormalize(array $additionalData, array $exected)
+    {
+       $this->assertSame($exected, OgoneGatewayPlugin::normalize($additionalData));
+    }
+
+    /**
+     * @expectedException        \InvalidArgumentException
+     * @expectedExceptionMessage Additional data "foo" not supported. Expected values: CN, EMAIL, OWNERZIP, OWNERADDRESS, OWNERCTY, OWNERTOWN, OWNERTELNO, OWNERTELNO2
+     */
+    public function testNormalizeException()
+    {
+        OgoneGatewayPlugin::normalize(array('foo' => 'bar'));
     }
 }
