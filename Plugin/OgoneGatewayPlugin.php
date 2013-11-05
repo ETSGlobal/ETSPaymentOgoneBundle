@@ -67,6 +67,20 @@ class OgoneGatewayPlugin extends GatewayPlugin
     protected $utf8;
 
     /**
+     * @var array
+     */
+    public static $additionalData = array(
+        "CN"           => 35,
+        "EMAIL"        => 50,
+        "OWNERZIP"     => 10,
+        "OWNERADDRESS" => 35,
+        "OWNERCTY"     => 2,
+        "OWNERTOWN"    => 40,
+        "OWNERTELNO"   => 20,
+        "OWNERTELNO2"  => 20,
+    );
+
+    /**
      * @param TokenInterface            $token
      * @param ShaIn                     $shaInTool
      * @param Configuration\Redirection $redirectionConfig
@@ -246,21 +260,16 @@ class OgoneGatewayPlugin extends GatewayPlugin
         $extendedData = $transaction->getExtendedData();
         $extendedData->set('ORDERID', uniqid());
 
-        $datas = array();
-        $additionalDatas = array(
-            // Client
-            "CN", "EMAIL", "OWNERZIP", "OWNERADDRESS", "OWNERCTY",
-            "OWNERTOWN", "OWNERTELNO", "OWNERTELNO2",
-        );
+        $additionalData = array();
 
-        foreach ($additionalDatas as $value) {
-            if ($extendedData->has($value)) {
-                $datas[$value] = $extendedData->get($value);
+        foreach (self::getAdditionalDataKeys() as $key) {
+            if ($extendedData->has($key)) {
+                $additionalData[$key] = $extendedData->get($key);
             }
         }
 
         $parameters = array_merge(
-            array_map(array('ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin', 'normalize'), $datas),
+            self::normalize($additionalData),
             $this->redirectionConfig->getRequestParameters($extendedData),
             $this->designConfig->getRequestParameters($extendedData),
             array(
@@ -360,14 +369,53 @@ class OgoneGatewayPlugin extends GatewayPlugin
     }
 
     /**
-     * Remove all unwanted caracters
+     * Remove all unwanted characters
+     * and unset the optional data, if it is too long.
      *
-     * @param string $text
+     * @param array $additionalData
      *
-     * @return string
+     * @return array
      */
-    public static function normalize($text)
+    public static function normalize(array $additionalData)
     {
-        return preg_replace('/\pM*/u', '', normalizer_normalize($text, \Normalizer::FORM_D));
+        foreach ($additionalData as $key => $value) {
+
+            $additionalData[$key] = preg_replace('/\pM*/u', '', normalizer_normalize($value, \Normalizer::FORM_D));
+
+            if (strlen($additionalData[$key]) > self::getAdditionalDataMaxLength($key)) {
+
+                unset($additionalData[$key]);
+            }
+        }
+
+        return $additionalData;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getAdditionalDataKeys()
+    {
+        return array_keys(self::$additionalData);
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return integer
+     * @throws \InvalidArgumentException
+     */
+    public static function getAdditionalDataMaxLength($key)
+    {
+        if (!isset(self::$additionalData[$key])) {
+
+            throw new \InvalidArgumentException(sprintf(
+                'Additional data "%s" not supported. Expected values: %s',
+                $key,
+                implode(', ', self::getAdditionalDataKeys()
+            )));
+        }
+
+        return self::$additionalData[$key];
     }
 }
