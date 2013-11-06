@@ -21,6 +21,7 @@ You can configure some custom fields :
                 'default_method' => 'ogone_gateway', // Optional
                 'predefined_data' => array(
                     'ogone_gateway' => array(
+                        'tp' => 'http://www.myshop.com/template.html'           // Optional
                         'CN' => $billingAddress->getFullName(),                 // Optional
                         'EMAIL' => $purchase->getUser()->getEmail(),            // Optional
                         'OWNERZIP' => $billingAddress->getPostalCode(),         // Optional

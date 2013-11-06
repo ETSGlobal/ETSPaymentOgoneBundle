@@ -23,6 +23,7 @@ Configuration
             password: Your api password
 
         design:
+            tp:
             title:
             bgColor:
             txtColor:

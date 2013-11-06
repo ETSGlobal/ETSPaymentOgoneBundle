@@ -384,11 +384,11 @@ class OgoneGatewayPlugin extends GatewayPlugin
             $additionalData[$key] = preg_replace('/\pM*/u', '', normalizer_normalize($value, \Normalizer::FORM_D));
 
             if (strlen($additionalData[$key]) > self::getAdditionalDataMaxLength($key)) {
-
-                unset($additionalData[$key]);
+                
+                unset($additionalData[$key]);    
             }
         }
-
+        
         return $additionalData;
     }
 
