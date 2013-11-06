@@ -150,7 +150,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             $ex = new FinancialException(sprintf('Payment status "%s" is not valid for approvment', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
-            $transaction->setReasonCode($response->getErrorDescription());
+            $transaction->setReasonCode($response->getStatus());
 
             throw $ex;
         }
@@ -189,7 +189,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             $ex = new FinancialException(sprintf('Payment status "%s" is not valid for depositing', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
-            $transaction->setReasonCode($response->getErrorDescription());
+            $transaction->setReasonCode($response->getStatus());
 
             throw $ex;
         }
@@ -258,8 +258,9 @@ class OgoneGatewayPlugin extends GatewayPlugin
 
         $instruction = $transaction->getPayment()->getPaymentInstruction();
         $extendedData = $transaction->getExtendedData();
-        $extendedData->set('ORDERID', uniqid());
-
+        if (!$extendedData->has('ORDERID')) {
+            $extendedData->set('ORDERID', uniqid());
+        }
         $additionalData = array();
 
         foreach (self::getAdditionalDataKeys() as $key) {
@@ -273,8 +274,8 @@ class OgoneGatewayPlugin extends GatewayPlugin
             $this->redirectionConfig->getRequestParameters($extendedData),
             $this->designConfig->getRequestParameters($extendedData),
             array(
-                "PSPID"    => $this->token->getPspid(),
                 "ORDERID"  => $extendedData->get('ORDERID'),
+                "PSPID"    => $this->token->getPspid(),
                 "AMOUNT"   => $transaction->getRequestedAmount() * 100,
                 "CURRENCY" => $instruction->getCurrency(),
                 "LANGUAGE" => $extendedData->get('lang')

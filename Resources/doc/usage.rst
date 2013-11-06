@@ -28,7 +28,8 @@ You can configure some custom fields :
                         'OWNERCTY' => $billingAddress->getCountry()->getName(), // Optional
                         'OWNERTOWN' => $billingAddress->getCity(),              // Optional
                         'OWNERTELNO' => $billingAddress->getPhoneNumber(),      // Optional
-                        'lang'      => $request->getLocale(),
+                        'lang'      => $request->getLocale(),                   // 5 characters maximum, for e.g: fr_FR
+                        'ORDERID'   => '123456',                                // Optional, 30 characters maximum
                     ),
                 ),
             ));
