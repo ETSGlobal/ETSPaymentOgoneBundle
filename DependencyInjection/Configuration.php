@@ -63,6 +63,7 @@ class Configuration implements ConfigurationInterface
                     ->arrayNode('design')
                         ->addDefaultsIfNotSet()
                         ->children()
+                            ->scalarNode('tp')->defaultNull()->end()
                             ->scalarNode('title')->defaultNull()->end()
                             ->scalarNode('bgColor')->defaultNull()->end()
                             ->scalarNode('txtColor')->defaultNull()->end()

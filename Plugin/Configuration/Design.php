@@ -28,6 +28,7 @@ use JMS\Payment\CoreBundle\Entity\ExtendedData;
 class Design
 {
 
+    protected $tp;
     protected $title;
     protected $bgColor;
     protected $txtColor;
@@ -45,8 +46,9 @@ class Design
      * @param string $cancelUrl
      * @param string $backUrl
      */
-    public function __construct($title = null, $bgColor = null, $txtColor = null, $tblBgColor = null, $tblTxtColor = null, $buttonBgColor = null, $buttonTxtColor = null, $fontType = null, $logo = null)
+    public function __construct($tp = null, $title = null, $bgColor = null, $txtColor = null, $tblBgColor = null, $tblTxtColor = null, $buttonBgColor = null, $buttonTxtColor = null, $fontType = null, $logo = null)
     {
+        $this->tp             = $tp;
         $this->title          = $title;
         $this->bgColor        = $bgColor;
         $this->txtColor       = $txtColor;
@@ -58,6 +60,16 @@ class Design
         $this->logo           = $logo;
     }
 
+    /**
+     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     *
+     * @return string|null
+     */
+    public function getTp(ExtendedData $data)
+    {
+    	return $data->has('tp') ? $data->get('tp') : $this->tp;
+    }
+    
     /**
      * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
      *
@@ -156,6 +168,7 @@ class Design
     public function getRequestParameters(ExtendedData $data)
     {
         return array(
+            'TP'             => $this->getTp($data),
             'TITLE'          => $this->getTitle($data),
             'BGCOLOR'        => $this->getBgColor($data),
             'TXTCOLOR'       => $this->getTxtColor($data),

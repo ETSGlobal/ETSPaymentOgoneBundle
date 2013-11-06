@@ -59,6 +59,7 @@ class ETSPaymentOgoneExtension extends Extension
         $container->setParameter('payment.ogone.redirection.cancel_url', $config['redirection']['cancel_url']);
         $container->setParameter('payment.ogone.redirection.back_url', $config['redirection']['back_url']);
 
+        $container->setParameter('payment.ogone.design.tp', $config['design']['tp']);
         $container->setParameter('payment.ogone.design.title', $config['design']['title']);
         $container->setParameter('payment.ogone.design.bgColor', $config['design']['bgColor']);
         $container->setParameter('payment.ogone.design.txtColor', $config['design']['txtColor']);
