@@ -70,6 +70,8 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @var array
      */
     public static $additionalData = array(
+        "PM"           => 25,
+        "BRAND"        => 25,        
         "CN"           => 35,
         "EMAIL"        => 50,
         "OWNERZIP"     => 10,
