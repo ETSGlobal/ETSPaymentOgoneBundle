@@ -370,7 +370,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException        \InvalidArgumentException
-     * @expectedExceptionMessage Additional data "foo" not supported. Expected values: CN, EMAIL, OWNERZIP, OWNERADDRESS, OWNERCTY, OWNERTOWN, OWNERTELNO, OWNERTELNO2
+     * @expectedExceptionMessage Additional data "foo" not supported. Expected values: PM, BRAND, CN, EMAIL, OWNERZIP, OWNERADDRESS, OWNERCTY, OWNERTOWN, OWNERTELNO, OWNERTELNO2
      */
     public function testNormalizeException()
     {

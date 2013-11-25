@@ -22,6 +22,8 @@ You can configure some custom fields :
                 'predefined_data' => array(
                     'ogone_gateway' => array(
                         'tp' => 'http://www.myshop.com/template.html'           // Optional
+                        'PM' => $pm                                             // Optional - Example value: "CreditCard" - Note: You can consult the list of PM values on Ogone documentation
+                        'BRAND' => $brand                                       // Optional - Example value: "VISA" - Note: If you send the BRAND field without sending a value in the PM field (‘CreditCard’ or ‘Purchasing Card’), the BRAND value will not be taken into account.
                         'CN' => $billingAddress->getFullName(),                 // Optional
                         'EMAIL' => $purchase->getUser()->getEmail(),            // Optional
                         'OWNERZIP' => $billingAddress->getPostalCode(),         // Optional
