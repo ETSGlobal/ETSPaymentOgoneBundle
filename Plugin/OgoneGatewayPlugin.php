@@ -16,9 +16,9 @@ use JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
 use JMS\Payment\CoreBundle\Plugin\PluginInterface;
 
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
+use ETS\Payment\OgoneBundle\Hash\HashGenerator;
 use ETS\Payment\OgoneBundle\Response\DirectResponse;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
-use ETS\Payment\OgoneBundle\Tools\ShaIn;
 
 /**
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -49,9 +49,9 @@ class OgoneGatewayPlugin extends GatewayPlugin
     protected $token;
 
     /**
-     * @var ShaIn
+     * @var HashGenerator
      */
-    protected $shaInTool;
+    protected $hashGenerator;
 
     /**
      * @var Configuration\Redirection
@@ -86,18 +86,18 @@ class OgoneGatewayPlugin extends GatewayPlugin
 
     /**
      * @param TokenInterface            $token
-     * @param ShaIn                     $shaInTool
+     * @param HashGenerator             $hashGenerator
      * @param Configuration\Redirection $redirectionConfig
      * @param Configuration\Design      $designConfig
      * @param boolean                   $debug
      * @param boolean                   $utf8
      */
-    public function __construct(TokenInterface $token, ShaIn $shaInTool, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8)
+    public function __construct(TokenInterface $token, HashGenerator $hashGenerator, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8)
     {
         parent::__construct($debug);
 
         $this->token             = $token;
-        $this->shaInTool         = $shaInTool;
+        $this->hashGenerator     = $hashGenerator;
         $this->redirectionConfig = $redirectionConfig;
         $this->designConfig      = $designConfig;
         $this->utf8              = $utf8;
@@ -290,7 +290,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             )
         );
 
-        $parameters['SHASIGN'] = $this->shaInTool->generate($parameters);
+        $parameters['SHASIGN'] = $this->hashGenerator->generate($parameters);
 
         ksort($parameters);
 

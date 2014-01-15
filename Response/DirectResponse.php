@@ -47,7 +47,7 @@ class DirectResponse extends AbstractResponse
     }
 
     /**
-     * @return string
+     * @return float
      */
     public function getAmount()
     {
@@ -63,7 +63,7 @@ class DirectResponse extends AbstractResponse
     }
 
     /**
-     * @return integer
+     * @return string
      */
     public function getErrorCode()
     {

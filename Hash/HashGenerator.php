@@ -1,6 +1,6 @@
 <?php
 
-namespace ETS\Payment\OgoneBundle\Model;
+namespace ETS\Payment\OgoneBundle\Hash;
 
 interface HashGenerator
 {

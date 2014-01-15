@@ -28,6 +28,10 @@ class FeedbackResponse extends AbstractResponse
         }
     }
 
+    /**
+     * get the list of fields that could be sent by Ogone
+     * @return array
+     */
     public static function getFields()
     {
         return self::$fields;

@@ -68,6 +68,10 @@ interface ResponseInterface
 
     public function isSuccessful();
 
+    public function getAmount();
+    public function getPaymentId();
+    public function getStatus();
+
     public function getErrorCode();
     public function getErrorDescription();
 }

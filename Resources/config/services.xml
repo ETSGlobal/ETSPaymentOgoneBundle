@@ -9,8 +9,8 @@
         <parameter key="payment.form.ogone_gateway.class">ETS\Payment\OgoneBundle\Form\GatewayType</parameter>
         <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
 
-        <parameter key="payment.ogone.tools.shain.class">ETS\Payment\OgoneBundle\Tools\ShaIn</parameter>
-        <parameter key="payment.ogone.tools.sha1out.class">ETS\Payment\OgoneBundle\Tools\Sha1Out</parameter>
+        <parameter key="payment.ogone.hash.sha1in.class">ETS\Payment\OgoneBundle\Hash\Sha1In</parameter>
+        <parameter key="payment.ogone.hash.sha1out.class">ETS\Payment\OgoneBundle\Hash\Sha1Out</parameter>
 
         <parameter key="payment.ogone.plugin.configuration.redirection.class">ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection</parameter>
         <parameter key="payment.ogone.plugin.configuration.design.class">ETS\Payment\OgoneBundle\Plugin\Configuration\Design</parameter>
@@ -47,13 +47,13 @@
             <argument>%payment.ogone.design.logo%</argument>
         </service>
 
-        <service id="payment.ogone.tools.shain" class="%payment.ogone.tools.shain.class%">
+        <service id="payment.ogone.hash.sha1in" class="%payment.ogone.hash.sha1in.class%">
             <argument type="service" id="payment.ogone.client.token" />
         </service>
 
         <service id="payment.plugin.ogone_gateway" class="%payment.plugin.ogone.class%">
             <argument type="service" id="payment.ogone.client.token" />
-            <argument type="service" id="payment.ogone.tools.shain" />
+            <argument type="service" id="payment.ogone.hash.sha1in" />
             <argument type="service" id="payment.ogone.plugin.configuration.redirection" />
             <argument type="service" id="payment.ogone.plugin.configuration.design" />
             <argument>%payment.ogone.debug%</argument>
@@ -66,13 +66,13 @@
             <tag name="form.type" alias="ogone_gateway"/>
         </service>
 
-        <service id="payment.ogone.tools.sha1out" class="%payment.ogone.tools.sha1out.class%" public="false">
+        <service id="payment.ogone.hash.sha1out" class="%payment.ogone.hash.sha1out.class%" public="false">
             <argument>%payment.ogone.passphrase.sha1out%</argument>
         </service>
 
         <service id="payment.ogone" class="%payment.ogone.class%" scope="request">
             <argument type="service" id="payment.plugin_controller" />
-            <argument type="service" id="payment.ogone.tools.sha1out" />
+            <argument type="service" id="payment.ogone.hash.sha1out" />
             <argument type="service" id="request" />
         </service>
     </services>

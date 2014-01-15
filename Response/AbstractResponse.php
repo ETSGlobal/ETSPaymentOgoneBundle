@@ -56,6 +56,30 @@ abstract class AbstractResponse implements ResponseInterface
     }
 
     /**
+     * @return float
+     */
+    public function getAmount()
+    {
+        throw new \Exception('This function must be defined in a child class.');
+    }
+
+    /**
+     * @return string
+     */
+    public function getPaymentId()
+    {
+        throw new \Exception('This function must be defined in a child class.');
+    }
+
+    /**
+     * @return string
+     */
+    public function getStatus()
+    {
+        throw new \Exception('This function must be defined in a child class.');
+    }
+
+    /**
      * @return integer
      */
     public function getErrorCode()

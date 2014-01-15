@@ -1,8 +1,6 @@
 <?php
 
-namespace ETS\Payment\OgoneBundle\Tools;
-
-use ETS\Payment\OgoneBundle\Model\HashGenerator;
+namespace ETS\Payment\OgoneBundle\Hash;
 
 /**
  * Copyright 2014 ETSGlobal <e4-devteam@etsglobal.org>

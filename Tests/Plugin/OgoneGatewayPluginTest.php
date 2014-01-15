@@ -9,12 +9,12 @@ use JMS\Payment\CoreBundle\Entity\PaymentInstruction;
 use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
 use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
 
+use ETS\Payment\OgoneBundle\Hash\Sha1In;
 use ETS\Payment\OgoneBundle\Plugin\Configuration\Design;
 use ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection;
 use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin;
 use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
-use ETS\Payment\OgoneBundle\Tools\ShaIn;
 
 /**
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -70,8 +70,6 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $reflectionMethod->invoke($plugin));
     }
 
-    /**
-     */
     public function testNewTransactionRequiresAnAction()
     {
         $plugin = $this->createPluginMock(true);
@@ -362,7 +360,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
         $tokenMock = $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
         $filename = sprintf(__DIR__ . '/../../Resources/fixtures/%s.xml', $state);
 
-        return new OgoneGatewayPluginMock($tokenMock, new ShaIn($tokenMock), new Redirection(), new Design(), $debug, $utf8, $filename);
+        return new OgoneGatewayPluginMock($tokenMock, new Sha1In($tokenMock), new Redirection(), new Design(), $debug, $utf8, $filename);
     }
 
     /**

@@ -1,8 +1,8 @@
 <?php
 
-namespace ETS\Payment\OgoneBundle\Tests\Tools;
+namespace ETS\Payment\OgoneBundle\Tests\Hash;
 
-use ETS\Payment\OgoneBundle\Tools\ShaIn;
+use ETS\Payment\OgoneBundle\Hash\Sha1In;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -21,21 +21,21 @@ use ETS\Payment\OgoneBundle\Tools\ShaIn;
  */
 
 /**
- * Sha-1 In tool
+ * Sha-1 In test
  *
  * @author ETSGlobal <e4-devteam@etsglobal.org>
  */
-class ShaInTest extends \PHPUnit_Framework_TestCase
+class Sha1InTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * Test that the generate function uppercase the keys
      */
     public function testGenerateUseUppercase()
     {
-        $tool = new ShaIn($this->createTokenMock());
+        $hashGenerator = new Sha1In($this->createTokenMock());
 
-        $refSha1 = $tool->generate(array('CN' => 'Foo Bar'));
-        $testSha1 = $tool->generate(array('cn' => 'Foo Bar'));
+        $refSha1  = $hashGenerator->generate(array('CN' => 'Foo Bar'));
+        $testSha1 = $hashGenerator->generate(array('cn' => 'Foo Bar'));
 
         $this->assertEquals($refSha1, $testSha1);
     }
@@ -45,10 +45,10 @@ class ShaInTest extends \PHPUnit_Framework_TestCase
      */
     public function testGenerateSortKeys()
     {
-        $tool = new ShaIn($this->createTokenMock());
+        $hashGenerator = new Sha1In($this->createTokenMock());
 
-        $refSha1 = $tool->generate(array('PSPID' => 42, 'CN' => 'Foo Bar'));
-        $testSha1 = $tool->generate(array('CN' => 'Foo Bar', 'PSPID' => 42));
+        $refSha1  = $hashGenerator->generate(array('PSPID' => 42, 'CN' => 'Foo Bar'));
+        $testSha1 = $hashGenerator->generate(array('CN' => 'Foo Bar', 'PSPID' => 42));
 
         $this->assertEquals($refSha1, $testSha1);
     }
@@ -58,10 +58,10 @@ class ShaInTest extends \PHPUnit_Framework_TestCase
      */
     public function testGenerateShouldSkipNotAllowedParameters()
     {
-        $tool = new ShaIn($this->createTokenMock());
+        $hashGenerator = new Sha1In($this->createTokenMock());
 
-        $refSha1 = $tool->generate(array());
-        $testSha1 = $tool->generate(array('foo' => 'bar'));
+        $refSha1  = $hashGenerator->generate(array());
+        $testSha1 = $hashGenerator->generate(array('foo' => 'bar'));
 
         $this->assertEquals($refSha1, $testSha1);
     }
@@ -71,10 +71,10 @@ class ShaInTest extends \PHPUnit_Framework_TestCase
      */
     public function testGenerateShouldAllowWildcardedParameters()
     {
-        $tool = new ShaIn($this->createTokenMock());
+        $hashGenerator = new Sha1In($this->createTokenMock());
 
-        $refSha1 = $tool->generate(array());
-        $testSha1 = $tool->generate(array('ITEMNAME01' => 'foobar'));
+        $refSha1  = $hashGenerator->generate(array());
+        $testSha1 = $hashGenerator->generate(array('ITEMNAME01' => 'foobar'));
 
         $this->assertNotEquals($refSha1, $testSha1);
     }
