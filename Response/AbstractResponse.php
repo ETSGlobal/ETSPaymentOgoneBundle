@@ -2,6 +2,27 @@
 
 namespace ETS\Payment\OgoneBundle\Response;
 
+/*
+ * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * AbstractResponse class
+ *
+ * @author ETSGlobal <e4-devteam@etsglobal.org>
+ */
 abstract class AbstractResponse implements ResponseInterface
 {
     /**
@@ -58,42 +79,27 @@ abstract class AbstractResponse implements ResponseInterface
     /**
      * @return float
      */
-    public function getAmount()
-    {
-        throw new \Exception('This function must be defined in a child class.');
-    }
+    abstract public function getAmount();
 
     /**
      * @return string
      */
-    public function getPaymentId()
-    {
-        throw new \Exception('This function must be defined in a child class.');
-    }
+    abstract public function getPaymentId();
 
     /**
      * @return string
      */
-    public function getStatus()
-    {
-        throw new \Exception('This function must be defined in a child class.');
-    }
+    abstract public function getStatus();
 
     /**
      * @return integer
      */
-    public function getErrorCode()
-    {
-        throw new \Exception('This function must be defined in a child class.');
-    }
+    abstract public function getErrorCode();
 
     /**
      * @return string
      */
-    public function getErrorDescription()
-    {
-        throw new \Exception('This function must be defined in a child class.');
-    }
+    abstract public function getErrorDescription();
 
     /**
      * @return array
