@@ -10,10 +10,12 @@
         <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
 
         <parameter key="payment.ogone.tools.shain.class">ETS\Payment\OgoneBundle\Tools\ShaIn</parameter>
-        <parameter key="payment.ogone.tools.shaout.class">ETS\Payment\OgoneBundle\Tools\Shaout</parameter>
+        <parameter key="payment.ogone.tools.sha1out.class">ETS\Payment\OgoneBundle\Tools\Sha1Out</parameter>
 
         <parameter key="payment.ogone.plugin.configuration.redirection.class">ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection</parameter>
         <parameter key="payment.ogone.plugin.configuration.design.class">ETS\Payment\OgoneBundle\Plugin\Configuration\Design</parameter>
+
+        <parameter key="payment.ogone.class">ETS\Payment\OgoneBundle\Service\Ogone</parameter>
     </parameters>
 
     <services>
@@ -49,10 +51,6 @@
             <argument type="service" id="payment.ogone.client.token" />
         </service>
 
-        <service id="payment.ogone.tools.shaout" class="%payment.ogone.tools.shaout.class%">
-            <argument type="service" id="payment.ogone.client.token" />
-        </service>
-
         <service id="payment.plugin.ogone_gateway" class="%payment.plugin.ogone.class%">
             <argument type="service" id="payment.ogone.client.token" />
             <argument type="service" id="payment.ogone.tools.shain" />
@@ -66,6 +64,16 @@
         <service id="payment.form.ogone_gateway" class="%payment.form.ogone_gateway.class%">
             <tag name="payment.method_form_type" />
             <tag name="form.type" alias="ogone_gateway"/>
+        </service>
+
+        <service id="payment.ogone.tools.sha1out" class="%payment.ogone.tools.sha1out.class%" public="false">
+            <argument>%payment.ogone.passphrase.sha1out%</argument>
+        </service>
+
+        <service id="payment.ogone" class="%payment.ogone.class%" scope="request">
+            <argument type="service" id="payment.plugin_controller" />
+            <argument type="service" id="payment.ogone.tools.sha1out" />
+            <argument type="service" id="request" />
         </service>
     </services>
 </container>
