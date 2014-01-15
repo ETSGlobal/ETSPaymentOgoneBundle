@@ -2,12 +2,12 @@
 
 namespace ETS\Payment\OgoneBundle\Plugin;
 
+use JMS\Payment\CoreBundle\BrowserKit\Request;
+use JMS\Payment\CoreBundle\Model\ExtendedDataInterface;
 use Symfony\Component\BrowserKit\Response;
 
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
 use ETS\Payment\OgoneBundle\Tools\ShaIn;
-
-use JMS\Payment\CoreBundle\BrowserKit\Request;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -57,9 +57,7 @@ class OgoneGatewayPluginMock extends OgoneGatewayPlugin
      * Performs a request to an external payment service
      *
      * @param Request $request
-     * @param mixed $parameters either an array for form-data, or an url-encoded string
      *
-     * @throws CommunicationException when an curl error occurs
      * @return Response
      */
     public function request(Request $request)
