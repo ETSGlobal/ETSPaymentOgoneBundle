@@ -50,3 +50,37 @@ an easy way to communicate with the Dotpay API, then you can use the plugin dire
     $plugin = $container->get('payment.plugin.ogone');
 
 .. _JMSPaymentCoreBundle: https://github.com/schmittjoh/JMSPaymentCoreBundle/blob/master/Resources/doc/index.rst
+
+Use Ogone's transaction feedback via callback request
+-----------------------------------------------------
+When a payment is captured, Ogone can send the parameters returned by ETS\Payment\OgoneBundle\Response\FeedbackResponse::getFields()
+in a request on your ACCEPTURL, EXCEPTIONURL, CANCELURL or DECLINEURL to enable you to perform a database update.
+You can activate this option in the Technical information page > "Transaction feedback" tab > "HTTP redirection in the browser" section:
+"I would like to receive transaction feedback parameters on the redirection URLs".
+
+You would then have to define an action behind the url you would choose to give Ogone, which could look like this:
+
+.. code-block :: php
+
+    ...
+
+    public function callbackAction(Request $request)
+    {
+        $em = $this->getDoctrine()->getEntityManager();
+
+        $orderId = $request->get('orderID');
+
+        if (null === $order = $em->getRepository->getRepository('MyBundle:Order')->find($orderId)) {
+            throw new NotFoundHttpException(sprintf('unable to find order with id [%s]', $orderId));
+        }
+
+        $instruction = $order->getPaymentInstruction();
+
+        $this->get('payment.ogone')->handleTransactionFeedback($instruction);
+
+        $em->flush();
+
+        $this->get('logger')->info(sprintf('[Ogone - callback] Payment instruction %s successfully updated', $instruction->getId()));
+
+        return new Response('OK');
+    }
