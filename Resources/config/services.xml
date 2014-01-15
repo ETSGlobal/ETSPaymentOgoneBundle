@@ -67,7 +67,7 @@
         </service>
 
         <service id="payment.ogone.hash.sha1out" class="%payment.ogone.hash.sha1out.class%" public="false">
-            <argument>%payment.ogone.passphrase.sha1out%</argument>
+            <argument>%payment.ogone.shaout%</argument>
         </service>
 
         <service id="payment.ogone" class="%payment.ogone.class%" scope="request">
