@@ -2,23 +2,25 @@
 
 namespace ETS\Payment\OgoneBundle\Plugin;
 
-use JMS\Payment\CoreBundle\Plugin\PluginInterface,
-    JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException,
-    JMS\Payment\CoreBundle\Plugin\Exception\FinancialException,
-    JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException,
-    JMS\Payment\CoreBundle\BrowserKit\Request,
-    JMS\Payment\CoreBundle\Plugin\ErrorBuilder,
-    JMS\Payment\CoreBundle\Plugin\Exception\Action\VisitUrl,
-    JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException,
-    JMS\Payment\CoreBundle\Model\FinancialTransactionInterface,
-    JMS\Payment\CoreBundle\Model\PaymentInstructionInterface,
-    JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
+use JMS\Payment\CoreBundle\BrowserKit\Request;
+use JMS\Payment\CoreBundle\Model\ExtendedDataInterface;
+use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
+use JMS\Payment\CoreBundle\Model\PaymentInstructionInterface;
+use JMS\Payment\CoreBundle\Plugin\ErrorBuilder;
+use JMS\Payment\CoreBundle\Plugin\Exception\Action\VisitUrl;
+use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
+use JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException;
+use JMS\Payment\CoreBundle\Plugin\Exception\FinancialException;
+use JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException;
+use JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
+use JMS\Payment\CoreBundle\Plugin\PluginInterface;
 
-use ETS\Payment\OgoneBundle\Client\TokenInterface,
-    ETS\Payment\OgoneBundle\Direct\Response,
-    ETS\Payment\OgoneBundle\Tools\ShaIn;
+use ETS\Payment\OgoneBundle\Client\TokenInterface;
+use ETS\Payment\OgoneBundle\Response\DirectResponse;
+use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
+use ETS\Payment\OgoneBundle\Tools\ShaIn;
 
-/*
+/**
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,7 +73,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     public static $additionalData = array(
         "PM"           => 25,
-        "BRAND"        => 25,        
+        "BRAND"        => 25,
         "CN"           => 35,
         "EMAIL"        => 50,
         "OWNERZIP"     => 10,
@@ -113,15 +115,15 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @param FinancialTransactionInterface $transaction The transaction
      * @param boolean                       $retry       Whether this is a retry transaction
      */
-     public function approveAndDeposit(FinancialTransactionInterface $transaction, $retry)
-     {
+    public function approveAndDeposit(FinancialTransactionInterface $transaction, $retry)
+    {
         if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
             throw $this->createRedirectActionException($transaction);
         }
 
         $this->approve($transaction, $retry);
         $this->deposit($transaction, $retry);
-     }
+    }
 
     /**
      * This method executes an approve transaction.
@@ -135,6 +137,9 @@ class OgoneGatewayPlugin extends GatewayPlugin
      *
      * @param FinancialTransactionInterface $transaction The transaction
      * @param boolean                       $retry       Whether this is a retry transaction
+     *
+     * @throws FinancialException      If payment is not approved
+     * @throws PaymentPendingException If payment is still approving
      */
     public function approve(FinancialTransactionInterface $transaction, $retry)
     {
@@ -142,7 +147,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             throw $this->createRedirectActionException($transaction);
         }
 
-        $response = $this->requestDoDirectRequest($transaction);
+        $response = $this->getResponse($transaction);
 
         if ($response->isApproving()) {
             throw new PaymentPendingException(sprintf('Payment is still approving, status: %s.', $response->getStatus()));
@@ -174,6 +179,9 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @param boolean                       $retry       Retry
      *
      * @return mixed
+     *
+     * @throws FinancialException      If payment is not approved
+     * @throws PaymentPendingException If payment is still approving
      */
     public function deposit(FinancialTransactionInterface $transaction, $retry)
     {
@@ -181,7 +189,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             throw $this->createRedirectActionException($transaction);
         }
 
-        $response = $this->requestDoDirectRequest($transaction);
+        $response = $this->getResponse($transaction);
 
         if ($response->isDepositing()) {
             throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
@@ -218,9 +226,8 @@ class OgoneGatewayPlugin extends GatewayPlugin
     public function checkPaymentInstruction(PaymentInstructionInterface $paymentInstruction)
     {
         $errorBuilder = new ErrorBuilder();
-        $data = $paymentInstruction->getExtendedData();
 
-        if (!$data->has('lang')) {
+        if (!$paymentInstruction->getExtendedData()->has('lang')) {
             $errorBuilder->addDataError('lang', 'form.error.required');
         }
 
@@ -238,6 +245,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * indirectly.
      *
      * @param  string  $paymentSystemName
+     *
      * @return boolean
      */
     public function processes($paymentSystemName)
@@ -249,22 +257,20 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * approve Authorized & Sale transactions
      *
      * @param  FinancialTransactionInterface $transaction
-     * @param  string                        $paymentAction
      *
-     * @throws ActionRequiredException
+     * @return ActionRequiredException
      */
     public function createRedirectActionException(FinancialTransactionInterface $transaction)
     {
-        $actionRequest = new ActionRequiredException('User must authorize the transaction');
-        $actionRequest->setFinancialTransaction($transaction);
+        $actionRequestException = new ActionRequiredException('User must authorize the transaction');
+        $actionRequestException->setFinancialTransaction($transaction);
 
-        $instruction = $transaction->getPayment()->getPaymentInstruction();
         $extendedData = $transaction->getExtendedData();
         if (!$extendedData->has('ORDERID')) {
             $extendedData->set('ORDERID', uniqid());
         }
-        $additionalData = array();
 
+        $additionalData = array();
         foreach (self::getAdditionalDataKeys() as $key) {
             if ($extendedData->has($key)) {
                 $additionalData[$key] = $extendedData->get($key);
@@ -279,7 +285,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
                 "ORDERID"  => $extendedData->get('ORDERID'),
                 "PSPID"    => $this->token->getPspid(),
                 "AMOUNT"   => $transaction->getRequestedAmount() * 100,
-                "CURRENCY" => $instruction->getCurrency(),
+                "CURRENCY" => $transaction->getPayment()->getPaymentInstruction()->getCurrency(),
                 "LANGUAGE" => $extendedData->get('lang')
             )
         );
@@ -288,9 +294,24 @@ class OgoneGatewayPlugin extends GatewayPlugin
 
         ksort($parameters);
 
-        $actionRequest->setAction(new VisitUrl($this->getStandardOrderUrl() . '?' . http_build_query($parameters)));
+        $actionRequestException->setAction(new VisitUrl($this->getStandardOrderUrl() . '?' . http_build_query($parameters)));
 
-        throw $actionRequest;
+        return $actionRequestException;
+    }
+
+    /**
+     * Get a Response object from the transaction's extended data if feedback has been provided through a callback,
+     * or from a call to ogone's api.
+     *
+     * @param  FinancialTransactionInterface $transaction
+     *
+     * @return ETS\Payment\OgoneBundle\Response\ResponseInterface
+     */
+    protected function getResponse(FinancialTransactionInterface $transaction)
+    {
+        return (true === $transaction->getExtendedData()->has('feedbackResponse'))
+                ? $transaction->getExtendedData()->get('feedbackResponse')
+                : $this->requestDoDirectRequest($transaction);
     }
 
     /**
@@ -298,15 +319,16 @@ class OgoneGatewayPlugin extends GatewayPlugin
      *
      * @param FinancialTransactionInterface $transaction
      *
+     * @return \ETS\Payment\OgoneBundle\Response\ResponseInterface
+     *
      * @throws FinancialException
-     * @return \ETS\Payment\OgoneBundle\Direct\ResponseInterface
      */
     protected function requestDoDirectRequest(FinancialTransactionInterface $transaction)
     {
         $response = $this->sendApiRequest(array(
-            'PSPID' => $this->token->getPspid(),
-            'USERID' => $this->token->getApiUser(),
-            'PSWD' => $this->token->getApiPassword(),
+            'PSPID'   => $this->token->getPspid(),
+            'USERID'  => $this->token->getApiUser(),
+            'PSWD'    => $this->token->getApiPassword(),
             'ORDERID' => $transaction->getExtendedData()->get('ORDERID'),
         ));
 
@@ -330,8 +352,9 @@ class OgoneGatewayPlugin extends GatewayPlugin
      *
      * @param array $parameters
      *
+     * @return \ETS\Payment\OgoneBundle\Response\DirectResponse
+     *
      * @throws CommunicationException
-     * @return \ETS\Payment\OgoneBundle\Direct\ResponseInterface
      */
     protected function sendApiRequest(array $parameters)
     {
@@ -342,9 +365,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             throw new CommunicationException('The API request was not successful (Status: '.$response->getStatus().'): '.$response->getContent());
         }
 
-        $xml = new \SimpleXMLElement($response->getContent());
-
-        return new Response($xml);
+        return new DirectResponse(new \SimpleXMLElement($response->getContent()));
     }
 
     /**
@@ -372,8 +393,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
     }
 
     /**
-     * Remove all unwanted characters
-     * and unset the optional data, if it is too long.
+     * Remove all unwanted characters and unset the optional data, if it is too long.
      *
      * @param array $additionalData
      *
@@ -382,22 +402,20 @@ class OgoneGatewayPlugin extends GatewayPlugin
     public static function normalize(array $additionalData)
     {
         foreach ($additionalData as $key => $value) {
-
             $additionalData[$key] = preg_replace('/\pM*/u', '', normalizer_normalize($value, \Normalizer::FORM_D));
 
             if (strlen($additionalData[$key]) > self::getAdditionalDataMaxLength($key)) {
-                
-                unset($additionalData[$key]);    
+                unset($additionalData[$key]);
             }
         }
-        
+
         return $additionalData;
     }
 
     /**
      * @return array
      */
-    public static function getAdditionalDataKeys()
+    protected static function getAdditionalDataKeys()
     {
         return array_keys(self::$additionalData);
     }
@@ -406,12 +424,12 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @param string $key
      *
      * @return integer
+     *
      * @throws \InvalidArgumentException
      */
-    public static function getAdditionalDataMaxLength($key)
+    protected static function getAdditionalDataMaxLength($key)
     {
         if (!isset(self::$additionalData[$key])) {
-
             throw new \InvalidArgumentException(sprintf(
                 'Additional data "%s" not supported. Expected values: %s',
                 $key,

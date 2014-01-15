@@ -1,9 +1,9 @@
 <?php
 
-namespace ETS\Payment\OgoneBundle\Tests\Direct;
+namespace ETS\Payment\OgoneBundle\Tests\Response;
 
-use ETS\Payment\OgoneBundle\Direct\Response;
-use ETS\Payment\OgoneBundle\Direct\ResponseInterface;
+use ETS\Payment\OgoneBundle\Response\DirectResponse;
+use ETS\Payment\OgoneBundle\Response\ResponseInterface;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -26,7 +26,7 @@ use ETS\Payment\OgoneBundle\Direct\ResponseInterface;
  *
  * @author ETSGlobal <e4-devteam@etsglobal.org>
  */
-class ResponseTest extends \PHPUnit_Framework_TestCase
+class DirectResponseTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * Test an invalid response
@@ -168,13 +168,13 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     /**
      * @param string $state
      *
-     * @return \ETS\Payment\OgoneBundle\Direct\Response
+     * @return \ETS\Payment\OgoneBundle\Response\DirectResponse
      */
     protected function createResponse($state)
     {
         $filename = sprintf(__DIR__ . '/../../Resources/fixtures/%s.xml', $state);
         $xml = file_get_contents($filename);
 
-        return new Response(new \SimpleXMLElement($xml));
+        return new DirectResponse(new \SimpleXMLElement($xml));
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace ETS\Payment\OgoneBundle\Direct;
+namespace ETS\Payment\OgoneBundle\Response;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
