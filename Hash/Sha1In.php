@@ -1,6 +1,6 @@
 <?php
 
-namespace ETS\Payment\OgoneBundle\Tools;
+namespace ETS\Payment\OgoneBundle\Hash;
 
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
 
@@ -25,7 +25,7 @@ use ETS\Payment\OgoneBundle\Client\TokenInterface;
  *
  * @author ETSGlobal <e4-devteam@etsglobal.org>
  */
-class ShaIn
+class Sha1In implements HashGenerator
 {
     protected static $allowed = array(
         'ACCEPTANCE', 'ACCEPTURL', 'ADDMATCH', 'ADDRMATCH', 'AIACTIONNUMBER',

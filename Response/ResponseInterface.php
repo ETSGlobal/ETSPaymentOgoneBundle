@@ -1,6 +1,6 @@
 <?php
 
-namespace ETS\Payment\OgoneBundle\Direct;
+namespace ETS\Payment\OgoneBundle\Response;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -67,6 +67,10 @@ interface ResponseInterface
     public function isDeposited();
 
     public function isSuccessful();
+
+    public function getAmount();
+    public function getPaymentId();
+    public function getStatus();
 
     public function getErrorCode();
     public function getErrorDescription();

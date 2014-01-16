@@ -14,7 +14,7 @@ Configuration
     ets_payment_ogone:
         pspid:     Your seller id
         shain:     Your SHA-1 IN passphrase
-        shaout:    Your SHA-1 IN passphrase
+        shaout:    Your SHA-1 OUT passphrase
         debug:     Set it to true for TEST environment
         utf8:      Set it to true to use UTF8 characters in the Ogone requests
 

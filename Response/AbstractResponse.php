@@ -1,6 +1,6 @@
 <?php
 
-namespace ETS\Payment\OgoneBundle\Direct;
+namespace ETS\Payment\OgoneBundle\Response;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -19,23 +19,45 @@ namespace ETS\Payment\OgoneBundle\Direct;
  */
 
 /**
- * Response class
+ * AbstractResponse class
  *
  * @author ETSGlobal <e4-devteam@etsglobal.org>
  */
-class Response implements ResponseInterface
+abstract class AbstractResponse implements ResponseInterface
 {
     /**
-     * @var \SimpleXMLElement
+     * @return boolean
      */
-    public $xml;
+    public function isApproving()
+    {
+        return in_array($this->getStatus(), $this->getApprovingStatuses(), true);
+    }
 
     /**
-     * @param \SimpleXMLElement $parameters
+     * Returns true if the payment is approved or already in a depositing state.
+     *
+     * @return boolean
      */
-    public function __construct(\SimpleXMLElement $xml)
+    public function isApproved()
     {
-        $this->xml = $xml;
+        return in_array($this->getStatus(), array_merge(
+            $this->getApprovedStatuses(),
+            $this->getDepositedStatuses(),
+            $this->getDepositingStatuses()
+        ), true);
+    }
+
+    /**
+     * Returns true if the payment is in a depositing state or approved.
+     *
+     * @return boolean
+     */
+    public function isDepositing()
+    {
+        return in_array($this->getStatus(), array_merge(
+            $this->getApprovedStatuses(),
+            $this->getDepositingStatuses()
+        ), true);
     }
 
     /**
@@ -49,86 +71,35 @@ class Response implements ResponseInterface
     /**
      * @return boolean
      */
-    public function isDepositing()
-    {
-        // When the payment is approved, it is in the depositing state
-
-        return in_array($this->getStatus(), array_merge(
-            $this->getApprovedStatuses(),
-            $this->getDepositingStatuses()
-        ), true);
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isApproved()
-    {
-        // When the payment is already in a depositing state its mean that
-        // it have already been approved
-
-        return in_array($this->getStatus(), array_merge(
-            $this->getApprovedStatuses(),
-            $this->getDepositedStatuses(),
-            $this->getDepositingStatuses()
-        ), true);
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isApproving()
-    {
-        return in_array($this->getStatus(), $this->getApprovingStatuses(), true);
-    }
-
-    /**
-     * @return string
-     */
-    public function getPaymentId()
-    {
-        return (string) $this->xml->attributes()->PAYID;
-    }
-
-    /**
-     * @return boolean
-     */
     public function isSuccessful()
     {
         return !in_array($this->getStatus(), array(static::INVALID, '', null), true);
     }
 
     /**
-     * @return string
+     * @return float
      */
-    public function getAmount()
-    {
-        return (float) $this->xml->attributes()->amount;
-    }
-
-    /**
-     * @return integer
-     */
-    public function getStatus()
-    {
-        return (int) $this->xml->attributes()->STATUS;
-    }
-
-    /**
-     * @return integer
-     */
-    public function getErrorCode()
-    {
-        return (string) $this->xml->attributes()->NCERROR;
-    }
+    abstract public function getAmount();
 
     /**
      * @return string
      */
-    public function getErrorDescription()
-    {
-        return (string) $this->xml->attributes()->NCERRORPLUS;
-    }
+    abstract public function getPaymentId();
+
+    /**
+     * @return string
+     */
+    abstract public function getStatus();
+
+    /**
+     * @return integer
+     */
+    abstract public function getErrorCode();
+
+    /**
+     * @return string
+     */
+    abstract public function getErrorDescription();
 
     /**
      * @return array
