@@ -61,13 +61,11 @@ class FeedbackResponse extends AbstractResponse
      *
      * @param  Request $request
      */
-    public function setValuesFromRequest(Request $request = null)
+    public function setValuesFromRequest(Request $request)
     {
-        if (null !== $request) {
-            foreach (self::$fields as $field) {
-                if ($request->has($field)) {
-                    $this->addValue($field, $request->get($field));
-                }
+        foreach (self::$fields as $field) {
+            if ($request->has($field)) {
+                $this->addValue($field, $request->get($field));
             }
         }
     }

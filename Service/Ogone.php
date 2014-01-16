@@ -41,7 +41,7 @@ class Ogone
      * Triggers the approveAndDeposit method of the plugin controller after
      * checking if the feedback response has a valid hash and that the payment instruction has pending transactions.
      *
-     * @param  PaymentInstructionInterface $instruction
+     * @param PaymentInstructionInterface $instruction
      */
     public function handleTransactionFeedback(PaymentInstructionInterface $instruction)
     {
@@ -53,7 +53,12 @@ class Ogone
             throw new \LogicException('[Ogone - callback] no pending transaction found for the payment instruction');
         }
 
-        $transaction->getExtendedData()->set('feedbackResponse', $this->feedbackResponse->getValues());
+        foreach ($this->feedbackResponse->getValues() as $field => $value) {
+            $transaction->getExtendedData()->set($field, $value);
+        }
+
+        $this->pluginController->setFeedbackResponse($this->feedbackResponse);
+
         $transaction->setReferenceNumber($this->feedbackResponse->getPaymentId());
 
         $this->pluginController->approveAndDeposit($transaction->getPayment()->getId(), $this->feedbackResponse->getAmount());

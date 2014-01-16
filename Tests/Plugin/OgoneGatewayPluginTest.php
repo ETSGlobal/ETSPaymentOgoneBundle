@@ -307,7 +307,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     {
         $plugin = $this->createPluginMock(true, false);
 
-        $transaction->getExtendedData()->set('feedbackResponse', array(
+        $plugin->setFeedbackResponse(new FeedbackResponse(array(
             'orderID'  => 42,
             'amount'   => '42',
             'currency' => 'EUR',
@@ -315,7 +315,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
             'STATUS'   => 5,
             'CARDNO'   => 4567123478941234,
             'PAYID'    => 43,
-        ));
+        )));
 
         $class = new \ReflectionClass($plugin);
         $testedMethod = $class->getMethod('getResponse');
