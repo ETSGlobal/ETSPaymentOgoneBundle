@@ -7,7 +7,7 @@ use JMS\Payment\CoreBundle\Model\ExtendedDataInterface;
 use Symfony\Component\BrowserKit\Response;
 
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
-use ETS\Payment\OgoneBundle\Hash\HashGenerator;
+use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -39,14 +39,14 @@ class OgoneGatewayPluginMock extends OgoneGatewayPlugin
 
     /**
      * @param TokenInterface            $token
-     * @param HashGenerator             $hashGenerator
+     * @param GeneratorInterface        $hashGenerator
      * @param Configuration\Redirection $redirectionConfig
      * @param Configuration\Design      $designConfig
      * @param boolean                   $debug
      * @param boolean                   $utf8
      * @param string                    $filename
      */
-    public function __construct(TokenInterface $token, HashGenerator $hashGenerator, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8, $filename)
+    public function __construct(TokenInterface $token, GeneratorInterface $hashGenerator, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8, $filename)
     {
         parent::__construct($token, $hashGenerator, $redirectionConfig, $designConfig, $debug, $utf8);
 

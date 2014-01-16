@@ -16,7 +16,7 @@ use JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
 use JMS\Payment\CoreBundle\Plugin\PluginInterface;
 
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
-use ETS\Payment\OgoneBundle\Hash\HashGenerator;
+use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
 use ETS\Payment\OgoneBundle\Response\DirectResponse;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 
@@ -49,7 +49,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
     protected $token;
 
     /**
-     * @var HashGenerator
+     * @var GeneratorInterface
      */
     protected $hashGenerator;
 
@@ -86,13 +86,13 @@ class OgoneGatewayPlugin extends GatewayPlugin
 
     /**
      * @param TokenInterface            $token
-     * @param HashGenerator             $hashGenerator
+     * @param GeneratorInterface        $hashGenerator
      * @param Configuration\Redirection $redirectionConfig
      * @param Configuration\Design      $designConfig
      * @param boolean                   $debug
      * @param boolean                   $utf8
      */
-    public function __construct(TokenInterface $token, HashGenerator $hashGenerator, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8)
+    public function __construct(TokenInterface $token, GeneratorInterface $hashGenerator, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8)
     {
         parent::__construct($debug);
 
@@ -310,7 +310,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
     protected function getResponse(FinancialTransactionInterface $transaction)
     {
         return (true === $transaction->getExtendedData()->has('feedbackResponse'))
-                ? $transaction->getExtendedData()->get('feedbackResponse')
+                ? new FeedbackResponse($transaction->getExtendedData()->get('feedbackResponse'))
                 : $this->requestDoDirectRequest($transaction);
     }
 

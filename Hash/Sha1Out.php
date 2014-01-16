@@ -23,7 +23,7 @@ namespace ETS\Payment\OgoneBundle\Hash;
  *
  * @author ETSGlobal <e4-devteam@etsglobal.org>
  */
-class Sha1Out implements HashGenerator
+class Sha1Out implements GeneratorInterface
 {
     private $passphrase;
 

@@ -2,6 +2,8 @@
 
 namespace ETS\Payment\OgoneBundle\Response;
 
+use Symfony\Component\HttpFoundation\Request;
+
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
  *
@@ -42,7 +44,12 @@ class FeedbackResponse extends AbstractResponse
     private $values = array();
     private $hash;
 
-    public function __construct(array $feedback)
+    /**
+     * FeedbackResponse constructor
+     *
+     * @param  array $feedback optional to allow instanciation followed by a call to setValuesFromRequest()
+     */
+    public function __construct(array $feedback = array())
     {
         foreach ($feedback as $field => $value) {
             $this->addValue($field, $value);
@@ -50,12 +57,19 @@ class FeedbackResponse extends AbstractResponse
     }
 
     /**
-     * get the list of fields that could be sent by Ogone
-     * @return array
+     * sets feedback values from a Request
+     *
+     * @param  Request $request
      */
-    public static function getFields()
+    public function setValuesFromRequest(Request $request = null)
     {
-        return self::$fields;
+        if (null !== $request) {
+            foreach (self::$fields as $field) {
+                if ($request->has($field)) {
+                    $this->addValue($field, $request->get($field));
+                }
+            }
+        }
     }
 
     public function getValues()
@@ -99,7 +113,6 @@ class FeedbackResponse extends AbstractResponse
     }
 
     /**
-     * [addValue description]
      * @param string $field
      * @param mixed $value
      *

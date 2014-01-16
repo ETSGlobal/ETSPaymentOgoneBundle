@@ -4,9 +4,8 @@ namespace ETS\Payment\OgoneBundle\Service;
 
 use JMS\Payment\CoreBundle\Model\PaymentInstructionInterface;
 use JMS\Payment\CoreBundle\PluginController\PluginControllerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
-use ETS\Payment\OgoneBundle\Hash\HashGenerator;
+use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 
 class Ogone
@@ -17,7 +16,7 @@ class Ogone
     protected $pluginController;
 
     /**
-     * @var ETS\Payment\OgoneBundle\Hash\HashGenerator
+     * @var ETS\Payment\OgoneBundle\Hash\GeneratorInterface
      */
     protected $generator;
 
@@ -28,14 +27,14 @@ class Ogone
 
     /**
      * @param PluginControllerInterface $pluginController
-     * @param HashGenerator             $generator
-     * @param Request                   $request
+     * @param GeneratorInterface        $generator
+     * @param FeedbackResponse          $feedbackResponse
      */
-    public function __construct(PluginControllerInterface $pluginController, HashGenerator $generator, Request $request)
+    public function __construct(PluginControllerInterface $pluginController, GeneratorInterface $generator, FeedbackResponse $feedbackResponse)
     {
         $this->pluginController = $pluginController;
-        $this->generator = $generator;
-        $this->feedbackResponse = new FeedbackResponse($request);
+        $this->generator        = $generator;
+        $this->feedbackResponse = $feedbackResponse;
     }
 
     /**
@@ -54,7 +53,7 @@ class Ogone
             throw new \LogicException('[Ogone - callback] no pending transaction found for the payment instruction');
         }
 
-        $transaction->getExtendedData()->set('feedbackResponse', $this->feedbackResponse);
+        $transaction->getExtendedData()->set('feedbackResponse', $this->feedbackResponse->getValues());
         $transaction->setReferenceNumber($this->feedbackResponse->getPaymentId());
 
         $this->pluginController->approveAndDeposit($transaction->getPayment()->getId(), $this->feedbackResponse->getAmount());
