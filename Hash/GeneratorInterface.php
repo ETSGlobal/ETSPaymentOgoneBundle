@@ -23,7 +23,7 @@ namespace ETS\Payment\OgoneBundle\Hash;
  *
  * @author ETSGlobal <e4-devteam@etsglobal.org>
  */
-interface HashGenerator
+interface GeneratorInterface
 {
     public function generate(array $parameters);
 }

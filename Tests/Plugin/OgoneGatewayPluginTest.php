@@ -303,11 +303,11 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      *
      * @depends testNewTransactionRequiresAnAction
      */
-    public function testGetResponseWithFeedbackResponse(FinancialTransaction $transaction)
+    public function testGetResponseReturnsFeedbackResponse(FinancialTransaction $transaction)
     {
         $plugin = $this->createPluginMock(true, false);
 
-        $transaction->getExtendedData()->set('feedbackResponse', new FeedbackResponse(array(
+        $plugin->setFeedbackResponse(new FeedbackResponse(array(
             'orderID'  => 42,
             'amount'   => '42',
             'currency' => 'EUR',

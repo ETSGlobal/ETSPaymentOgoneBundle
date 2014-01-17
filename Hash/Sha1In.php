@@ -25,7 +25,7 @@ use ETS\Payment\OgoneBundle\Client\TokenInterface;
  *
  * @author ETSGlobal <e4-devteam@etsglobal.org>
  */
-class Sha1In implements HashGenerator
+class Sha1In implements GeneratorInterface
 {
     protected static $allowed = array(
         'ACCEPTANCE', 'ACCEPTURL', 'ADDMATCH', 'ADDRMATCH', 'AIACTIONNUMBER',

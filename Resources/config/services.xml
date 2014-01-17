@@ -16,6 +16,7 @@
         <parameter key="payment.ogone.plugin.configuration.design.class">ETS\Payment\OgoneBundle\Plugin\Configuration\Design</parameter>
 
         <parameter key="payment.ogone.class">ETS\Payment\OgoneBundle\Service\Ogone</parameter>
+        <parameter key="payment.ogone.feedback_response.class">ETS\Payment\OgoneBundle\Response\FeedbackResponse</parameter>
     </parameters>
 
     <services>
@@ -70,10 +71,16 @@
             <argument>%payment.ogone.shaout%</argument>
         </service>
 
+        <service id="payment.ogone.feedback_response" class="%payment.ogone.feedback_response.class%" scope="request" public="false">
+            <call method="setValuesFromRequest">
+                <argument type="service" id="request" />
+            </call>
+        </service>
+
         <service id="payment.ogone" class="%payment.ogone.class%" scope="request">
             <argument type="service" id="payment.plugin_controller" />
             <argument type="service" id="payment.ogone.hash.sha1out" />
-            <argument type="service" id="request" />
+            <argument type="service" id="payment.ogone.feedback_response" />
         </service>
     </services>
 </container>

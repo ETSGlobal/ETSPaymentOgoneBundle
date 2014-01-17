@@ -16,9 +16,9 @@ use JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
 use JMS\Payment\CoreBundle\Plugin\PluginInterface;
 
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
-use ETS\Payment\OgoneBundle\Hash\HashGenerator;
+use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
 use ETS\Payment\OgoneBundle\Response\DirectResponse;
-use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
+use ETS\Payment\OgoneBundle\Response\ResponseInterface;
 
 /**
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -49,7 +49,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
     protected $token;
 
     /**
-     * @var HashGenerator
+     * @var GeneratorInterface
      */
     protected $hashGenerator;
 
@@ -69,6 +69,11 @@ class OgoneGatewayPlugin extends GatewayPlugin
     protected $utf8;
 
     /**
+     * @var ResponseInterface
+     */
+    protected $feedbackResponse;
+
+    /**
      * @var array
      */
     public static $additionalData = array(
@@ -86,13 +91,13 @@ class OgoneGatewayPlugin extends GatewayPlugin
 
     /**
      * @param TokenInterface            $token
-     * @param HashGenerator             $hashGenerator
+     * @param GeneratorInterface        $hashGenerator
      * @param Configuration\Redirection $redirectionConfig
      * @param Configuration\Design      $designConfig
      * @param boolean                   $debug
      * @param boolean                   $utf8
      */
-    public function __construct(TokenInterface $token, HashGenerator $hashGenerator, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8)
+    public function __construct(TokenInterface $token, GeneratorInterface $hashGenerator, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8)
     {
         parent::__construct($debug);
 
@@ -101,6 +106,14 @@ class OgoneGatewayPlugin extends GatewayPlugin
         $this->redirectionConfig = $redirectionConfig;
         $this->designConfig      = $designConfig;
         $this->utf8              = $utf8;
+    }
+
+    /**
+     * @param ResponseInterface $feedbackResponse
+     */
+    public function setFeedbackResponse(ResponseInterface $feedbackResponse)
+    {
+        $this->feedbackResponse = $feedbackResponse;
     }
 
     /**
@@ -309,8 +322,8 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     protected function getResponse(FinancialTransactionInterface $transaction)
     {
-        return (true === $transaction->getExtendedData()->has('feedbackResponse'))
-                ? $transaction->getExtendedData()->get('feedbackResponse')
+        return (isset($this->feedbackResponse))
+                ? $this->feedbackResponse
                 : $this->requestDoDirectRequest($transaction);
     }
 
@@ -325,12 +338,18 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     protected function requestDoDirectRequest(FinancialTransactionInterface $transaction)
     {
-        $response = $this->sendApiRequest(array(
+        $apiData = array(
             'PSPID'   => $this->token->getPspid(),
             'USERID'  => $this->token->getApiUser(),
             'PSWD'    => $this->token->getApiPassword(),
             'ORDERID' => $transaction->getExtendedData()->get('ORDERID'),
-        ));
+        );
+
+        if ($transaction->getExtendedData()->has('PAYID')) {
+            $apiData['PAYID'] = $transaction->getExtendedData()->get('PAYID');
+        }
+
+        $response = $this->sendApiRequest($apiData);
 
         $transaction->setReferenceNumber($response->getPaymentId());
 
