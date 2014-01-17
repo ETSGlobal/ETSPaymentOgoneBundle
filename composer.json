@@ -17,7 +17,7 @@
         "jms/payment-core-bundle": "dev-master"
     },
     "require-dev": {
-        "symfony/browser-kit": "2.1.x-dev"
+        "symfony/browser-kit": "~2.0"
     },
     "autoload": {
         "psr-0": { "ETS\\Payment\\OgoneBundle": "" }
