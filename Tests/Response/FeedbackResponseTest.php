@@ -51,4 +51,32 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
 
         $getValueMethod->invokeArgs($feedbackResponse, array('dummyField'));
     }
+
+    public function testSetValuesFromRequest()
+    {
+        $request = $this->getMock('Symfony\Component\HttpFoundation\Request', array('get'));
+        $request->expects($this->any())
+             ->method('get')
+             ->will($this->returnValue('foo'));
+
+        $feedbackResponse = new FeedbackResponse();
+        $feedbackResponse->setValuesFromRequest($request);
+
+        $this->assertSame(
+            array(
+                'ORDERID'    => 'foo',
+                'AMOUNT'     => 'foo',
+                'CURRENCY'   => 'foo',
+                'PM'         => 'foo',
+                'ACCEPTANCE' => 'foo',
+                'STATUS'     => 'foo',
+                'CARDNO'     => 'foo',
+                'PAYID'      => 'foo',
+                'NCERROR'    => 'foo',
+                'BRAND'      => 'foo',
+            ),
+            $feedbackResponse->getValues()
+        );
+        $this->assertSame('foo', $feedbackResponse->getHash());
+    }
 }

@@ -64,7 +64,7 @@ class FeedbackResponse extends AbstractResponse
     public function setValuesFromRequest(Request $request)
     {
         foreach (self::$fields as $field) {
-            if ($request->has($field)) {
+            if ($request->get($field)) {
                 $this->addValue($field, $request->get($field));
             }
         }
@@ -133,6 +133,7 @@ class FeedbackResponse extends AbstractResponse
 
     /**
      * @param  string $field
+     *
      * @return string|integer
      *
      * @throws \OutOfRangeException If the given field has not been set when this object has been instanciated
