@@ -111,7 +111,7 @@ class Sha1Out implements GeneratorInterface
             $field = strtoupper($field);
 
             if (in_array($field, $this->allowed, true)) {
-                $stringToHash .= sprintf('%s=%s%s', $field, $value, $passphrase);
+                $stringToHash .= sprintf('%s=%s%s', $field, $value, $this->passphrase);
             }
         }
 
