@@ -27,7 +27,7 @@ class Sha1Out implements GeneratorInterface
 {
     private $passphrase;
 
-    private $allowed = array(
+    private $paramsToIncludeInCalculation = array(
         'AAVADDRESS',
         'AAVCHECK',
         'AAVZIP',
@@ -96,6 +96,13 @@ class Sha1Out implements GeneratorInterface
      */
     public function generate(array $parameters)
     {
+        $stringToHash = $this->getStringToHash($parameters);
+
+        return strtoupper(sha1($stringToHash));
+    }
+
+    protected function getStringToHash(array $parameters)
+    {
         $stringToHash = '';
 
         // All parameters need to be arranged alphabetically.
@@ -103,18 +110,18 @@ class Sha1Out implements GeneratorInterface
 
         foreach ($parameters as $field => $value) {
             // Parameters that do not have a value should NOT be included in the string to hash
-            if (empty($value)) {
+            if ((string) $value === '') {
                 continue;
             }
 
             // All parameter names should be in UPPERCASE (to avoid any case confusion).
             $field = strtoupper($field);
 
-            if (in_array($field, $this->allowed, true)) {
+            if (in_array($field, $this->paramsToIncludeInCalculation, true)) {
                 $stringToHash .= sprintf('%s=%s%s', $field, $value, $this->passphrase);
             }
         }
 
-        return strtoupper(sha1($stringToHash));
+        return $stringToHash;
     }
 }
