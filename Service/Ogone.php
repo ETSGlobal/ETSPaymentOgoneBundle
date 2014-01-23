@@ -3,6 +3,7 @@
 namespace ETS\Payment\OgoneBundle\Service;
 
 use JMS\Payment\CoreBundle\Model\PaymentInstructionInterface;
+use JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
 use JMS\Payment\CoreBundle\PluginController\PluginControllerInterface;
 
 use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
@@ -16,6 +17,11 @@ class Ogone
     protected $pluginController;
 
     /**
+     * @var JMS\Payment\CoreBundle\Plugin\GatewayPlugin
+     */
+    protected $ogonePlugin;
+
+    /**
      * @var ETS\Payment\OgoneBundle\Hash\GeneratorInterface
      */
     protected $generator;
@@ -27,12 +33,14 @@ class Ogone
 
     /**
      * @param PluginControllerInterface $pluginController
+     * @param GatewayPlugin             $ogonePlugin
      * @param GeneratorInterface        $generator
      * @param FeedbackResponse          $feedbackResponse
      */
-    public function __construct(PluginControllerInterface $pluginController, GeneratorInterface $generator, FeedbackResponse $feedbackResponse)
+    public function __construct(PluginControllerInterface $pluginController, GatewayPlugin $ogonePlugin, GeneratorInterface $generator, FeedbackResponse $feedbackResponse)
     {
         $this->pluginController = $pluginController;
+        $this->ogonePlugin      = $ogonePlugin;
         $this->generator        = $generator;
         $this->feedbackResponse = $feedbackResponse;
     }
@@ -59,7 +67,7 @@ class Ogone
             $transaction->getExtendedData()->set($field, $value);
         }
 
-        $this->pluginController->getPlugin('ogone_gateway')->setFeedbackResponse($this->feedbackResponse);
+        $this->ogonePlugin->setFeedbackResponse($this->feedbackResponse);
 
         $transaction->setReferenceNumber($this->feedbackResponse->getPaymentId());
 
