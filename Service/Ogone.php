@@ -42,6 +42,8 @@ class Ogone
      * checking if the feedback response has a valid hash and that the payment instruction has pending transactions.
      *
      * @param PaymentInstructionInterface $instruction
+     *
+     * @throws \LogicException If hash is not valid or if there is no pending transaction
      */
     public function handleTransactionFeedback(PaymentInstructionInterface $instruction)
     {
@@ -57,7 +59,7 @@ class Ogone
             $transaction->getExtendedData()->set($field, $value);
         }
 
-        $this->pluginController->setFeedbackResponse($this->feedbackResponse);
+        $this->pluginController->getPlugin('ogone_gateway')->setFeedbackResponse($this->feedbackResponse);
 
         $transaction->setReferenceNumber($this->feedbackResponse->getPaymentId());
 
