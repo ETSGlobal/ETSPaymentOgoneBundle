@@ -54,4 +54,18 @@ class Sha1OutTest extends \PHPUnit_Framework_TestCase
         $this->assertGreaterThan($firstParamPos, $secondParamPos, 'All parameters must be sorted following the order in Sha1Out::$acceptedFields.');
         $this->assertGreaterThan($secondParamPos, $thirdParamPos, 'All parameters must be sorted following the order in Sha1Out::$acceptedFields.');
     }
+
+    public function testGenerate()
+    {
+        $params = array(
+            'PayId'    => 123456,
+            'CURRENCY' => 'EUR',
+            'NCERROR'  => 0,
+            'BRAND'    => '',
+        );
+
+        $sha1outGen = new Sha1Out('passphrase');
+
+        $this->assertEquals('236FC768128A1104F949912E67ADFD4F2ED54341', $sha1outGen->generate($params), 'Generated hash is different from expected.');
+    }
 }
