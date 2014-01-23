@@ -70,7 +70,7 @@ You would then have to define an action behind the url you would choose to give 
 
         $orderId = $request->get('orderID');
 
-        if (null === $order = $em->getRepository->getRepository('MyBundle:Order')->find($orderId)) {
+        if (null === $order = $em->getRepository('MyBundle:Order')->find($orderId)) {
             throw new NotFoundHttpException(sprintf('unable to find order with id [%s]', $orderId));
         }
 
