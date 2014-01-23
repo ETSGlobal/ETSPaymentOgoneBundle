@@ -2,6 +2,7 @@
 
 namespace ETS\Payment\OgoneBundle\Tests\Response;
 
+use ETS\Payment\OgoneBundle\Hash\Sha1Out;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 
 class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
@@ -56,27 +57,19 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->getMock('Symfony\Component\HttpFoundation\Request', array('get'));
         $request->expects($this->any())
-             ->method('get')
-             ->will($this->returnValue('foo'));
+            ->method('get')
+            ->will($this->returnValue('foo')
+        );
 
         $feedbackResponse = new FeedbackResponse();
         $feedbackResponse->setValuesFromRequest($request);
 
-        $this->assertSame(
-            array(
-                'ORDERID'    => 'foo',
-                'AMOUNT'     => 'foo',
-                'CURRENCY'   => 'foo',
-                'PM'         => 'foo',
-                'ACCEPTANCE' => 'foo',
-                'STATUS'     => 'foo',
-                'CARDNO'     => 'foo',
-                'PAYID'      => 'foo',
-                'NCERROR'    => 'foo',
-                'BRAND'      => 'foo',
-            ),
-            $feedbackResponse->getValues()
-        );
+        $expected = array();
+        foreach (Sha1Out::$acceptedFields as $field) {
+            $expected[$field] = 'foo';
+        }
+
+        $this->assertSame($expected, $feedbackResponse->getValues());
         $this->assertSame('foo', $feedbackResponse->getHash());
     }
 }

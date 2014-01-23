@@ -27,12 +27,13 @@ use ETS\Payment\OgoneBundle\Hash\Sha1Out;
  */
 class Sha1OutTest extends \PHPUnit_Framework_TestCase
 {
-    public function testGetStringToHashWithZeroAsParamValue()
+    public function testGetStringToHashFollowsOgoneRules()
     {
         $params = array(
+            'PayId'    => 123456,
             'CURRENCY' => 'EUR',
-            'PAYID'    => 123456,
             'NCERROR'  => 0,
+            'BRAND'    => '',
         );
 
         $sha1outGen = new Sha1Out('passphrase');
@@ -43,6 +44,14 @@ class Sha1OutTest extends \PHPUnit_Framework_TestCase
 
         $stringToHash = $getStringToHashMethod->invokeArgs($sha1outGen, array($params));
 
-        $this->assertTrue(false !== strpos($stringToHash, 'NCERROR'), 'fields must be included for hash calculation even if their value is 0');
+        $this->assertTrue(false !== strpos($stringToHash, 'NCERROR'), 'Fields must be included for hash calculation even if their value is 0.');
+        $this->assertTrue(false === strpos($stringToHash, 'BRAND'), 'Parameters that do not have a value should NOT be included in the string to hash.');
+        $this->assertTrue(false !== strpos($stringToHash, 'PAYID'), 'Each parameter must be put in upper case.');
+
+        $firstParamPos  = strpos($stringToHash, 'CURRENCY');
+        $secondParamPos = strpos($stringToHash, 'NCERROR');
+        $thirdParamPos  = strpos($stringToHash, 'PAYID');
+        $this->assertGreaterThan($firstParamPos, $secondParamPos, 'All parameters must be sorted following the order in Sha1Out::$acceptedFields.');
+        $this->assertGreaterThan($secondParamPos, $thirdParamPos, 'All parameters must be sorted following the order in Sha1Out::$acceptedFields.');
     }
 }

@@ -4,6 +4,8 @@ namespace ETS\Payment\OgoneBundle\Response;
 
 use Symfony\Component\HttpFoundation\Request;
 
+use ETS\Payment\OgoneBundle\Hash\Sha1Out;
+
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
  *
@@ -27,20 +29,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class FeedbackResponse extends AbstractResponse
 {
-    private static $fields = array(
-        'orderID',
-        'amount',
-        'currency',
-        'PM',
-        'ACCEPTANCE',
-        'STATUS',
-        'CARDNO',
-        'PAYID',
-        'NCERROR',
-        'BRAND',
-        'SHASIGN',
-    );
-
     private $values = array();
     private $hash;
 
@@ -63,10 +51,15 @@ class FeedbackResponse extends AbstractResponse
      */
     public function setValuesFromRequest(Request $request)
     {
-        foreach (self::$fields as $field) {
+        foreach (Sha1Out::$acceptedFields as $field) {
             if ($request->get($field)) {
                 $this->addValue($field, $request->get($field));
             }
+        }
+
+        // SHASIGN is not part of the accepted fields for the calculation of the hash
+        if (null !== $hash = $request->get('SHASIGN', null)) {
+            $this->hash = $hash;
         }
     }
 
@@ -124,11 +117,7 @@ class FeedbackResponse extends AbstractResponse
             throw new \BadMethodCallException(sprintf('Feedback parameter [%s] already set.', $field));
         }
 
-        if ('SHASIGN' !== $field) {
-            $this->values[$field] = $value;
-        } else {
-            $this->hash = $value;
-        }
+        $this->values[$field] = $value;
     }
 
     /**

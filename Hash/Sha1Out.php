@@ -27,7 +27,7 @@ class Sha1Out implements GeneratorInterface
 {
     private $passphrase;
 
-    private $paramsToIncludeInCalculation = array(
+    public static $acceptedFields = array(
         'AAVADDRESS',
         'AAVCHECK',
         'AAVZIP',
@@ -117,7 +117,7 @@ class Sha1Out implements GeneratorInterface
             // All parameter names should be in UPPERCASE (to avoid any case confusion).
             $field = strtoupper($field);
 
-            if (in_array($field, $this->paramsToIncludeInCalculation, true)) {
+            if (in_array($field, self::$acceptedFields, true)) {
                 $stringToHash .= sprintf('%s=%s%s', $field, $value, $this->passphrase);
             }
         }
