@@ -27,7 +27,7 @@ class Sha1Out implements GeneratorInterface
 {
     private $passphrase;
 
-    public static $acceptableFields = array(
+    private static $acceptableFields = array(
         'AAVADDRESS',
         'AAVCHECK',
         'AAVZIP',
