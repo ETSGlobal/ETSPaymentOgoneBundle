@@ -51,13 +51,13 @@ class FeedbackResponse extends AbstractResponse
      */
     public function setValuesFromRequest(Request $request)
     {
-        foreach (Sha1Out::$acceptedFields as $field) {
-            if ($request->get($field)) {
+        foreach (Sha1Out::$acceptableFields as $field) {
+            if ((string) $request->get($field) !== '') {
                 $this->addValue($field, $request->get($field));
             }
         }
 
-        // SHASIGN is not part of the accepted fields for the calculation of the hash
+        // SHASIGN is not part of the acceptable fields for the calculation of the hash
         if (null !== $hash = $request->get('SHASIGN', null)) {
             $this->hash = $hash;
         }
@@ -65,7 +65,7 @@ class FeedbackResponse extends AbstractResponse
 
     public function getValues()
     {
-        return $this->values;
+        return $this->values['received'];
     }
 
     public function getHash()
@@ -111,13 +111,12 @@ class FeedbackResponse extends AbstractResponse
      */
     private function addValue($field, $value)
     {
-        $field = strtoupper($field);
-
-        if (isset($this->values[$field])) {
+        if (isset($this->values['uppercased'][strtoupper($field)])) {
             throw new \BadMethodCallException(sprintf('Feedback parameter [%s] already set.', $field));
         }
 
-        $this->values[$field] = $value;
+        $this->values['received'][$field] =
+        $this->values['uppercased'][strtoupper($field)] = $value;
     }
 
     /**
@@ -131,10 +130,10 @@ class FeedbackResponse extends AbstractResponse
     {
         $field = strtoupper($field);
 
-        if (!isset($this->values[$field])) {
+        if (!isset($this->values['uppercased'][strtoupper($field)])) {
             throw new \OutOfRangeException(sprintf('Feedback parameter [%s] was not sent with the Request.', $field));
         }
 
-        return $this->values[$field];
+        return $this->values['received'][$field];
     }
 }

@@ -11,7 +11,7 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
      * @expectedException        \BadMethodCallException
      * @expectedExceptionMessage already set
      */
-    public function testAddValueFieldAlreadySet()
+    public function testAddValueFieldAlreadySetEvenIfDifferentCase()
     {
         $feedbackResponse = new FeedbackResponse(array(
             'orderID'  => 42,
@@ -65,7 +65,7 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
         $feedbackResponse->setValuesFromRequest($request);
 
         $expected = array();
-        foreach (Sha1Out::$acceptedFields as $field) {
+        foreach (Sha1Out::$acceptableFields as $field) {
             $expected[$field] = 'foo';
         }
 

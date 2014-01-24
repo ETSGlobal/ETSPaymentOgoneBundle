@@ -51,8 +51,8 @@ class Sha1OutTest extends \PHPUnit_Framework_TestCase
         $firstParamPos  = strpos($stringToHash, 'CURRENCY');
         $secondParamPos = strpos($stringToHash, 'NCERROR');
         $thirdParamPos  = strpos($stringToHash, 'PAYID');
-        $this->assertGreaterThan($firstParamPos, $secondParamPos, 'All parameters must be sorted following the order in Sha1Out::$acceptedFields.');
-        $this->assertGreaterThan($secondParamPos, $thirdParamPos, 'All parameters must be sorted following the order in Sha1Out::$acceptedFields.');
+        $this->assertGreaterThan($firstParamPos, $secondParamPos, 'All parameters must be sorted following the order in Sha1Out::$acceptableFields.');
+        $this->assertGreaterThan($secondParamPos, $thirdParamPos, 'All parameters must be sorted following the order in Sha1Out::$acceptableFields.');
     }
 
     public function testGenerate()

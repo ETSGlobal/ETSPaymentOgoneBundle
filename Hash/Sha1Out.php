@@ -2,7 +2,7 @@
 
 namespace ETS\Payment\OgoneBundle\Hash;
 
-/**
+/*
  * Copyright 2014 ETSGlobal <e4-devteam@etsglobal.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,13 +27,13 @@ class Sha1Out implements GeneratorInterface
 {
     private $passphrase;
 
-    public static $acceptedFields = array(
+    public static $acceptableFields = array(
         'AAVADDRESS',
         'AAVCHECK',
         'AAVZIP',
         'ACCEPTANCE',
         'ALIAS',
-        'AMOUNT',
+        'amount',
         'BIN',
         'BRAND',
         'CARDNO',
@@ -41,7 +41,7 @@ class Sha1Out implements GeneratorInterface
         'CN',
         'COMPLUS',
         'CREATION_STATUS',
-        'CURRENCY',
+        'currency',
         'CVCCHECK',
         'DCC_COMMPERCENTAGE',
         'DCC_CONVAMOUNT',
@@ -69,7 +69,7 @@ class Sha1Out implements GeneratorInterface
         'NCERRORCN',
         'NCERRORCVC',
         'NCERRORED',
-        'ORDERID',
+        'orderID',
         'PAYID',
         'PM',
         'SCO_CATEGORY',
@@ -104,21 +104,11 @@ class Sha1Out implements GeneratorInterface
     protected function getStringToHash(array $parameters)
     {
         $stringToHash = '';
+        $parameters   = array_change_key_case($parameters, CASE_UPPER);
 
-        // All parameters need to be arranged alphabetically.
-        ksort($parameters);
-
-        foreach ($parameters as $field => $value) {
-            // Parameters that do not have a value should NOT be included in the string to hash
-            if ((string) $value === '') {
-                continue;
-            }
-
-            // All parameter names should be in UPPERCASE (to avoid any case confusion).
-            $field = strtoupper($field);
-
-            if (in_array($field, self::$acceptedFields, true)) {
-                $stringToHash .= sprintf('%s=%s%s', $field, $value, $this->passphrase);
+        foreach (self::$acceptableFields as $acceptableField) {
+            if (isset($parameters[strtoupper($acceptableField)]) && (string) $parameters[strtoupper($acceptableField)] !== '') {
+                $stringToHash .= sprintf('%s=%s%s', strtoupper($acceptableField), $parameters[strtoupper($acceptableField)], $this->passphrase);
             }
         }
 
