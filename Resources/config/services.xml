@@ -72,9 +72,7 @@
         </service>
 
         <service id="payment.ogone.feedback_response" class="%payment.ogone.feedback_response.class%" scope="request" public="false">
-            <call method="setValuesFromRequest">
-                <argument type="service" id="request" />
-            </call>
+            <argument type="service" id="request" />
         </service>
 
         <service id="payment.ogone" class="%payment.ogone.class%" scope="request">
