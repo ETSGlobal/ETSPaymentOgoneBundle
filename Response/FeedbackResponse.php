@@ -124,6 +124,6 @@ class FeedbackResponse extends AbstractResponse
             throw new \OutOfRangeException(sprintf('Feedback parameter [%s] was not sent with the Request.', $field));
         }
 
-        return $this->values['received'][$field];
+        return $this->values['uppercased'][strtoupper($field)];
     }
 }
