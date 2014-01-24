@@ -7,27 +7,30 @@ use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 
 class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
 {
+    private $map = array(
+        array('orderID', null, false, 42),
+        array('amount', null, false, '42'),
+        array('currency', null, false, 'EUR'),
+        array('PM', null, false, 'credit card'),
+        array('STATUS', null, false, 5),
+        array('CARDNO', null, false, 4567123478941234),
+        array('PAYID', null, false, 43),
+        array('SHASIGN', null, false, 'fzgzgzghz4648zh6z5h')
+    );
+
     /**
      * @expectedException        \BadMethodCallException
      * @expectedExceptionMessage already set
      */
     public function testAddValueFieldAlreadySetEvenIfDifferentCase()
     {
-        $feedbackResponse = new FeedbackResponse(array(
-            'orderID'  => 42,
-            'amount'   => '42',
-            'currency' => 'EUR',
-            'PM'       => 'credit card',
-            'STATUS'   => 5,
-            'CARDNO'   => 4567123478941234,
-            'PAYID'    => 43,
-        ));
+        $feedbackResponse = $this->getFeedbackResponseWithStubbedRequest();
 
         $class = new \ReflectionClass($feedbackResponse);
         $addValueMethod = $class->getMethod('addValue');
         $addValueMethod->setAccessible(true);
 
-        $addValueMethod->invokeArgs($feedbackResponse, array('ORDERID', 48));
+        $addValueMethod->invokeArgs($feedbackResponse, array('ORDERid', 48));
     }
 
     /**
@@ -36,15 +39,7 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetValueUnsetField()
     {
-        $feedbackResponse = new FeedbackResponse(array(
-            'orderID'  => 42,
-            'amount'   => '42',
-            'currency' => 'EUR',
-            'PM'       => 'credit card',
-            'STATUS'   => 5,
-            'CARDNO'   => 4567123478941234,
-            'PAYID'    => 43,
-        ));
+        $feedbackResponse = $this->getFeedbackResponseWithStubbedRequest();
 
         $class = new \ReflectionClass($feedbackResponse);
         $getValueMethod = $class->getMethod('getValue');
@@ -53,23 +48,58 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
         $getValueMethod->invokeArgs($feedbackResponse, array('dummyField'));
     }
 
-    public function testSetValuesFromRequest()
+    public function testConstructor()
     {
-        $request = $this->getMock('Symfony\Component\HttpFoundation\Request', array('get'));
-        $request->expects($this->any())
+        $feedbackResponse = $this->getFeedbackResponseWithStubbedRequest();
+
+        $this->assertSame($this->getMapForParameterBags(false), $feedbackResponse->getValues());
+        $this->assertSame($this->getHashFromMap(), $feedbackResponse->getHash());
+    }
+
+    private function getFeedbackResponseWithStubbedRequest()
+    {
+        $requestStub = $this->getMock('Symfony\Component\HttpFoundation\Request', array('get'));
+
+        $requestStub
+            ->expects($this->any())
             ->method('get')
-            ->will($this->returnValue('foo')
-        );
+            ->will($this->returnValueMap($this->map));
 
-        $feedbackResponse = new FeedbackResponse();
-        $feedbackResponse->setValuesFromRequest($request);
+        $publicPropertyStub = $this->getMock('Symfony\Component\HttpFoundation\ParameterBag', array('all'));
+        $publicPropertyStub
+            ->expects($this->any())
+            ->method('all')
+            ->will($this->returnValue($this->getMapForParameterBags()));
 
-        $expected = array();
-        foreach (Sha1Out::$acceptableFields as $field) {
-            $expected[$field] = 'foo';
+        $requestStub->query   = $publicPropertyStub;
+        $requestStub->request = clone $publicPropertyStub;
+
+        return new FeedbackResponse($requestStub);
+    }
+
+    private function getMapForParameterBags($withShasign = true)
+    {
+        $mappedFields = array();
+
+        foreach ($this->map as $fieldMap) {
+            if (false === $withShasign && 'SHASIGN' === $fieldMap[0]) {
+                continue;
+            }
+
+            $mappedFields[$fieldMap[0]] = $fieldMap[3];
         }
 
-        $this->assertSame($expected, $feedbackResponse->getValues());
-        $this->assertSame('foo', $feedbackResponse->getHash());
+        return $mappedFields;
+    }
+
+    private function getHashFromMap()
+    {
+        foreach ($this->map as $fieldMap) {
+            if (in_array('SHASIGN', $fieldMap)) {
+                return $fieldMap[3];
+            }
+        }
+
+        return 'hash';
     }
 }
