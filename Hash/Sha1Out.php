@@ -33,7 +33,7 @@ class Sha1Out implements GeneratorInterface
         'AAVZIP',
         'ACCEPTANCE',
         'ALIAS',
-        'amount',
+        'AMOUNT',
         'BIN',
         'BRAND',
         'CARDNO',
@@ -41,7 +41,7 @@ class Sha1Out implements GeneratorInterface
         'CN',
         'COMPLUS',
         'CREATION_STATUS',
-        'currency',
+        'CURRENCY',
         'CVCCHECK',
         'DCC_COMMPERCENTAGE',
         'DCC_CONVAMOUNT',
@@ -69,14 +69,14 @@ class Sha1Out implements GeneratorInterface
         'NCERRORCN',
         'NCERRORCVC',
         'NCERRORED',
-        'orderID',
+        'ORDERID',
         'PAYID',
         'PM',
         'SCO_CATEGORY',
         'SCORING',
         'STATUS',
         'SUBBRAND',
-        'SUBSC RIPTION_ID',
+        'SUBSCRIPTION_ID',
         'TRXDATE',
         'VC',
     );
@@ -87,6 +87,15 @@ class Sha1Out implements GeneratorInterface
     public function __construct($passphrase)
     {
         $this->passphrase = $passphrase;
+    }
+
+    /**
+     * @param  string  $field
+     * @return boolean
+     */
+    public static function isAcceptableField($field)
+    {
+        return in_array(strtoupper($field), self::$acceptableFields);
     }
 
     /**
