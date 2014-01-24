@@ -305,23 +305,24 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetResponseReturnsFeedbackResponse(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock(true, false);
+        $request = $this->getMock('Symfony\Component\HttpFoundation\Request', array('get'));
 
-        $plugin->setFeedbackResponse(new FeedbackResponse(array(
-            'orderID'  => 42,
-            'amount'   => '42',
-            'currency' => 'EUR',
-            'PM'       => 'credit card',
-            'STATUS'   => 5,
-            'CARDNO'   => 4567123478941234,
-            'PAYID'    => 43,
-        )));
+        $request
+            ->expects($this->any())
+            ->method('get')
+            ->will($this->returnValueMap(array(
+                array('orderID', 'amount', 'currency', 'PM', 'STATUS', 'CARDNO', 'PAYID'),
+                array(42, '42', 'EUR', 'credit card', 5, 4567123478941234, 43)
+            )));
+
+        $plugin = $this->createPluginMock(true, false);
+        $plugin->setFeedbackResponse(new FeedbackResponse($request));
 
         $class = new \ReflectionClass($plugin);
-        $testedMethod = $class->getMethod('getResponse');
-        $testedMethod->setAccessible(true);
+        $getResponseMethod = $class->getMethod('getResponse');
+        $getResponseMethod->setAccessible(true);
 
-        $response = $testedMethod->invokeArgs($plugin, array($transaction));
+        $response = $getResponseMethod->invokeArgs($plugin, array($transaction));
 
         $this->assertInstanceOf('ETS\Payment\OgoneBundle\Response\FeedbackResponse', $response);
     }
