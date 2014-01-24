@@ -35,25 +35,15 @@ class FeedbackResponse extends AbstractResponse
     /**
      * FeedbackResponse constructor
      *
-     * @param  array $feedback optional to allow instanciation followed by a call to setValuesFromRequest()
-     */
-    public function __construct(array $feedback = array())
-    {
-        foreach ($feedback as $field => $value) {
-            $this->addValue($field, $value);
-        }
-    }
-
-    /**
-     * sets feedback values from a Request
-     *
      * @param  Request $request
      */
-    public function setValuesFromRequest(Request $request)
+    public function __construct(Request $request)
     {
-        foreach (Sha1Out::$acceptableFields as $field) {
-            if ((string) $request->get($field) !== '') {
-                $this->addValue($field, $request->get($field));
+        foreach (array_merge($request->query->all(), $request->request->all()) as $receivedField => $value) {
+            if (Sha1Out::isAcceptableField($receivedField)) {
+                if ((string) $value !== '') {
+                    $this->addValue($receivedField, $value);
+                }
             }
         }
 
