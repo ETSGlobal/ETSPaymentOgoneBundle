@@ -362,8 +362,9 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     protected function createPluginMock($state = null, $debug = true, $utf8 = false)
     {
+        $tokenMock  = $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
         $pluginMock = new OgoneGatewayPluginMock(
-            $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface'),
+            $tokenMock,
             new Sha1In($tokenMock),
             new Redirection(),
             new Design(),
