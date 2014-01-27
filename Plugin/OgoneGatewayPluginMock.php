@@ -3,11 +3,7 @@
 namespace ETS\Payment\OgoneBundle\Plugin;
 
 use JMS\Payment\CoreBundle\BrowserKit\Request;
-use JMS\Payment\CoreBundle\Model\ExtendedDataInterface;
 use Symfony\Component\BrowserKit\Response;
-
-use ETS\Payment\OgoneBundle\Client\TokenInterface;
-use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
 
 /*
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -35,22 +31,19 @@ class OgoneGatewayPluginMock extends OgoneGatewayPlugin
     /**
      * @var string
      */
-    protected $filename;
+    protected $filename = 'deposited';
 
     /**
-     * @param TokenInterface            $token
-     * @param GeneratorInterface        $hashGenerator
-     * @param Configuration\Redirection $redirectionConfig
-     * @param Configuration\Design      $designConfig
-     * @param boolean                   $debug
-     * @param boolean                   $utf8
-     * @param string                    $filename
+     * @param string $filename
      */
-    public function __construct(TokenInterface $token, GeneratorInterface $hashGenerator, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8, $filename)
+    public function setFilename($filename)
     {
-        parent::__construct($token, $hashGenerator, $redirectionConfig, $designConfig, $debug, $utf8);
-
         $this->filename = $filename;
+    }
+
+    public function getFilename()
+    {
+        return sprintf('%s/../Resources/fixtures/%s.xml', __DIR__, $this->filename);
     }
 
     /**
@@ -62,8 +55,8 @@ class OgoneGatewayPluginMock extends OgoneGatewayPlugin
      */
     public function request(Request $request)
     {
-        if (file_exists($this->filename)) {
-            return new Response(file_get_contents($this->filename), 200);
+        if (file_exists($this->getFilename())) {
+            return new Response(file_get_contents($this->getFilename()), 200);
         } else {
             return new Response('', 500);
         }
