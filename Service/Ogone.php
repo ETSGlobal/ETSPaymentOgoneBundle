@@ -59,19 +59,19 @@ class Ogone
             throw new \LogicException('[Ogone - callback] hash verification failed');
         }
 
-        if (null === $transaction = $instruction->getPendingTransaction()) {
+        if (null === $pendingTransaction = $instruction->getPendingTransaction()) {
             throw new \LogicException('[Ogone - callback] no pending transaction found for the payment instruction');
         }
 
         foreach ($this->feedbackResponse->getValues() as $field => $value) {
-            $transaction->getExtendedData()->set($field, $value);
+            $pendingTransaction->getExtendedData()->set($field, $value);
         }
 
         $this->ogonePlugin->setFeedbackResponse($this->feedbackResponse);
 
-        $transaction->setReferenceNumber($this->feedbackResponse->getPaymentId());
+        $pendingTransaction->setReferenceNumber($this->feedbackResponse->getPaymentId());
 
-        $this->pluginController->approveAndDeposit($transaction->getPayment()->getId(), $this->feedbackResponse->getAmount());
+        $this->pluginController->approveAndDeposit($pendingTransaction->getPayment()->getId(), $this->feedbackResponse->getAmount());
     }
 
     /**
