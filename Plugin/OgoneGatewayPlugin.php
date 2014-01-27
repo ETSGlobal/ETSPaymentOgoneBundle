@@ -130,10 +130,6 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     public function approveAndDeposit(FinancialTransactionInterface $transaction, $retry)
     {
-        if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
-            throw $this->createRedirectActionException($transaction);
-        }
-
         $this->approve($transaction, $retry);
         $this->deposit($transaction, $retry);
     }
@@ -151,6 +147,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @param FinancialTransactionInterface $transaction The transaction
      * @param boolean                       $retry       Whether this is a retry transaction
      *
+     * @throws ActionRequiredException If the transaction's state is NEW
      * @throws FinancialException      If payment is not approved
      * @throws PaymentPendingException If payment is still approving
      */
@@ -193,6 +190,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      *
      * @return mixed
      *
+     * @throws ActionRequiredException If the transaction's state is NEW
      * @throws FinancialException      If payment is not approved
      * @throws PaymentPendingException If payment is still approving
      */
@@ -202,7 +200,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             throw $this->createRedirectActionException($transaction);
         }
 
-        $response = $this->getResponse($transaction);
+        $response = $this->getDirectResponse($transaction);
 
         if ($response->isDepositing()) {
             throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
@@ -324,7 +322,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
     {
         return (isset($this->feedbackResponse))
                 ? $this->feedbackResponse
-                : $this->requestDoDirectRequest($transaction);
+                : $this->getDirectResponse($transaction);
     }
 
     /**
@@ -332,11 +330,11 @@ class OgoneGatewayPlugin extends GatewayPlugin
      *
      * @param FinancialTransactionInterface $transaction
      *
-     * @return \ETS\Payment\OgoneBundle\Response\ResponseInterface
+     * @return \ETS\Payment\OgoneBundle\Response\DirectResponse
      *
      * @throws FinancialException
      */
-    protected function requestDoDirectRequest(FinancialTransactionInterface $transaction)
+    protected function getDirectResponse(FinancialTransactionInterface $transaction)
     {
         $apiData = array(
             'PSPID'   => $this->token->getPspid(),
@@ -349,21 +347,21 @@ class OgoneGatewayPlugin extends GatewayPlugin
             $apiData['PAYID'] = $transaction->getExtendedData()->get('PAYID');
         }
 
-        $response = $this->sendApiRequest($apiData);
+        $directResponse = new DirectResponse($this->sendApiRequest($apiData));
 
-        $transaction->setReferenceNumber($response->getPaymentId());
+        $transaction->setReferenceNumber($directResponse->getPaymentId());
 
-        if (!$response->isSuccessful()) {
-            $transaction->setResponseCode($response->getErrorCode());
-            $transaction->setReasonCode($response->getStatus());
+        if (!$directResponse->isSuccessful()) {
+            $transaction->setResponseCode($directResponse->getErrorCode());
+            $transaction->setReasonCode($directResponse->getStatus());
 
-            $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
+            $ex = new FinancialException('Ogone-Response was not successful: '.$directResponse->getErrorDescription());
             $ex->setFinancialTransaction($transaction);
 
             throw $ex;
         }
 
-        return $response;
+        return $directResponse;
     }
 
     /**
@@ -371,20 +369,19 @@ class OgoneGatewayPlugin extends GatewayPlugin
      *
      * @param array $parameters
      *
-     * @return \ETS\Payment\OgoneBundle\Response\DirectResponse
+     * @return \SimpleXMLElement
      *
      * @throws CommunicationException
      */
     protected function sendApiRequest(array $parameters)
     {
-        $request = new Request($this->getDirectQueryUrl(), 'POST', $parameters);
-        $response = $this->request($request);
+        $response = $this->request(new Request($this->getDirectQueryUrl(), 'POST', $parameters));
 
         if (200 !== $response->getStatus()) {
-            throw new CommunicationException('The API request was not successful (Status: '.$response->getStatus().'): '.$response->getContent());
+            throw new CommunicationException(sprintf('The API request was not successful (Status: %s): %s', $response->getStatus(), $response->getContent()));
         }
 
-        return new DirectResponse(new \SimpleXMLElement($response->getContent()));
+        return new \SimpleXMLElement($response->getContent());
     }
 
     /**
