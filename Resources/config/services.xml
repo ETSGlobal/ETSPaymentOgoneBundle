@@ -6,6 +6,8 @@
 
     <parameters>
         <parameter key="payment.plugin.ogone.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin</parameter>
+        <parameter key="payment.plugin.ogone.mock.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock</parameter>
+
         <parameter key="payment.form.ogone_gateway.class">ETS\Payment\OgoneBundle\Form\GatewayType</parameter>
         <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
 

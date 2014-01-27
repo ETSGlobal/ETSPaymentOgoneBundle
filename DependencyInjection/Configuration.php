@@ -75,6 +75,7 @@ class Configuration implements ConfigurationInterface
                             ->scalarNode('logo')->defaultNull()->end()
                         ->end()
                     ->end()
+                    ->booleanNode('mock_plugin')->defaultValue('false')->end()
                 ->end()
             ->end();
     }

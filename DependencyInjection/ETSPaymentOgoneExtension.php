@@ -69,5 +69,9 @@ class ETSPaymentOgoneExtension extends Extension
         $container->setParameter('payment.ogone.design.buttonTxtColor', $config['design']['buttonTxtColor']);
         $container->setParameter('payment.ogone.design.fontType', $config['design']['fontType']);
         $container->setParameter('payment.ogone.design.logo', $config['design']['logo']);
+
+        if (true === $config['mock_plugin']) {
+            $container->setParameter('payment.plugin.ogone.class', $container->getParameter('payment.plugin.ogone.mock.class'));
+        }
     }
 }
