@@ -141,7 +141,7 @@ class Sha1In implements GeneratorInterface
             $key = strtoupper($key);
 
             if (in_array($key, static::$allowed, true) || $this->isWildcarded($key)) {
-                $shainString .= $key.'='.$value.$this->token->getShain();
+                $shainString .= sprintf('%s=%s%s', $key, $value, $this->token->getShain());
             }
         }
 

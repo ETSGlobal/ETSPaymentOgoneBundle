@@ -70,7 +70,7 @@
         </service>
 
         <service id="payment.ogone.hash.sha1out" class="%payment.ogone.hash.sha1out.class%" public="false">
-            <argument>%payment.ogone.shaout%</argument>
+            <argument type="service" id="payment.ogone.client.token" />
         </service>
 
         <service id="payment.ogone.feedback_response" class="%payment.ogone.feedback_response.class%" scope="request" public="false">

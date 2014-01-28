@@ -36,7 +36,7 @@ class Sha1OutTest extends \PHPUnit_Framework_TestCase
             'BRAND'    => '',
         );
 
-        $sha1outGen = new Sha1Out('passphrase');
+        $sha1outGen = new Sha1Out($this->createTokenMock());
 
         $class = new \ReflectionClass($sha1outGen);
         $getStringToHashMethod = $class->getMethod('getStringToHash');
@@ -64,8 +64,21 @@ class Sha1OutTest extends \PHPUnit_Framework_TestCase
             'BRAND'    => '',
         );
 
-        $sha1outGen = new Sha1Out('passphrase');
+        $sha1outGen = new Sha1Out($this->createTokenMock());
 
         $this->assertEquals('236FC768128A1104F949912E67ADFD4F2ED54341', $sha1outGen->generate($params), 'Generated hash is different from expected.');
+    }
+
+    /**
+     * @return \ETS\Payment\OgoneBundle\Client\TokenInterface
+     */
+    protected function createTokenMock()
+    {
+        $tokenMock = $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
+        $tokenMock->expects($this->any())
+            ->method('getShaout')
+            ->will($this->returnValue('passphrase'));
+
+        return $tokenMock;
     }
 }

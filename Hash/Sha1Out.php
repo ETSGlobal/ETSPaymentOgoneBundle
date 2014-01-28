@@ -2,6 +2,8 @@
 
 namespace ETS\Payment\OgoneBundle\Hash;
 
+use ETS\Payment\OgoneBundle\Client\TokenInterface;
+
 /*
  * Copyright 2014 ETSGlobal <e4-devteam@etsglobal.org>
  *
@@ -25,9 +27,7 @@ namespace ETS\Payment\OgoneBundle\Hash;
  */
 class Sha1Out implements GeneratorInterface
 {
-    private $passphrase;
-
-    private static $acceptableFields = array(
+    protected static $acceptableFields = array(
         'AAVADDRESS',
         'AAVCHECK',
         'AAVZIP',
@@ -82,15 +82,21 @@ class Sha1Out implements GeneratorInterface
     );
 
     /**
-     * @param string $passphrase
+     * @var TokenInterface
      */
-    public function __construct($passphrase)
+    protected $token;
+
+    /**
+     * @param TokenInterface $token
+     */
+    public function __construct(TokenInterface $token)
     {
-        $this->passphrase = $passphrase;
+        $this->token = $token;
     }
 
     /**
-     * @param  string  $field
+     * @param string $field
+     *
      * @return boolean
      */
     public static function isAcceptableField($field)
@@ -110,6 +116,11 @@ class Sha1Out implements GeneratorInterface
         return strtoupper(sha1($stringToHash));
     }
 
+    /**
+     * @param array $parameters
+     *
+     * @return string
+     */
     protected function getStringToHash(array $parameters)
     {
         $stringToHash = '';
@@ -117,7 +128,7 @@ class Sha1Out implements GeneratorInterface
 
         foreach (self::$acceptableFields as $acceptableField) {
             if (isset($parameters[strtoupper($acceptableField)]) && (string) $parameters[strtoupper($acceptableField)] !== '') {
-                $stringToHash .= sprintf('%s=%s%s', strtoupper($acceptableField), $parameters[strtoupper($acceptableField)], $this->passphrase);
+                $stringToHash .= sprintf('%s=%s%s', strtoupper($acceptableField), $parameters[strtoupper($acceptableField)], $this->token->getShaout());
             }
         }
 
