@@ -15,7 +15,7 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
         array('STATUS', null, false, 5),
         array('CARDNO', null, false, 4567123478941234),
         array('PAYID', null, false, 43),
-        array('SHASIGN', null, false, 'fzgzgzghz4648zh6z5h')
+        array('SHASign', null, false, 'fzgzgzghz4648zh6z5h')
     );
 
     /**
@@ -82,7 +82,7 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
         $mappedFields = array();
 
         foreach ($this->map as $fieldMap) {
-            if (false === $withShasign && 'SHASIGN' === $fieldMap[0]) {
+            if (false === $withShasign && 'SHASign' === $fieldMap[0]) {
                 continue;
             }
 
@@ -95,7 +95,7 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
     private function getHashFromMap()
     {
         foreach ($this->map as $fieldMap) {
-            if (in_array('SHASIGN', $fieldMap)) {
+            if (in_array('SHASign', $fieldMap)) {
                 return $fieldMap[3];
             }
         }

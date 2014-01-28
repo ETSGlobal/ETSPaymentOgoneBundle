@@ -44,12 +44,9 @@ class FeedbackResponse extends AbstractResponse
                 if ((string) $value !== '') {
                     $this->addValue($receivedField, $value);
                 }
+            } elseif ('SHASIGN' === strtoupper($receivedField) && null !== $value) {
+                $this->hash = $value;   // SHASIGN is not part of the acceptable fields for the calculation of the hash
             }
-        }
-
-        // SHASIGN is not part of the acceptable fields for the calculation of the hash
-        if (null !== $hash = $request->get('SHASIGN', null)) {
-            $this->hash = $hash;
         }
     }
 
@@ -60,6 +57,10 @@ class FeedbackResponse extends AbstractResponse
 
     public function getHash()
     {
+        if (!isset($this->hash)) {
+            throw new Exception('');
+        }
+
         return $this->hash;
     }
 
