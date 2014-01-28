@@ -56,11 +56,14 @@ class Ogone
     public function handleTransactionFeedback(PaymentInstructionInterface $instruction)
     {
         if (!$this->isHashValid($this->feedbackResponse->getValues(), $this->feedbackResponse->getHash())) {
-            throw new \LogicException('[Ogone - callback] hash verification failed');
+            throw new \LogicException(sprintf('[Ogone - callback] hash verification failed with values [%s] and hash [%s]',
+                implode(', ', $this->feedbackResponse->getValues()),
+                $this->feedbackResponse->getHash()
+            ));
         }
 
         if (null === $pendingTransaction = $instruction->getPendingTransaction()) {
-            throw new \LogicException('[Ogone - callback] no pending transaction found for the payment instruction');
+            throw new \LogicException(sprintf('[Ogone - callback] no pending transaction found for the payment instruction [%d]', $instruction->getId()));
         }
 
         foreach ($this->feedbackResponse->getValues() as $field => $value) {
