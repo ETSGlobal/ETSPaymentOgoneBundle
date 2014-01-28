@@ -57,7 +57,7 @@ class Ogone
     {
         if (!$this->isHashValid($this->feedbackResponse->getValues(), $this->feedbackResponse->getHash())) {
             throw new \LogicException(sprintf('[Ogone - callback] hash verification failed with values [%s] and hash [%s]',
-                implode(', ', $this->feedbackResponse->getValues()),
+                print_r($this->feedbackResponse->getValues(), true),
                 $this->feedbackResponse->getHash()
             ));
         }
