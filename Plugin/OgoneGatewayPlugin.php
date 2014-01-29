@@ -317,12 +317,28 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @param  FinancialTransactionInterface $transaction
      *
      * @return ETS\Payment\OgoneBundle\Response\ResponseInterface
+     *
+     * @throws FinancialException
      */
     protected function getResponse(FinancialTransactionInterface $transaction)
     {
-        return (isset($this->feedbackResponse))
-                ? $this->feedbackResponse
-                : $this->getDirectResponse($transaction);
+        $response = (isset($this->feedbackResponse))
+                  ? $this->feedbackResponse
+                  : $this->getDirectResponse($transaction);
+
+        if (!$response->isSuccessful()) {
+            $transaction->setResponseCode($response->getErrorCode());
+            $transaction->setReasonCode($response->getStatus());
+
+            $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
+            $ex->setFinancialTransaction($transaction);
+
+            throw $ex;
+        }
+
+        $transaction->setReferenceNumber($response->getPaymentId());
+
+        return $response;
     }
 
     /**
@@ -331,8 +347,6 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @param FinancialTransactionInterface $transaction
      *
      * @return \ETS\Payment\OgoneBundle\Response\DirectResponse
-     *
-     * @throws FinancialException
      */
     protected function getDirectResponse(FinancialTransactionInterface $transaction)
     {
@@ -347,21 +361,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             $apiData['PAYID'] = $transaction->getExtendedData()->get('PAYID');
         }
 
-        $directResponse = new DirectResponse($this->sendApiRequest($apiData));
-
-        $transaction->setReferenceNumber($directResponse->getPaymentId());
-
-        if (!$directResponse->isSuccessful()) {
-            $transaction->setResponseCode($directResponse->getErrorCode());
-            $transaction->setReasonCode($directResponse->getStatus());
-
-            $ex = new FinancialException('Ogone-Response was not successful: '.$directResponse->getErrorDescription());
-            $ex->setFinancialTransaction($transaction);
-
-            throw $ex;
-        }
-
-        return $directResponse;
+        return new DirectResponse($this->sendApiRequest($apiData));
     }
 
     /**
