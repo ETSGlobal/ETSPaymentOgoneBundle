@@ -16,6 +16,7 @@ use ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection;
 use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin;
 use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
+use ETS\Payment\OgoneBundle\Test\RequestStubber;
 
 /**
  * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
@@ -38,6 +39,25 @@ use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
  */
 class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var ETS\Payment\OgoneBundle\Test\RequestStubber
+     */
+    private $requestStubber;
+
+    public function setUp()
+    {
+        $this->requestStubber = new RequestStubber(array(
+            array('orderID', null, false, 42),
+            array('amount', null, false, '42'),
+            array('currency', null, false, 'EUR'),
+            array('PM', null, false, 'credit card'),
+            array('STATUS', null, false, 5),
+            array('CARDNO', null, false, 4567123478941234),
+            array('PAYID', null, false, 43),
+            array('SHASign', null, false, 'fzgzgzghz4648zh6z5h')
+        ));
+    }
+
     /**
      * @return array
      */
@@ -306,18 +326,8 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetResponseReturnsFeedbackResponse(FinancialTransaction $transaction)
     {
-        $request = $this->getMock('Symfony\Component\HttpFoundation\Request', array('get'));
-
-        $request
-            ->expects($this->any())
-            ->method('get')
-            ->will($this->returnValueMap(array(
-                array('orderID', 'amount', 'currency', 'PM', 'STATUS', 'CARDNO', 'PAYID'),
-                array(42, '42', 'EUR', 'credit card', 5, 4567123478941234, 43)
-            )));
-
         $plugin = $this->createPluginMock();
-        $plugin->setFeedbackResponse(new FeedbackResponse($request));
+        $plugin->setFeedbackResponse(new FeedbackResponse($this->requestStubber->getStubbedRequest()));
 
         $class = new \ReflectionClass($plugin);
         $getResponseMethod = $class->getMethod('getResponse');
