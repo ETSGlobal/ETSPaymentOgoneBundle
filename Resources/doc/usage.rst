@@ -74,9 +74,19 @@ You would then have to define an action behind the url you would choose to give 
             throw new NotFoundHttpException(sprintf('unable to find order with id [%s]', $orderId));
         }
 
-        $instruction = $order->getPaymentInstruction();
+        if (null === $instruction = $order->getPaymentInstruction()) {
+            $this->get('logger')->info(sprintf('[Ogone - callback] No payment instruction found for OrderId [%s].', $orderId));
 
-        $this->get('payment.ogone')->handleTransactionFeedback($instruction);
+            return new Response('No payment instruction');
+        }
+
+        try {
+            $this->get('payment.ogone')->handleTransactionFeedback($instruction);
+        } catch (NoPendingTransactionException $e) {
+            $this->get('logger')->info($e->getMessage());
+
+            return new Response('Nothing pending');
+        }
 
         $em->flush();
 
