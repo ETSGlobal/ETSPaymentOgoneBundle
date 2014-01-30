@@ -6,6 +6,7 @@ use JMS\Payment\CoreBundle\Model\PaymentInstructionInterface;
 use JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
 use JMS\Payment\CoreBundle\PluginController\PluginControllerInterface;
 
+use ETS\Payment\OgoneBundle\Exception\NoPendingTransactionException;
 use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 
@@ -63,7 +64,7 @@ class Ogone
         }
 
         if (null === $pendingTransaction = $instruction->getPendingTransaction()) {
-            throw new \LogicException(sprintf('[Ogone - callback] no pending transaction found for the payment instruction [%d]', $instruction->getId()));
+            throw new NoPendingTransactionException(sprintf('[Ogone - callback] no pending transaction found for the payment instruction [%d]', $instruction->getId()));
         }
 
         foreach ($this->feedbackResponse->getValues() as $field => $value) {
