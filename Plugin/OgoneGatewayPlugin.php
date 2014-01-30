@@ -200,7 +200,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             throw $this->createRedirectActionException($transaction);
         }
 
-        $response = $this->getDirectResponse($transaction);
+        $response = $this->getResponse($transaction, true);
 
         if ($response->isDepositing()) {
             throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
@@ -315,14 +315,15 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * or from a call to ogone's api.
      *
      * @param  FinancialTransactionInterface $transaction
+     * @param  boolean                       $forceDirect
      *
      * @return ETS\Payment\OgoneBundle\Response\ResponseInterface
      *
      * @throws FinancialException
      */
-    protected function getResponse(FinancialTransactionInterface $transaction)
+    protected function getResponse(FinancialTransactionInterface $transaction, $forceDirect = false)
     {
-        $response = (isset($this->feedbackResponse))
+        $response = (isset($this->feedbackResponse) && (false === $forceDirect))
                   ? $this->feedbackResponse
                   : $this->getDirectResponse($transaction);
 
