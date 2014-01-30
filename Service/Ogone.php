@@ -52,7 +52,8 @@ class Ogone
      *
      * @param PaymentInstructionInterface $instruction
      *
-     * @throws \LogicException If hash is not valid or if there is no pending transaction
+     * @throws \LogicException               If hash is not valid or if there is no pending transaction
+     * @throws NoPendingTransactionException If no pending transaction is found in payment instruction
      */
     public function handleTransactionFeedback(PaymentInstructionInterface $instruction)
     {
