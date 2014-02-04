@@ -53,7 +53,7 @@ an easy way to communicate with the Dotpay API, then you can use the plugin dire
 
 Use Ogone's transaction feedback via callback request
 -----------------------------------------------------
-When a payment is captured, Ogone can send the parameters listed in ETS\Payment\OgoneBundle\Response\FeedbackResponse::$fields
+When a payment is captured, Ogone can send the parameters listed in ETS\\Payment\\OgoneBundle\\Response\\FeedbackResponse::$fields
 in a request on your ACCEPTURL, EXCEPTIONURL, CANCELURL or DECLINEURL to enable you to perform a database update.
 You can activate this option in the Technical information page > "Transaction feedback" tab > "HTTP redirection in the browser" section:
 "I would like to receive transaction feedback parameters on the redirection URLs".
