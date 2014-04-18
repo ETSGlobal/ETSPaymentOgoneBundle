@@ -19,7 +19,7 @@ use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 use ETS\Payment\OgoneBundle\Test\RequestStubber;
 
 /**
- * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
+ * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

@@ -6,7 +6,7 @@ use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /*
- * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
+ * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 /**
  * Bundle Configuration
  *
- * @author ETSGlobal <e4-devteam@etsglobal.org>
+ * @author ETSGlobal <ecs@etsglobal.org>
  */
 class Configuration implements ConfigurationInterface
 {

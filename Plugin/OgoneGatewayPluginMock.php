@@ -6,7 +6,7 @@ use JMS\Payment\CoreBundle\BrowserKit\Request;
 use Symfony\Component\BrowserKit\Response;
 
 /*
- * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
+ * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ use Symfony\Component\BrowserKit\Response;
 /**
  * Ogone gateway plugin mock class for tests
  *
- * @author ETSGlobal <e4-devteam@etsglobal.org>
+ * @author ETSGlobal <ecs@etsglobal.org>
  */
 class OgoneGatewayPluginMock extends OgoneGatewayPlugin
 {

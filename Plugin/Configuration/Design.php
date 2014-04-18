@@ -5,7 +5,7 @@ namespace ETS\Payment\OgoneBundle\Plugin\Configuration;
 use JMS\Payment\CoreBundle\Entity\ExtendedData;
 
 /*
- * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
+ * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ use JMS\Payment\CoreBundle\Entity\ExtendedData;
 /**
  * Redirection class
  *
- * @author ETSGlobal <e4-devteam@etsglobal.org>
+ * @author ETSGlobal <ecs@etsglobal.org>
  */
 class Design
 {
@@ -69,7 +69,7 @@ class Design
     {
     	return $data->has('tp') ? $data->get('tp') : $this->tp;
     }
-    
+
     /**
      * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
      *

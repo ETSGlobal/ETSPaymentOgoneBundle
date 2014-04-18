@@ -20,7 +20,7 @@ use ETS\Payment\OgoneBundle\Response\DirectResponse;
 use ETS\Payment\OgoneBundle\Response\ResponseInterface;
 
 /**
- * Copyright 2013 ETSGlobal <e4-devteam@etsglobal.org>
+ * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ use ETS\Payment\OgoneBundle\Response\ResponseInterface;
 /**
  * Ogone gateway plugin
  *
- * @author ETSGlobal <e4-devteam@etsglobal.org>
+ * @author ETSGlobal <ecs@etsglobal.org>
  */
 class OgoneGatewayPlugin extends GatewayPlugin
 {
