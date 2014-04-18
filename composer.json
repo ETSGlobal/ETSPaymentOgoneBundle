@@ -4,11 +4,15 @@
     "description": "Payment Bundle providing access to Ogone gateway",
     "keywords": ["payment", "ogone"],
     "homepage": "https://github.com/ETSGlobal/ETSPaymentOgoneBundle",
-    "license": "Apache2",
+    "license": "Apache-2.0",
     "authors": [
         {
             "name": "Clément Gautier",
             "email": "clement.gautier@sensiolabs.com"
+        },
+        {
+            "name": "ETS Global Dev Team",
+            "email": "ecs@etsglobal.org"
         }
     ],
     "require": {

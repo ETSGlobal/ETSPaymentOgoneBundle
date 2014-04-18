@@ -3,7 +3,6 @@
 namespace ETS\Payment\OgoneBundle\Plugin;
 
 use JMS\Payment\CoreBundle\BrowserKit\Request;
-use JMS\Payment\CoreBundle\Model\ExtendedDataInterface;
 use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
 use JMS\Payment\CoreBundle\Model\PaymentInstructionInterface;
 use JMS\Payment\CoreBundle\Plugin\ErrorBuilder;

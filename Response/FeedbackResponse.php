@@ -58,7 +58,7 @@ class FeedbackResponse extends AbstractResponse
     public function getHash()
     {
         if (!isset($this->hash)) {
-            throw new Exception('');
+            throw new \LogicException('The hash is not set');
         }
 
         return $this->hash;
