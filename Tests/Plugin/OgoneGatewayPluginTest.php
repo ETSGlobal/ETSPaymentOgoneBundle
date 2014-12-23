@@ -396,12 +396,12 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                array("OWNERADDRESS" => "aa.bb@test.com", "OWNERCTY" => "city"),
-                array("OWNERADDRESS" => "aa.bb@test.com"),
+                array("EMAIL" => "aa.bb@test.com", "OWNERCTY" => "city"),
+                array("EMAIL" => "aa.bb@test.com"),
             ),
             array(
-                array("OWNERADDRESS" => "aa.bb@test.com", "OWNERADDRESS" => "main street"),
-                array("OWNERADDRESS" => "aa.bb@test.com", "OWNERADDRESS" => "main street"),
+                array("EMAIL" => "aa.bb@test.com", "OWNERADDRESS" => "main street"),
+                array("EMAIL" => "aa.bb@test.com", "OWNERADDRESS" => "main street"),
             ),
         );
     }
