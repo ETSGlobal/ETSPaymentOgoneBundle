@@ -12,24 +12,16 @@ use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 
 class Ogone
 {
-    /**
-     * @var JMS\Payment\CoreBundle\Plugin\PluginInterface
-     */
+    /** @var \JMS\Payment\CoreBundle\Plugin\PluginInterface */
     protected $pluginController;
 
-    /**
-     * @var JMS\Payment\CoreBundle\Plugin\GatewayPlugin
-     */
+    /** @var \JMS\Payment\CoreBundle\Plugin\GatewayPlugin */
     protected $ogonePlugin;
 
-    /**
-     * @var ETS\Payment\OgoneBundle\Hash\GeneratorInterface
-     */
+    /** @var \ETS\Payment\OgoneBundle\Hash\GeneratorInterface */
     protected $generator;
 
-    /**
-     * @var ETS\Payment\OgoneBundle\Response\FeedbackResponse
-     */
+    /** @var \ETS\Payment\OgoneBundle\Response\FeedbackResponse */
     protected $feedbackResponse;
 
     /**
@@ -87,7 +79,7 @@ class Ogone
      *
      * @return boolean         true if the hashes match
      */
-    protected function isHashValid(array $values, $hash)
+    private function isHashValid(array $values, $hash)
     {
         return $this->generator->generate($values) === $hash;
     }

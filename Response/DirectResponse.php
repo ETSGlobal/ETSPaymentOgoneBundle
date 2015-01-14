@@ -31,7 +31,7 @@ class DirectResponse extends AbstractResponse
     public $xml;
 
     /**
-     * @param \SimpleXMLElement $parameters
+     * @param \SimpleXMLElement $xml
      */
     public function __construct(\SimpleXMLElement $xml)
     {

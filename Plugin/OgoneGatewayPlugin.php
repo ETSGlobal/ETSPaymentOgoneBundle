@@ -231,7 +231,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      *
      * @param PaymentInstructionInterface $paymentInstruction
      *
-     * @throws JMS\Payment\CoreBundle\Plugin\Exception\InvalidPaymentInstructionException if the the PaymentInstruction is not valid
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\InvalidPaymentInstructionException if the the PaymentInstruction is not valid
      */
     public function checkPaymentInstruction(PaymentInstructionInterface $paymentInstruction)
     {
@@ -316,7 +316,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      * @param  FinancialTransactionInterface $transaction
      * @param  boolean                       $forceDirect
      *
-     * @return ETS\Payment\OgoneBundle\Response\ResponseInterface
+     * @return \ETS\Payment\OgoneBundle\Response\ResponseInterface
      *
      * @throws FinancialException
      */

@@ -29,15 +29,14 @@ use Symfony\Component\Form\FormBuilderInterface;
 class GatewayType extends AbstractType
 {
     /**
-     * @param FormBuilderInterface $builder The builder
-     * @param array                $options Options
+     * @inheritdoc
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
     }
 
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getName()
     {

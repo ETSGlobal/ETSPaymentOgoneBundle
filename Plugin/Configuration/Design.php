@@ -40,11 +40,16 @@ class Design
     protected $logo;
 
     /**
-     * @param string $acceptUrl
-     * @param string $declineUrl
-     * @param string $exceptionUrl
-     * @param string $cancelUrl
-     * @param string $backUrl
+     * @param null $tp
+     * @param null $title
+     * @param null $bgColor
+     * @param null $txtColor
+     * @param null $tblBgColor
+     * @param null $tblTxtColor
+     * @param null $buttonBgColor
+     * @param null $buttonTxtColor
+     * @param null $fontType
+     * @param null $logo
      */
     public function __construct($tp = null, $title = null, $bgColor = null, $txtColor = null, $tblBgColor = null, $tblTxtColor = null, $buttonBgColor = null, $buttonTxtColor = null, $fontType = null, $logo = null)
     {

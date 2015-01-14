@@ -18,7 +18,7 @@ class RequestStubber extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return Symfony\Component\HttpFoundation\Request
+     * @return \Symfony\Component\HttpFoundation\Request
      */
     public function getStubbedRequest()
     {

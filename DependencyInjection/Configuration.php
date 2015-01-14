@@ -29,7 +29,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 class Configuration implements ConfigurationInterface
 {
     /**
-     * @return TreeBuilder
+     * @inheritdoc
      */
     public function getConfigTreeBuilder()
     {

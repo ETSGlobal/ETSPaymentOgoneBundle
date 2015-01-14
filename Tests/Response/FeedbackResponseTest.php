@@ -8,7 +8,7 @@ use ETS\Payment\OgoneBundle\Test\RequestStubber;
 class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var ETS\Payment\OgoneBundle\Test\RequestStubber
+     * @var \ETS\Payment\OgoneBundle\Test\RequestStubber
      */
     private $requestStubber;
 
