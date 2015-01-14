@@ -8,17 +8,7 @@
         <parameter key="payment.plugin.ogone.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin</parameter>
         <parameter key="payment.plugin.ogone.mock.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock</parameter>
 
-        <parameter key="payment.form.ogone_gateway.class">ETS\Payment\OgoneBundle\Form\GatewayType</parameter>
         <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
-
-        <parameter key="payment.ogone.hash.sha1in.class">ETS\Payment\OgoneBundle\Hash\Sha1In</parameter>
-        <parameter key="payment.ogone.hash.sha1out.class">ETS\Payment\OgoneBundle\Hash\Sha1Out</parameter>
-
-        <parameter key="payment.ogone.plugin.configuration.redirection.class">ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection</parameter>
-        <parameter key="payment.ogone.plugin.configuration.design.class">ETS\Payment\OgoneBundle\Plugin\Configuration\Design</parameter>
-
-        <parameter key="payment.ogone.class">ETS\Payment\OgoneBundle\Service\Ogone</parameter>
-        <parameter key="payment.ogone.feedback_response.class">ETS\Payment\OgoneBundle\Response\FeedbackResponse</parameter>
     </parameters>
 
     <services>
@@ -30,7 +20,7 @@
             <argument>%payment.ogone.shaout%</argument>
         </service>
 
-        <service id="payment.ogone.plugin.configuration.redirection" class="%payment.ogone.plugin.configuration.redirection.class%">
+        <service id="payment.ogone.plugin.configuration.redirection" class="ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection">
             <argument>%payment.ogone.redirection.accept_url%</argument>
             <argument>%payment.ogone.redirection.decline_url%</argument>
             <argument>%payment.ogone.redirection.exception_url%</argument>
@@ -38,7 +28,7 @@
             <argument>%payment.ogone.redirection.back_url%</argument>
         </service>
 
-        <service id="payment.ogone.plugin.configuration.design" class="%payment.ogone.plugin.configuration.design.class%">
+        <service id="payment.ogone.plugin.configuration.design" class="ETS\Payment\OgoneBundle\Plugin\Configuration\Design">
             <argument>%payment.ogone.design.title%</argument>
             <argument>%payment.ogone.design.bgColor%</argument>
             <argument>%payment.ogone.design.txtColor%</argument>
@@ -50,7 +40,7 @@
             <argument>%payment.ogone.design.logo%</argument>
         </service>
 
-        <service id="payment.ogone.hash.sha1in" class="%payment.ogone.hash.sha1in.class%">
+        <service id="payment.ogone.hash.sha1in" class="ETS\Payment\OgoneBundle\Hash\Sha1In">
             <argument type="service" id="payment.ogone.client.token" />
         </service>
 
@@ -64,20 +54,20 @@
             <tag name="payment.plugin"/>
         </service>
 
-        <service id="payment.form.ogone_gateway" class="%payment.form.ogone_gateway.class%">
+        <service id="payment.form.ogone_gateway" class="ETS\Payment\OgoneBundle\Form\GatewayType">
             <tag name="payment.method_form_type" />
             <tag name="form.type" alias="ogone_gateway"/>
         </service>
 
-        <service id="payment.ogone.hash.sha1out" class="%payment.ogone.hash.sha1out.class%" public="false">
+        <service id="payment.ogone.hash.sha1out" class="ETS\Payment\OgoneBundle\Hash\Sha1Out" public="false">
             <argument type="service" id="payment.ogone.client.token" />
         </service>
 
-        <service id="payment.ogone.feedback_response" class="%payment.ogone.feedback_response.class%" scope="request" public="false">
+        <service id="payment.ogone.feedback_response" class="ETS\Payment\OgoneBundle\Response\FeedbackResponse" scope="request" public="false">
             <argument type="service" id="request" />
         </service>
 
-        <service id="payment.ogone" class="%payment.ogone.class%" scope="request">
+        <service id="payment.ogone" class="ETS\Payment\OgoneBundle\Service\Ogone" scope="request">
             <argument type="service" id="payment.plugin_controller" />
             <argument type="service" id="payment.plugin.ogone_gateway" />
             <argument type="service" id="payment.ogone.hash.sha1out" />
