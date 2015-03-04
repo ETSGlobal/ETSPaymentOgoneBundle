@@ -42,7 +42,7 @@ Configuration
             back_url:
 
 Additional informations
--------------
+-----------------------
 **API:**
 The User API is not your main user account.
 You have to create a new user account into Ogone Administration -> Users -> Create new user.

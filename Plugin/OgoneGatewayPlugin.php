@@ -449,8 +449,8 @@ class OgoneGatewayPlugin extends GatewayPlugin
             throw new \InvalidArgumentException(sprintf(
                 'Additional data "%s" not supported. Expected values: %s',
                 $key,
-                implode(', ', self::getAdditionalDataKeys()
-            )));
+                implode(', ', self::getAdditionalDataKeys())
+            ));
         }
 
         return self::$additionalData[$key];

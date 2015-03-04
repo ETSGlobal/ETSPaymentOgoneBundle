@@ -2,8 +2,6 @@
 
 namespace ETS\Payment\OgoneBundle\Client;
 
-use ETS\Payment\OgoneBundle\Client\TokenInterface;
-
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
  *
@@ -50,7 +48,7 @@ class Token implements TokenInterface
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getPspid()
     {
@@ -58,7 +56,7 @@ class Token implements TokenInterface
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getApiUser()
     {
@@ -66,7 +64,7 @@ class Token implements TokenInterface
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getApiPassword()
     {
@@ -74,7 +72,7 @@ class Token implements TokenInterface
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getShain()
     {
@@ -82,7 +80,7 @@ class Token implements TokenInterface
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
     public function getShaout()
     {

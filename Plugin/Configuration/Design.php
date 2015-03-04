@@ -21,13 +21,12 @@ use JMS\Payment\CoreBundle\Entity\ExtendedData;
  */
 
 /**
- * Redirection class
+ * Design class
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
 class Design
 {
-
     protected $tp;
     protected $title;
     protected $bgColor;
@@ -72,7 +71,7 @@ class Design
      */
     public function getTp(ExtendedData $data)
     {
-    	return $data->has('tp') ? $data->get('tp') : $this->tp;
+        return $data->has('tp') ? $data->get('tp') : $this->tp;
     }
 
     /**
