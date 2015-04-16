@@ -199,7 +199,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
             throw $this->createRedirectActionException($transaction);
         }
 
-        $response = $this->getResponse($transaction, true);
+        $response = $this->getResponse($transaction);
 
         if ($response->isDepositing()) {
             throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
@@ -454,5 +454,27 @@ class OgoneGatewayPlugin extends GatewayPlugin
         }
 
         return self::$additionalData[$key];
+    }
+
+    /**
+     * Return direct response content
+     *
+     * @param \JMS\Payment\CoreBundle\Model\FinancialTransactionInterface $transaction
+     * @return type
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     */
+    public function getDirectResponseContent(FinancialTransactionInterface $transaction)
+    {
+        $response = $this->getDirectResponse($transaction);
+
+        if (!$response->isSuccessful()) {
+
+            $ex = new FinancialException('Direct Ogone-Response was not successful: '.$response->getErrorDescription());
+            $ex->setFinancialTransaction($transaction);
+
+            throw $ex;
+        }
+
+        return $response;
     }
 }
