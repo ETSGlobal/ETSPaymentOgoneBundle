@@ -42,52 +42,16 @@ use ETS\Payment\OgoneBundle\Response\ResponseInterface;
  */
 class OgoneBatchGatewayPlugin extends GatewayPlugin
 {
+
+    const TRANSACTION_CODE_NEW         = 'ATR'; //code for new orders (transactions)
+    const TRANSACTION_CODE_MAINTENANCE = 'MTR'; //code for maintenance operations on existing transactions
+    const AUTHORIZATION                = 'RES';
+    const PAYMENT                      = 'SAS';
+    const PARTIAL_REFUND               = 'RFD'; //means others operations can be done on the same transaction
     /**
      * @var TokenInterface
      */
     protected $token;
-
-    /**
-     * @var GeneratorInterface
-     */
-    protected $hashGenerator;
-
-    /**
-     * @var Configuration\Redirection
-     */
-    protected $redirectionConfig;
-
-    /**
-     * @var Configuration\Design
-     */
-    protected $designConfig;
-
-    /**
-     * @var boolean
-     */
-    protected $utf8;
-
-    /**
-     * @var ResponseInterface
-     */
-    protected $feedbackResponse;
-
-    /**
-     * @var array
-     */
-    public static $additionalData = array(
-        "PM"           => 25,
-        "BRAND"        => 25,
-        "CN"           => 35,
-        "EMAIL"        => 50,
-        "OWNERZIP"     => 10,
-        "OWNERADDRESS" => 35,
-        "OWNERCTY"     => 2,
-        "OWNERTOWN"    => 40,
-        "OWNERTELNO"   => 20,
-        "OWNERTELNO2"  => 20,
-    );
-
     /**
      * @param TokenInterface            $token
      * @param GeneratorInterface        $hashGenerator
@@ -100,11 +64,7 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
     {
         parent::__construct($debug);
 
-        $this->token             = $token;
-        $this->hashGenerator     = $hashGenerator;
-        $this->redirectionConfig = $redirectionConfig;
-        $this->designConfig      = $designConfig;
-        $this->utf8              = $utf8;
+        $this->token = $token;
     }
 
     /**
@@ -219,30 +179,17 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
         $transaction->setReasonCode(PluginInterface::REASON_CODE_SUCCESS);
     }
 
-    /**
-     * This method checks whether all required parameters exist in the given
-     * PaymentInstruction, and whether they are syntactically correct.
-     *
-     * This method is meant to perform a fast parameter validation; no connection
-     * to any payment back-end system should be made at this stage.
-     *
-     * In case, this method is not implemented. The PaymentInstruction will
-     * be considered to be valid.
-     *
-     * @param PaymentInstructionInterface $paymentInstruction
-     *
-     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\InvalidPaymentInstructionException if the the PaymentInstruction is not valid
-     */
-    public function checkPaymentInstruction(PaymentInstructionInterface $paymentInstruction)
+    public function validatePaymentInstruction(PaymentInstructionInterface $paymentInstruction)
     {
-        $errorBuilder = new ErrorBuilder();
+        try {
+            $file = $this->buildFile($paymentInstruction->getExtendedData());
 
-        if (!$paymentInstruction->getExtendedData()->has('lang')) {
-            $errorBuilder->addDataError('lang', 'form.error.required');
-        }
-
-        if ($errorBuilder->hasErrors()) {
-            throw $errorBuilder->getException();
+            $response = $this->getDirectResponse($file);
+            if (!$response->hasError()) {
+                $paymentInstruction->getExtendedData()->set('PAYID', $response->getPaymentId());
+            }
+        } catch (\Exception $e) {
+            throw new InvalidPaymentInstructionException($e->getMessage(), $e->getCode());
         }
     }
 
@@ -261,52 +208,6 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
     public function processes($paymentSystemName)
     {
         return 'ogone_caa' === $paymentSystemName;
-    }
-
-    /**
-     * approve Authorized & Sale transactions
-     *
-     * @param  FinancialTransactionInterface $transaction
-     *
-     * @return ActionRequiredException
-     */
-    public function createRedirectActionException(FinancialTransactionInterface $transaction)
-    {
-        $actionRequestException = new ActionRequiredException('User must authorize the transaction');
-        $actionRequestException->setFinancialTransaction($transaction);
-
-        $extendedData = $transaction->getExtendedData();
-        if (!$extendedData->has('ORDERID')) {
-            $extendedData->set('ORDERID', uniqid());
-        }
-
-        $additionalData = array();
-        foreach (self::getAdditionalDataKeys() as $key) {
-            if ($extendedData->has($key)) {
-                $additionalData[$key] = $extendedData->get($key);
-            }
-        }
-
-        $parameters = array_merge(
-            self::normalize($additionalData),
-            $this->redirectionConfig->getRequestParameters($extendedData),
-            $this->designConfig->getRequestParameters($extendedData),
-            array(
-                "ORDERID"  => $extendedData->get('ORDERID'),
-                "PSPID"    => $this->token->getPspid(),
-                "AMOUNT"   => $transaction->getRequestedAmount() * 100,
-                "CURRENCY" => $transaction->getPayment()->getPaymentInstruction()->getCurrency(),
-                "LANGUAGE" => $extendedData->get('lang')
-            )
-        );
-
-        $parameters['SHASIGN'] = $this->hashGenerator->generate($parameters);
-
-        ksort($parameters);
-
-        $actionRequestException->setAction(new VisitUrl($this->getStandardOrderUrl() . '?' . http_build_query($parameters)));
-
-        return $actionRequestException;
     }
 
     /**
@@ -348,18 +249,14 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
      *
      * @return \ETS\Payment\OgoneBundle\Response\DirectResponse
      */
-    protected function getDirectResponse(FinancialTransactionInterface $transaction)
+    protected function getDirectResponse($file)
     {
         $apiData = array(
-            'PSPID'   => $this->token->getPspid(),
-            'USERID'  => $this->token->getApiUser(),
-            'PSWD'    => $this->token->getApiPassword(),
-            'ORDERID' => $transaction->getExtendedData()->get('ORDERID'),
+            'FILE'         => $file,
+            'REPLY_TYPE'   => 'XML',
+            'MODE'         => 'SYNC',
+            'PROCESS_MODE' => 'CHECKANDPROCESS'
         );
-
-        if ($transaction->getExtendedData()->has('PAYID')) {
-            $apiData['PAYID'] = $transaction->getExtendedData()->get('PAYID');
-        }
 
         return new DirectResponse($this->sendApiRequest($apiData));
     }
@@ -375,7 +272,7 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
      */
     protected function sendApiRequest(array $parameters)
     {
-        $response = $this->request(new Request($this->getDirectQueryUrl(), 'POST', $parameters));
+        $response = $this->request(new Request($this->getBatchUrl(), 'POST', $parameters));
 
         if (200 !== $response->getStatus()) {
             throw new CommunicationException(sprintf('The API request was not successful (Status: %s): %s', $response->getStatus(), $response->getContent()));
@@ -387,94 +284,11 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
     /**
      * @return string
      */
-    protected function getStandardOrderUrl()
+    protected function getBatchUrl()
     {
         return sprintf(
-            'https://secure.ogone.com/ncol/%s/orderstandard%s.asp',
-            $this->debug ? 'test' : 'prod',
-            $this->utf8 ? '_utf8' : ''
+            'https://secure.ogone.com/ncol/%s/AFU_agree.asp',
+            $this->debug ? 'test' : 'prod'
         );
-    }
-
-    /**
-     * @return string
-     */
-    protected function getDirectQueryUrl()
-    {
-        return sprintf(
-            'https://secure.ogone.com/ncol/%s/querydirect%s.asp',
-            $this->debug ? 'test' : 'prod',
-            $this->utf8 ? '_utf8' : ''
-        );
-    }
-
-    /**
-     * Remove all unwanted characters and unset the optional data, if it is too long.
-     *
-     * @param array $additionalData
-     *
-     * @return array
-     */
-    public static function normalize(array $additionalData)
-    {
-        foreach ($additionalData as $key => $value) {
-            $additionalData[$key] = preg_replace('/\pM*/u', '', normalizer_normalize($value, \Normalizer::FORM_D));
-
-            if (strlen($additionalData[$key]) > self::getAdditionalDataMaxLength($key)) {
-                unset($additionalData[$key]);
-            }
-        }
-
-        return $additionalData;
-    }
-
-    /**
-     * @return array
-     */
-    protected static function getAdditionalDataKeys()
-    {
-        return array_keys(self::$additionalData);
-    }
-
-    /**
-     * @param string $key
-     *
-     * @return integer
-     *
-     * @throws \InvalidArgumentException
-     */
-    protected static function getAdditionalDataMaxLength($key)
-    {
-        if (!isset(self::$additionalData[$key])) {
-            throw new \InvalidArgumentException(sprintf(
-                'Additional data "%s" not supported. Expected values: %s',
-                $key,
-                implode(', ', self::getAdditionalDataKeys())
-            ));
-        }
-
-        return self::$additionalData[$key];
-    }
-
-    /**
-     * Return direct response content
-     *
-     * @param \JMS\Payment\CoreBundle\Model\FinancialTransactionInterface $transaction
-     * @return type
-     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     */
-    public function getDirectResponseContent(FinancialTransactionInterface $transaction)
-    {
-        $response = $this->getDirectResponse($transaction);
-
-        if (!$response->isSuccessful()) {
-
-            $ex = new FinancialException('Direct Ogone-Response was not successful: '.$response->getErrorDescription());
-            $ex->setFinancialTransaction($transaction);
-
-            throw $ex;
-        }
-
-        return $response;
     }
 }

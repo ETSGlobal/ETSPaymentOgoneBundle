@@ -8,6 +8,8 @@
         <parameter key="payment.plugin.ogone.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin</parameter>
         <parameter key="payment.plugin.ogone.mock.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock</parameter>
 
+        <parameter key="payment.plugin.ogone.batch.class">ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin</parameter>
+
         <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
     </parameters>
 
@@ -51,6 +53,12 @@
             <argument type="service" id="payment.ogone.plugin.configuration.design" />
             <argument>%payment.ogone.debug%</argument>
             <argument>%payment.ogone.utf8%</argument>
+            <tag name="payment.plugin"/>
+        </service>
+
+        <service id="payment.plugin.ogone_gateway.batch" class="%payment.plugin.ogone.batch.class%">
+            <argument type="service" id="payment.ogone.client.token" />
+            <argument>%payment.ogone.debug%</argument>
             <tag name="payment.plugin"/>
         </service>
 
