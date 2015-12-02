@@ -5,6 +5,7 @@ namespace ETS\Payment\OgoneBundle\Plugin;
 use JMS\Payment\CoreBundle\BrowserKit\Request;
 use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
 use JMS\Payment\CoreBundle\Model\PaymentInstructionInterface;
+use JMS\Payment\CoreBundle\Model\ExtendedDataInterface;
 use JMS\Payment\CoreBundle\Plugin\ErrorBuilder;
 use JMS\Payment\CoreBundle\Plugin\Exception\Action\VisitUrl;
 use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
@@ -290,5 +291,44 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
             'https://secure.ogone.com/ncol/%s/AFU_agree.asp',
             $this->debug ? 'test' : 'prod'
         );
+    }
+
+    private function buildFile(ExtendedDataInterface $extendedData, $operation)
+    {
+        $orderId     = $extendedData->get('ORDERID');
+        $payId       = $extendedData->has('PAYID') ? $extendedData->get('PAYID') : '';
+        $transaction = (self::AUTHORIZATION === $operation) ? self::TRANSACTION_CODE_NEW : self::TRANSACTION_CODE_MAINTENANCE;
+
+        $file = "OHL;".$this->token->getPspid().";".$this->token->getApiPassword().";;".$this->token->getApiUser().";";
+        $file .= "\nOHF;FILE$orderId;$transaction;$operation;1;\n";
+
+        $details   = '';
+        $amountHT  = 0;
+        $nbArticle = 0;
+
+        $clientId  = $extendedData->get('CLIENTID');
+        $aliasId   = $extendedData->get('ALIASID');
+
+        foreach($extendedData->get('ARTICLES') as $articles) {
+            $id        = $articles['id'];
+            $quantity  = $articles['quantity'];
+            $unitPrice = $articles['price'] * 100;
+            $name      = $articles['name'];
+            $vat       = $articles['vat'];
+            $price     = $quantity * $unitPrice;
+
+            $amountHT += $price;
+            $nbArticle++;
+
+            $details  .= "DET;$quantity;$id;$name;$unitPrice;0;$vat%;;;;;;;$price;\n";
+        }
+
+        $amountTva = round($amountHT * 0.2, 2);
+        $amountTtc = $amountHT + $amountTva;
+
+        $file .= "INV;EUR;;;;$orderId;$this->refClient;;$payId;$operation;;;;$this->pspid;;$nbArticle;$aliasId;$clientId;;;;;;;;;;;$orderId;;$this->refClient;$amountHT;$amountTva;$amountTtc;\n";
+        $file .= $details."OTF;";
+
+        return $file;
     }
 }
