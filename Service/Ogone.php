@@ -15,9 +15,6 @@ class Ogone
     /** @var \JMS\Payment\CoreBundle\Plugin\PluginInterface */
     protected $pluginController;
 
-    /** @var \JMS\Payment\CoreBundle\Plugin\GatewayPlugin */
-    protected $ogonePlugin;
-
     /** @var \ETS\Payment\OgoneBundle\Hash\GeneratorInterface */
     protected $generator;
 
@@ -30,10 +27,9 @@ class Ogone
      * @param GeneratorInterface        $generator
      * @param FeedbackResponse          $feedbackResponse
      */
-    public function __construct(PluginControllerInterface $pluginController, GatewayPlugin $ogonePlugin, GeneratorInterface $generator, FeedbackResponse $feedbackResponse)
+    public function __construct(PluginControllerInterface $pluginController, GeneratorInterface $generator, FeedbackResponse $feedbackResponse)
     {
         $this->pluginController = $pluginController;
-        $this->ogonePlugin      = $ogonePlugin;
         $this->generator        = $generator;
         $this->feedbackResponse = $feedbackResponse;
     }
@@ -47,9 +43,9 @@ class Ogone
      * @throws \LogicException               If hash is not valid or if there is no pending transaction
      * @throws NoPendingTransactionException If no pending transaction is found in payment instruction
      */
-    public function handleTransactionFeedback(PaymentInstructionInterface $instruction)
+    public function handleTransactionFeedback(PaymentInstructionInterface $instruction, $ogonePlugin, $isCaa = false)
     {
-        if (!$this->isHashValid($this->feedbackResponse->getValues(), $this->feedbackResponse->getHash())) {
+        if (!$isCaa && !$this->isHashValid($this->feedbackResponse->getValues(), $this->feedbackResponse->getHash())) {
             throw new \LogicException(sprintf('[Ogone - callback] hash verification failed with values [%s] and hash [%s]',
                 print_r($this->feedbackResponse->getValues(), true),
                 $this->feedbackResponse->getHash()
@@ -64,7 +60,7 @@ class Ogone
             $pendingTransaction->getExtendedData()->set($field, $value);
         }
 
-        $this->ogonePlugin->setFeedbackResponse($this->feedbackResponse);
+        $ogonePlugin->setFeedbackResponse($this->feedbackResponse);
 
         $pendingTransaction->setReferenceNumber($this->feedbackResponse->getPaymentId());
 

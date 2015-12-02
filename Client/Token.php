@@ -30,6 +30,7 @@ class Token implements TokenInterface
     protected $apiUser;
     protected $shain;
     protected $shaout;
+    protected $clientRef;
 
     /**
      * @param string $pspid       The PSPID
@@ -37,14 +38,16 @@ class Token implements TokenInterface
      * @param string $apiPassword The API user password
      * @param string $shain       The sha in
      * @param string $shaout      The sha out
+     * @param string $clientRef   The client reference
      */
-    public function __construct($pspid, $apiUser, $apiPassword, $shain, $shaout)
+    public function __construct($pspid, $apiUser, $apiPassword, $shain, $shaout, $clientRef = '')
     {
         $this->pspid = $pspid;
         $this->apiUser = $apiUser;
         $this->apiPassword = $apiPassword;
         $this->shain = $shain;
         $this->shaout = $shaout;
+        $this->clientRef = $clientRef;
     }
 
     /**
@@ -85,5 +88,13 @@ class Token implements TokenInterface
     public function getShaout()
     {
         return $this->shaout;
+    }
+
+    /**
+     * @return string
+     */
+    public function getClientRef()
+    {
+        return $this->clientRef;
     }
 }

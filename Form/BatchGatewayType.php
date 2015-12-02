@@ -1,6 +1,9 @@
 <?php
 
-namespace ETS\Payment\OgoneBundle\Client;
+namespace ETS\Payment\OgoneBundle\Form;
+
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
 
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -19,50 +22,24 @@ namespace ETS\Payment\OgoneBundle\Client;
  */
 
 /**
- * Token interface
+ * Type for Ogone alias gateway payment method.
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
-interface TokenInterface
+class BatchGatewayType extends AbstractType
 {
     /**
-     * Return PSPID
-     *
-     * @return string
+     * @inheritdoc
      */
-    function getPspid();
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+    }
 
     /**
-     * Return the API user password
-     *
-     * @return string
+     * @inheritdoc
      */
-    function getApiPassword();
-
-    /**
-     * Return the API user id
-     *
-     * @return string
-     */
-    function getApiUser();
-
-    /**
-     * Return the sha in
-     *
-     * @return string
-     */
-    function getShain();
-
-    /**
-     * Return the sha out
-     *
-     * @return string
-     */
-    function getShaout();
-
-    /**
-     * Return the client reference
-     * @return string
-     */
-    function getClientRef();
+    public function getName()
+    {
+        return 'ogone_caa';
+    }
 }
