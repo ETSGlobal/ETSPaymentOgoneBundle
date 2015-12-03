@@ -59,4 +59,10 @@ interface TokenInterface
      * @return string
      */
     function getShaout();
+
+    /**
+     * Return the client reference
+     * @return string
+     */
+    function getClientRef();
 }

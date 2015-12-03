@@ -2,6 +2,7 @@
 
 namespace ETS\Payment\OgoneBundle\Plugin;
 
+use ETS\Payment\OgoneBundle\Service\OgoneFileBuilder;
 use JMS\Payment\CoreBundle\BrowserKit\Request;
 use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
 use JMS\Payment\CoreBundle\Model\PaymentInstructionInterface;
@@ -49,23 +50,37 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
     const AUTHORIZATION                = 'RES';
     const PAYMENT                      = 'SAS';
     const PARTIAL_REFUND               = 'RFD'; //means others operations can be done on the same transaction
+
     /**
      * @var TokenInterface
      */
     protected $token;
+    protected $ogoneFileBuilder;
+
+    /**
+     * @return array
+     */
+    public static function getAvailableOperations()
+    {
+        return [
+            'AUTHORIZATION' => OgoneBatchGatewayPlugin::AUTHORIZATION,
+            'PAYMENT' => OgoneBatchGatewayPlugin::PAYMENT,
+            'PARTIAL_REFUND' => OgoneBatchGatewayPlugin::PARTIAL_REFUND,
+        ];
+    }
+
+
     /**
      * @param TokenInterface            $token
-     * @param GeneratorInterface        $hashGenerator
-     * @param Configuration\Redirection $redirectionConfig
-     * @param Configuration\Design      $designConfig
+     * @param OgoneFileBuilder          $ogoneFileBuilder
      * @param boolean                   $debug
-     * @param boolean                   $utf8
      */
-    public function __construct(TokenInterface $token, GeneratorInterface $hashGenerator, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8)
+    public function __construct(TokenInterface $token, OgoneFileBuilder $ogoneFileBuilder, $debug)
     {
         parent::__construct($debug);
 
         $this->token = $token;
+        $this->ogoneFileBuilder = $ogoneFileBuilder;
     }
 
     /**
@@ -113,9 +128,11 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
      */
     public function approve(FinancialTransactionInterface $transaction, $retry)
     {
-        if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
-            throw $this->createRedirectActionException($transaction);
+        if ($transaction->getState() !== FinancialTransactionInterface::STATE_NEW) {
+            throw new ActionRequiredException('Transaction needs to be in state 3');
         }
+
+        $transaction->setResponseCode(PluginInterface::RESPONSE_CODE_PENDING);
 
         $response = $this->getResponse($transaction);
 
@@ -180,10 +197,21 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
         $transaction->setReasonCode(PluginInterface::REASON_CODE_SUCCESS);
     }
 
+    /**
+     * @param PaymentInstructionInterface $paymentInstruction
+     * @throws InvalidPaymentInstructionException
+     */
     public function validatePaymentInstruction(PaymentInstructionInterface $paymentInstruction)
     {
         try {
-            $file = $this->buildFile($paymentInstruction->getExtendedData());
+            $file = $this->ogoneFileBuilder->buildInv(
+                $paymentInstruction->getExtendedData()->get('ORDERID'),
+                $paymentInstruction->getExtendedData()->get('CLIENTID'),
+                $paymentInstruction->getExtendedData()->get('ALIASID'),
+                self::AUTHORIZATION,
+                $paymentInstruction->getExtendedData()->get('VAT'),
+                $paymentInstruction->getExtendedData()->get('ARTICLES')
+            );
 
             $response = $this->getDirectResponse($file);
             if (!$response->hasError()) {
@@ -293,42 +321,4 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
         );
     }
 
-    private function buildFile(ExtendedDataInterface $extendedData, $operation)
-    {
-        $orderId     = $extendedData->get('ORDERID');
-        $payId       = $extendedData->has('PAYID') ? $extendedData->get('PAYID') : '';
-        $transaction = (self::AUTHORIZATION === $operation) ? self::TRANSACTION_CODE_NEW : self::TRANSACTION_CODE_MAINTENANCE;
-
-        $file = "OHL;".$this->token->getPspid().";".$this->token->getApiPassword().";;".$this->token->getApiUser().";";
-        $file .= "\nOHF;FILE$orderId;$transaction;$operation;1;\n";
-
-        $details   = '';
-        $amountHT  = 0;
-        $nbArticle = 0;
-
-        $clientId  = $extendedData->get('CLIENTID');
-        $aliasId   = $extendedData->get('ALIASID');
-
-        foreach($extendedData->get('ARTICLES') as $articles) {
-            $id        = $articles['id'];
-            $quantity  = $articles['quantity'];
-            $unitPrice = $articles['price'] * 100;
-            $name      = $articles['name'];
-            $vat       = $articles['vat'];
-            $price     = $quantity * $unitPrice;
-
-            $amountHT += $price;
-            $nbArticle++;
-
-            $details  .= "DET;$quantity;$id;$name;$unitPrice;0;$vat%;;;;;;;$price;\n";
-        }
-
-        $amountTva = round($amountHT * 0.2, 2);
-        $amountTtc = $amountHT + $amountTva;
-
-        $file .= "INV;EUR;;;;$orderId;$this->refClient;;$payId;$operation;;;;$this->pspid;;$nbArticle;$aliasId;$clientId;;;;;;;;;;;$orderId;;$this->refClient;$amountHT;$amountTva;$amountTtc;\n";
-        $file .= $details."OTF;";
-
-        return $file;
-    }
 }

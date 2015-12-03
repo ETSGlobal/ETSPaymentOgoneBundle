@@ -7,14 +7,10 @@
     <parameters>
         <parameter key="payment.plugin.ogone.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin</parameter>
         <parameter key="payment.plugin.ogone.mock.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock</parameter>
-
-        <parameter key="payment.plugin.ogone.batch.class">ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin</parameter>
-
-        <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
     </parameters>
 
     <services>
-        <service id="payment.ogone.client.token" class="%payment.ogone.client.token.class%">
+        <service id="payment.ogone.client.token" class="ETS\Payment\OgoneBundle\Client\Token">
             <argument>%payment.ogone.pspid%</argument>
             <argument>%payment.ogone.api.user%</argument>
             <argument>%payment.ogone.api.password%</argument>
@@ -56,8 +52,9 @@
             <tag name="payment.plugin"/>
         </service>
 
-        <service id="payment.plugin.ogone_gateway.batch" class="%payment.plugin.ogone.batch.class%">
+        <service id="payment.plugin.ogone_gateway.batch" class="ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin">
             <argument type="service" id="payment.ogone.client.token" />
+            <argument type="service" id="payment.ogone.file_builder" />
             <argument>%payment.ogone.debug%</argument>
             <tag name="payment.plugin"/>
         </service>
@@ -80,6 +77,10 @@
             <argument type="service" id="payment.plugin.ogone_gateway" />
             <argument type="service" id="payment.ogone.hash.sha1out" />
             <argument type="service" id="payment.ogone.feedback_response" />
+        </service>
+
+        <service id="payment.ogone.file_builder" class="ETS\Payment\OgoneBundle\Service\OgoneFileBuilder">
+            <argument type="service" id="payment.ogone.client.token" />
         </service>
     </services>
 </container>
