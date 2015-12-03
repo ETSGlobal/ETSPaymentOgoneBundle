@@ -16,6 +16,7 @@
             <argument>%payment.ogone.api.password%</argument>
             <argument>%payment.ogone.shain%</argument>
             <argument>%payment.ogone.shaout%</argument>
+            <argument>%payment.ogone.clientRef%</argument>
         </service>
 
         <service id="payment.ogone.plugin.configuration.redirection" class="ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection">
@@ -55,6 +56,7 @@
         <service id="payment.plugin.ogone_gateway.batch" class="ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin">
             <argument type="service" id="payment.ogone.client.token" />
             <argument type="service" id="payment.ogone.file_builder" />
+            <argument type="service" id="logger" />
             <argument>%payment.ogone.debug%</argument>
             <tag name="payment.plugin"/>
         </service>

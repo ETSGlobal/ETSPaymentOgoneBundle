@@ -20,6 +20,7 @@ use ETS\Payment\OgoneBundle\Client\TokenInterface;
 use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
 use ETS\Payment\OgoneBundle\Response\DirectResponse;
 use ETS\Payment\OgoneBundle\Response\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -51,11 +52,14 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
     const PAYMENT                      = 'SAS';
     const PARTIAL_REFUND               = 'RFD'; //means others operations can be done on the same transaction
 
+    use OgoneEndpointsTrait;
+
     /**
      * @var TokenInterface
      */
     protected $token;
     protected $ogoneFileBuilder;
+    protected $logger;
 
     /**
      * @return array
@@ -75,12 +79,13 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
      * @param OgoneFileBuilder          $ogoneFileBuilder
      * @param boolean                   $debug
      */
-    public function __construct(TokenInterface $token, OgoneFileBuilder $ogoneFileBuilder, $debug)
+    public function __construct(TokenInterface $token, OgoneFileBuilder $ogoneFileBuilder, LoggerInterface $logger, $debug)
     {
         parent::__construct($debug);
 
         $this->token = $token;
         $this->ogoneFileBuilder = $ogoneFileBuilder;
+        $this->logger = $logger;
     }
 
     /**
@@ -128,13 +133,31 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
      */
     public function approve(FinancialTransactionInterface $transaction, $retry)
     {
-        if ($transaction->getState() !== FinancialTransactionInterface::STATE_NEW) {
-            throw new ActionRequiredException('Transaction needs to be in state 3');
+        $this->logger->debug('approving...');
+        if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
+            throw new ActionRequiredException('Transaction needs to be in state 4');
         }
 
-        $transaction->setResponseCode(PluginInterface::RESPONSE_CODE_PENDING);
+        if (!isset($this->feedbackResponse)) {
+            $params  = array(
+                'ORDERID' => $transaction->getExtendedData()->get('ORDERID'),
+                'PAYID' => $transaction->getExtendedData()->get('PAYID'),
+                'PSPID' => $this->token->getPspid(),
+                'PSWD' => $this->token->getApiPassword(),
+                'USERID' => $this->token->getApiUser(),
+            );
 
-        $response = $this->getResponse($transaction);
+            $response = $this->sendApiRequest($params, $this->getDirectQueryUrl(), 'GET');
+
+            if (!$response->isSuccessful()) {
+                $this->handleUnsuccessfulResponse($response, $transaction);
+            } else {
+                $transaction->setReferenceNumber($response->getPaymentId());
+            }
+
+        } else {
+            $response = $this->feedbackResponse;
+        }
 
         if ($response->isApproving()) {
             throw new PaymentPendingException(sprintf('Payment is still approving, status: %s.', $response->getStatus()));
@@ -173,11 +196,37 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
      */
     public function deposit(FinancialTransactionInterface $transaction, $retry)
     {
+        $this->logger->debug('depositing...');
         if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
-            throw $this->createRedirectActionException($transaction);
+            throw new ActionRequiredException('Transaction needs to be in state 4');
         }
 
-        $response = $this->getResponse($transaction);
+        if (!isset($this->feedbackResponse)) {
+            $paymentInstruction = $transaction->getPayment()->getPaymentInstruction();
+            $this->logger->info('Building INV file...');
+            $file = $this->ogoneFileBuilder->buildInv(
+                $paymentInstruction->getExtendedData()->get('ORDERID'),
+                $paymentInstruction->getExtendedData()->get('CLIENTID'),
+                $paymentInstruction->getExtendedData()->get('ALIASID'),
+                self::PAYMENT,
+                $paymentInstruction->getExtendedData()->get('VAT'),
+                $paymentInstruction->getExtendedData()->get('ARTICLES')
+            );
+            $this->logger->info('INV file content is {content}', ['content' => $file]);
+
+            $xmlResponse = $this->sendBatchRequest($file);
+
+            $response = new DirectResponse($xmlResponse);
+
+            if (!$response->isSuccessful()) {
+                $this->handleUnsuccessfulResponse($response, $transaction);
+            } else {
+                $transaction->setReferenceNumber($response->getPaymentId());
+            }
+
+        } else {
+            $response = $this->feedbackResponse;
+        }
 
         if ($response->isDepositing()) {
             throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
@@ -204,6 +253,7 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
     public function validatePaymentInstruction(PaymentInstructionInterface $paymentInstruction)
     {
         try {
+            $this->logger->info('Building INV file...');
             $file = $this->ogoneFileBuilder->buildInv(
                 $paymentInstruction->getExtendedData()->get('ORDERID'),
                 $paymentInstruction->getExtendedData()->get('CLIENTID'),
@@ -212,8 +262,11 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
                 $paymentInstruction->getExtendedData()->get('VAT'),
                 $paymentInstruction->getExtendedData()->get('ARTICLES')
             );
+            $this->logger->info('INV file content is {content}', ['content' => $file]);
 
-            $response = $this->getDirectResponse($file);
+            $xmlResponse = $this->sendBatchRequest($file);
+
+            $response = new DirectResponse($xmlResponse);
             if (!$response->hasError()) {
                 $paymentInstruction->getExtendedData()->set('PAYID', $response->getPaymentId());
             }
@@ -250,26 +303,26 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
      *
      * @throws FinancialException
      */
-    protected function getResponse(FinancialTransactionInterface $transaction, $forceDirect = false)
-    {
-        $response = (isset($this->feedbackResponse) && (false === $forceDirect))
-                  ? $this->feedbackResponse
-                  : $this->getDirectResponse($transaction);
-
-        if (!$response->isSuccessful()) {
-            $transaction->setResponseCode($response->getErrorCode());
-            $transaction->setReasonCode($response->getStatus());
-
-            $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
-            $ex->setFinancialTransaction($transaction);
-
-            throw $ex;
-        }
-
-        $transaction->setReferenceNumber($response->getPaymentId());
-
-        return $response;
-    }
+//    protected function getResponse(FinancialTransactionInterface $transaction, $forceDirect = false)
+//    {
+//        $response = (isset($this->feedbackResponse) && (false === $forceDirect))
+//                  ? $this->feedbackResponse
+//                  : $this->getDirectResponse($transaction);
+//
+//        if (!$response->isSuccessful()) {
+//            $transaction->setResponseCode($response->getErrorCode());
+//            $transaction->setReasonCode($response->getStatus());
+//
+//            $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
+//            $ex->setFinancialTransaction($transaction);
+//
+//            throw $ex;
+//        }
+//
+//        $transaction->setReferenceNumber($response->getPaymentId());
+//
+//        return $response;
+//    }
 
     /**
      * Perform direct online payment operations
@@ -278,30 +331,32 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
      *
      * @return \ETS\Payment\OgoneBundle\Response\DirectResponse
      */
-    protected function getDirectResponse($file)
-    {
-        $apiData = array(
-            'FILE'         => $file,
-            'REPLY_TYPE'   => 'XML',
-            'MODE'         => 'SYNC',
-            'PROCESS_MODE' => 'CHECKANDPROCESS'
-        );
-
-        return new DirectResponse($this->sendApiRequest($apiData));
-    }
+//    protected function getDirectResponse($file)
+//    {
+//        $apiData = array(
+//            'FILE'         => $file,
+//            'REPLY_TYPE'   => 'XML',
+//            'MODE'         => 'SYNC',
+//            'PROCESS_MODE' => 'CHECKANDPROCESS'
+//        );
+//
+//        return new DirectResponse($this->sendApiRequest($apiData, $this->getDirectQueryUrl()));
+//    }
 
     /**
      * Send requests to Ogone API
      *
      * @param array $parameters
+     * @param string $url
+     * @param string $method
      *
      * @return \SimpleXMLElement
      *
      * @throws CommunicationException
      */
-    protected function sendApiRequest(array $parameters)
+    protected function sendApiRequest(array $parameters, $url, $method = 'POST')
     {
-        $response = $this->request(new Request($this->getBatchUrl(), 'POST', $parameters));
+        $response = $this->request(new Request($url, $method, $parameters));
 
         if (200 !== $response->getStatus()) {
             throw new CommunicationException(sprintf('The API request was not successful (Status: %s): %s', $response->getStatus(), $response->getContent()));
@@ -311,14 +366,36 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
     }
 
     /**
-     * @return string
+     * @param $file
+     * @param $method
+     * @return \SimpleXMLElement
+     * @throws CommunicationException
      */
-    protected function getBatchUrl()
+    private function sendBatchRequest($file, $method = 'POST')
     {
-        return sprintf(
-            'https://secure.ogone.com/ncol/%s/AFU_agree.asp',
-            $this->debug ? 'test' : 'prod'
+        $apiData = array(
+            'FILE'         => $file,
+            'REPLY_TYPE'   => 'XML',
+            'MODE'         => 'SYNC',
+            'PROCESS_MODE' => 'CHECKANDPROCESS'
         );
+
+        return $this->sendApiRequest($apiData, $this->getBatchUrl(), $method);
     }
 
+    /**
+     * @param \SimpleXMLElement $response
+     * @param FinancialTransactionInterface $transaction
+     * @throws FinancialException
+     */
+    private function handleUnsuccessfulResponse(\SimpleXMLElement $response, FinancialTransactionInterface $transaction)
+    {
+        $transaction->setResponseCode($response->getErrorCode());
+        $transaction->setReasonCode($response->getStatus());
+
+        $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
+        $ex->setFinancialTransaction($transaction);
+
+        throw $ex;
+    }
 }

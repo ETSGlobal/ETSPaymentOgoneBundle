@@ -42,6 +42,8 @@ use ETS\Payment\OgoneBundle\Response\ResponseInterface;
  */
 class OgoneGatewayPlugin extends GatewayPlugin
 {
+    use OgoneEndpointsTrait;
+
     /**
      * @var TokenInterface
      */
