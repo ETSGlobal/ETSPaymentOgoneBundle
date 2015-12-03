@@ -67,6 +67,11 @@
             <tag name="form.type" alias="ogone_gateway"/>
         </service>
 
+        <service id="payment.form.ogone_batch_gateway" class="ETS\Payment\OgoneBundle\Form\BatchGatewayType">
+            <tag name="payment.method_form_type" />
+            <tag name="form.type" alias="ogone_caa"/>
+        </service>
+
         <service id="payment.ogone.hash.sha1out" class="ETS\Payment\OgoneBundle\Hash\Sha1Out" public="false">
             <argument type="service" id="payment.ogone.client.token" />
         </service>
