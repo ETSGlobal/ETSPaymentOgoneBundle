@@ -49,7 +49,7 @@ class OgoneFileBuilder
             $id        = $article['id'];
             $quantity  = $article['quantity'];
             $unitPrice = $article['price'] * 100;
-            $name      = $article['name'];
+            $name      = substr($article['name'], 0, 39);
             $vat       = $article['vat'];
             $price     = $quantity * $unitPrice;
             $articlesLines[$k] = $this->createDetailLineArray($quantity, $id, $name, $unitPrice, $vat, $price);
