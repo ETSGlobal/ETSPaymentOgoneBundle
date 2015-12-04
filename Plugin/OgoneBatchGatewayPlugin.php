@@ -14,7 +14,6 @@ use JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException;
 use JMS\Payment\CoreBundle\Plugin\Exception\FinancialException;
 use JMS\Payment\CoreBundle\Plugin\Exception\InvalidPaymentInstructionException;
 use JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException;
-use JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
 use JMS\Payment\CoreBundle\Plugin\PluginInterface;
 
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
@@ -44,7 +43,7 @@ use Psr\Log\LoggerInterface;
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
-class OgoneBatchGatewayPlugin extends GatewayPlugin
+class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 {
 
     const TRANSACTION_CODE_NEW         = 'ATR'; //code for new orders (transactions)
@@ -52,8 +51,6 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
     const AUTHORIZATION                = 'RES';
     const PAYMENT                      = 'SAS';
     const PARTIAL_REFUND               = 'RFD'; //means others operations can be done on the same transaction
-
-    use OgoneEndpointsTrait;
 
     /**
      * @var TokenInterface
@@ -148,7 +145,7 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
                 'USERID' => $this->token->getApiUser(),
             );
 
-            $response = $this->sendApiRequest($params, $this->getDirectQueryUrl(), 'GET');
+            $response = $this->sendApiRequest($params, $this->getDirectQueryUrl($this->debug, $this->utf8), 'GET');
 
             if (!$response->isSuccessful()) {
                 $this->handleUnsuccessfulResponse($response, $transaction);
@@ -292,57 +289,6 @@ class OgoneBatchGatewayPlugin extends GatewayPlugin
     {
         return 'ogone_caa' === $paymentSystemName;
     }
-
-    /**
-     * Get a Response object from the transaction's extended data if feedback has been provided through a callback,
-     * or from a call to ogone's api.
-     *
-     * @param  FinancialTransactionInterface $transaction
-     * @param  boolean                       $forceDirect
-     *
-     * @return \ETS\Payment\OgoneBundle\Response\ResponseInterface
-     *
-     * @throws FinancialException
-     */
-//    protected function getResponse(FinancialTransactionInterface $transaction, $forceDirect = false)
-//    {
-//        $response = (isset($this->feedbackResponse) && (false === $forceDirect))
-//                  ? $this->feedbackResponse
-//                  : $this->getDirectResponse($transaction);
-//
-//        if (!$response->isSuccessful()) {
-//            $transaction->setResponseCode($response->getErrorCode());
-//            $transaction->setReasonCode($response->getStatus());
-//
-//            $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
-//            $ex->setFinancialTransaction($transaction);
-//
-//            throw $ex;
-//        }
-//
-//        $transaction->setReferenceNumber($response->getPaymentId());
-//
-//        return $response;
-//    }
-
-    /**
-     * Perform direct online payment operations
-     *
-     * @param FinancialTransactionInterface $transaction
-     *
-     * @return \ETS\Payment\OgoneBundle\Response\DirectResponse
-     */
-//    protected function getDirectResponse($file)
-//    {
-//        $apiData = array(
-//            'FILE'         => $file,
-//            'REPLY_TYPE'   => 'XML',
-//            'MODE'         => 'SYNC',
-//            'PROCESS_MODE' => 'CHECKANDPROCESS'
-//        );
-//
-//        return new DirectResponse($this->sendApiRequest($apiData, $this->getDirectQueryUrl()));
-//    }
 
     /**
      * Send requests to Ogone API

@@ -2,11 +2,20 @@
 
 namespace ETS\Payment\OgoneBundle\Plugin;
 
-trait OgoneEndpointsTrait
-{
-    protected $debug;
+use JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
 
+abstract class OgoneGatewayBasePlugin extends GatewayPlugin
+{
+    /**
+     * @var bool
+     */
     protected $utf8;
+
+    public function __construct($isDebug, $utf8 = false)
+    {
+        $this->utf8 = $utf8;
+        parent::__construct($isDebug);
+    }
 
     /**
      * @return string
