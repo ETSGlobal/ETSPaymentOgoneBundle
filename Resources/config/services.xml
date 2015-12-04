@@ -82,7 +82,6 @@
 
         <service id="payment.ogone" class="ETS\Payment\OgoneBundle\Service\Ogone" scope="request">
             <argument type="service" id="payment.plugin_controller" />
-            <argument type="service" id="payment.plugin.ogone_gateway" />
             <argument type="service" id="payment.ogone.hash.sha1out" />
             <argument type="service" id="payment.ogone.feedback_response" />
         </service>

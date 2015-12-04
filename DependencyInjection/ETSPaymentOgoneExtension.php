@@ -46,6 +46,7 @@ class ETSPaymentOgoneExtension extends Extension
         $container->setParameter('payment.ogone.pspid', $config['pspid']);
         $container->setParameter('payment.ogone.shain', $config['shain']);
         $container->setParameter('payment.ogone.shaout', $config['shaout']);
+        $container->setParameter('payment.ogone.clientref', $config['clientref']);
         $container->setParameter('payment.ogone.debug', $config['debug']);
         $container->setParameter('payment.ogone.utf8', $config['utf8']);
 
