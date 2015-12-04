@@ -207,7 +207,6 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
                 $paymentInstruction->getExtendedData()->get('CLIENTID'),
                 $paymentInstruction->getExtendedData()->get('ALIASID'),
                 self::PAYMENT,
-                $paymentInstruction->getExtendedData()->get('VAT'),
                 $paymentInstruction->getExtendedData()->get('ARTICLES')
             );
             $this->logger->info('INV file content is {content}', array('content' => $file));
@@ -257,7 +256,6 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
                 $paymentInstruction->getExtendedData()->get('CLIENTID'),
                 $paymentInstruction->getExtendedData()->get('ALIASID'),
                 self::AUTHORIZATION,
-                $paymentInstruction->getExtendedData()->get('VAT'),
                 $paymentInstruction->getExtendedData()->get('ARTICLES')
             );
             $this->logger->info('INV file content is {content}', array('content' => $file));

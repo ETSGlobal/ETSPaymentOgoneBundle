@@ -26,12 +26,14 @@ class OgoneFileBuilder
 
     /**
      * @param $orderId
+     * @param $clientId
+     * @param $aliasId
      * @param $operation
      * @param array $articles
-     * @param null $payId
+     * @param string $payId
      * @return string
      */
-    public function buildInv($orderId, $clientId, $aliasId, $operation, $vatTaxValue, array $articles, $payId = '')
+    public function buildInv($orderId, $clientId, $aliasId, $operation, array $articles, $payId = '')
     {
         $this->validateOperation($operation);
         $transaction = (OgoneBatchGatewayPlugin::AUTHORIZATION === $operation) ? OgoneBatchGatewayPlugin::TRANSACTION_CODE_NEW : OgoneBatchGatewayPlugin::TRANSACTION_CODE_MAINTENANCE;
@@ -39,7 +41,8 @@ class OgoneFileBuilder
         $globalInformationLine = $this->createGlobalInformationLineArray();
         $globalOperationLine = $this->createGlobalOperationLineArray($orderId, $transaction, $operation);
 
-        $amountTe  = 0;
+        $amountTaxExcluded  = 0;
+        $amountValueAddedTax = 0;
         $nbArticles = 0;
         $articlesLines = array();
         foreach($articles as $k => $article) {
@@ -50,14 +53,14 @@ class OgoneFileBuilder
             $vat       = $article['vat'];
             $price     = $quantity * $unitPrice;
             $articlesLines[$k] = $this->createDetailLineArray($quantity, $id, $name, $unitPrice, $vat, $price);
-            $amountTe += $price; //tax excluded
+            $amountTaxExcluded += $price; //tax excluded
+            $amountValueAddedTax += $price * $vat;
             $nbArticles++;
         }
 
-        $amountVat = $amountTe * $vatTaxValue; //amount with value-added tax
-        $amountTi = $amountTe + $amountVat; //amount taxes included
+        $amountTaxIncluded = $amountTaxExcluded + $amountValueAddedTax; //amount taxes included
 
-        $globalSummaryLine = $this->createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $amountTe, $amountVat, $amountTi);
+        $globalSummaryLine = $this->createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $amountTaxExcluded, $amountValueAddedTax, $amountTaxIncluded);
 
         $globalEndOfFileLine = $this->createEndOfFileLineArray();
 
@@ -81,12 +84,12 @@ class OgoneFileBuilder
      * @param $nbArticles
      * @param $aliasId
      * @param $clientId
-     * @param $amountTe
+     * @param $amountTaxExcluded
      * @param $amountVat
-     * @param $amountTi
+     * @param $amountTaxIncluded
      * @return array
      */
-    private function createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $amountTe, $amountVat, $amountTi)
+    private function createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $amountTaxExcluded, $amountVat, $amountTaxIncluded)
     {
         $globalSummaryLine = $this->initArray(self::INV_FILE_LENGTH);
         $globalSummaryLine[0] = 'INV';
@@ -101,9 +104,9 @@ class OgoneFileBuilder
         $globalSummaryLine[17] = $clientId;
         $globalSummaryLine[28] = $orderId;
         $globalSummaryLine[30] = $this->clientRef;
-        $globalSummaryLine[31] = $amountTe;
+        $globalSummaryLine[31] = $amountTaxExcluded;
         $globalSummaryLine[32] = $amountVat;
-        $globalSummaryLine[33] = $amountTi;
+        $globalSummaryLine[33] = $amountTaxIncluded;
 
         return $globalSummaryLine;
     }
@@ -157,7 +160,7 @@ class OgoneFileBuilder
         $articlesLines[3] = $name;
         $articlesLines[4] = $unitPrice;
         $articlesLines[5] = 0;
-        $articlesLines[6] = $vat.'%';
+        $articlesLines[6] = ($vat * 100).'%';
         $articlesLines[13] = $price;
 
         return $articlesLines;
