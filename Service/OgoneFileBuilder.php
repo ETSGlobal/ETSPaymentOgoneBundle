@@ -41,7 +41,7 @@ class OgoneFileBuilder
 
         $amountTe  = 0;
         $nbArticles = 0;
-        $articlesLines = [];
+        $articlesLines = array();
         foreach($articles as $k => $article) {
             $id        = $article['id'];
             $quantity  = $article['quantity'];
@@ -61,7 +61,7 @@ class OgoneFileBuilder
 
         $globalEndOfFileLine = $this->createEndOfFileLineArray();
 
-        $lines = [];
+        $lines = array();
 
         $lines[] = $globalInformationLine;
         $lines[] = $globalOperationLine;
@@ -190,7 +190,7 @@ class OgoneFileBuilder
      */
     private function initArray($size)
     {
-        $array = [];
+        $array = array();
         for ($i = 0; $i < $size; $i++) {
             $array[$i] = '';
         }

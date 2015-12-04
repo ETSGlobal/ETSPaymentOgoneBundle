@@ -64,11 +64,11 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      */
     public static function getAvailableOperations()
     {
-        return [
+        return array(
             'AUTHORIZATION' => OgoneBatchGatewayPlugin::AUTHORIZATION,
             'PAYMENT' => OgoneBatchGatewayPlugin::PAYMENT,
             'PARTIAL_REFUND' => OgoneBatchGatewayPlugin::PARTIAL_REFUND,
-        ];
+        );
     }
 
 
@@ -210,7 +210,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
                 $paymentInstruction->getExtendedData()->get('VAT'),
                 $paymentInstruction->getExtendedData()->get('ARTICLES')
             );
-            $this->logger->info('INV file content is {content}', ['content' => $file]);
+            $this->logger->info('INV file content is {content}', array('content' => $file));
 
             $xmlResponse = $this->sendBatchRequest($file);
 
@@ -260,7 +260,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
                 $paymentInstruction->getExtendedData()->get('VAT'),
                 $paymentInstruction->getExtendedData()->get('ARTICLES')
             );
-            $this->logger->info('INV file content is {content}', ['content' => $file]);
+            $this->logger->info('INV file content is {content}', array('content' => $file));
 
             $xmlResponse = $this->sendBatchRequest($file);
 
