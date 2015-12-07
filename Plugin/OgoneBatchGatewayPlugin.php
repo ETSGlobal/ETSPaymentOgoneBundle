@@ -158,20 +158,17 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $response = new DirectResponse($xmlResponse);
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
 
-            if (!$response->hasError() && $response->isIncomplete()) {
-                $transaction->setReferenceNumber($response->getPaymentId());
-                $this->logger->debug('Authorization transaction send', array('res' => $response));
-                throw new PaymentPendingException(sprintf('Authorization is still pending, status: %s.', $response->getStatus()));
-            } else {
-                $this->logger->debug('Authorization is not successful');
+            if ($response->hasError()) {
                 $this->handleUnsuccessfulResponse($response, $transaction);
             }
+
+            $transaction->setReferenceNumber($response->getPaymentId());
         } else {
             $this->logger->debug('feedback response set.');
             $response = $this->feedbackResponse;
         }
 
-        if ($response->isApproving()) {
+        if ($response->isApproving() || $response->isIncomplete()) {
             $this->logger->debug('response {res} is still approving', array('res' => $response));
             throw new PaymentPendingException(sprintf('Payment is still approving, status: %s.', $response->getStatus()));
         }
@@ -222,34 +219,26 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
 
-            if (!$response->hasError() && $response->isIncomplete()) {
-                $transaction->setReferenceNumber($response->getPaymentId());
-                $this->logger->debug('Payment transaction send', array('res' => $response));
-                throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
-            } else {
+            if ($response->hasError()) {
                 $this->logger->debug('Payment is not successful');
                 $this->handleUnsuccessfulResponse($response, $transaction);
             }
-        } else {
-            $this->logger->debug('feedback response set.');
-            $response = $this->feedbackResponse;
 
-            if ($response->isAuthorized()) {
-                $response = $this->sendPayment($transaction);
-                $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
+            $transaction->setReferenceNumber($response->getPaymentId());
 
-                if (!$response->hasError() && $response->isIncomplete()) {
-                    $transaction->setReferenceNumber($response->getPaymentId());
-                    $this->logger->debug('Payment transaction send', array('res' => $response));
-                    throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
-                } else {
-                    $this->logger->debug('response is not successful');
-                    $this->handleUnsuccessfulResponse($response, $transaction);
-                }
+        } else if (($response = $this->feedbackResponse) && $response->isAuthorized()) {
+            $response = $this->sendPayment($transaction);
+            $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
+
+            if ($response->hasError()) {
+                $this->logger->debug('response is not successful');
+                $this->handleUnsuccessfulResponse($response, $transaction);
             }
+
+            $transaction->setReferenceNumber($response->getPaymentId());
         }
 
-        if ($response->isDepositing()) {
+        if ($response->isDepositing() || $response->isIncomplete()) {
             $this->logger->debug('response {res} is still depositing', array('res' => $response));
             throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
         }
