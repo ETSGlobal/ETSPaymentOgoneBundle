@@ -158,12 +158,14 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $response = new DirectResponse($xmlResponse);
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
 
-            if (!$response->isSuccessful()) {
-                $this->handleUnsuccessfulResponse($response, $transaction);
-            } else {
+            if (!$response->hasError() && $response->isIncomplete()) {
                 $transaction->setReferenceNumber($response->getPaymentId());
+                $this->logger->debug('Authorization transaction send', array('res' => $response));
+                throw new PaymentPendingException(sprintf('Authorization is still pending, status: %s.', $response->getStatus()));
+            } else {
+                $this->logger->debug('Authorization is not successful');
+                $this->handleUnsuccessfulResponse($response, $transaction);
             }
-
         } else {
             $this->logger->debug('feedback response set.');
             $response = $this->feedbackResponse;
@@ -219,13 +221,15 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $response = $this->sendPayment($transaction);
 
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
-            if (!$response->isSuccessful()) {
-                $this->logger->debug('response is not successful');
-                $this->handleUnsuccessfulResponse($response, $transaction);
-            } else {
-                $transaction->setReferenceNumber($response->getPaymentId());
-            }
 
+            if (!$response->hasError() && $response->isIncomplete()) {
+                $transaction->setReferenceNumber($response->getPaymentId());
+                $this->logger->debug('Payment transaction send', array('res' => $response));
+                throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
+            } else {
+                $this->logger->debug('Payment is not successful');
+                $this->handleUnsuccessfulResponse($response, $transaction);
+            }
         } else {
             $this->logger->debug('feedback response set.');
             $response = $this->feedbackResponse;
@@ -298,6 +302,59 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $this->logger->error(sprintf('Authorization failed: status %s.', $e->getMessage()));
             throw new InvalidPaymentInstructionException($e->getMessage(), $e->getCode());
         }
+    }
+
+    public function reverseDeposit(FinancialTransactionInterface $transaction, $retry)
+    {
+        if (!isset($this->feedbackResponse)) {
+            $paymentInstruction = $transaction->getPayment()->getPaymentInstruction();
+            $this->logger->info('reverseDeposit: Building INV file...');
+            $file = $this->ogoneFileBuilder->buildInv(
+                $paymentInstruction->getExtendedData()->get('ORDERID'),
+                $paymentInstruction->getExtendedData()->get('CLIENTID'),
+                $paymentInstruction->getExtendedData()->get('ALIASID'),
+                self::PARTIAL_REFUND,
+                $paymentInstruction->getExtendedData()->get('ARTICLES'),
+                $paymentInstruction->getExtendedData()->get('PAYID')
+            );
+            $this->logger->info('reverseDeposit: INV file content is {content}', array('content' => $file));
+
+            $this->logger->debug('Sending refund request to Ogone with file {file}', array('file' => $file));
+            $xmlResponse = $this->sendBatchRequest($file);
+
+            $response = DirectResponse($xmlResponse);
+
+            if (!$response->hasError() && $response->isIncomplete()) {
+                $transaction->setReferenceNumber($response->getPaymentId());
+                $this->logger->debug('Refund transaction send', array('res' => $response));
+                throw new PaymentPendingException(sprintf('Refund is still pending, status: %s.', $response->getStatus()));
+            } else {
+                $this->logger->debug('response is not successful');
+                $this->handleUnsuccessfulResponse($response, $transaction);
+            }
+        } else {
+            $this->logger->debug('feedback response set.');
+            $response = $this->feedbackResponse;
+        }
+
+        if ($response->isRefunding()) {
+            $this->logger->debug('response {res} is still refunding', array('res' => $response));
+            throw new PaymentPendingException(sprintf('Refund is still pending, status: %s.', $response->getStatus()));
+        }
+
+        if (!$response->isRefund()) {
+            $this->logger->debug('response {res} is not refunded', array('res' => $response));
+            $ex = new FinancialException(sprintf('Refund status "%s" is not valid', $response->getStatus()));
+            $ex->setFinancialTransaction($transaction);
+            $transaction->setResponseCode($response->getErrorCode());
+            $transaction->setReasonCode($response->getStatus());
+
+            throw $ex;
+        }
+
+        $transaction->setProcessedAmount($response->getAmount());
+        $transaction->setResponseCode(PluginInterface::RESPONSE_CODE_SUCCESS);
+        $transaction->setReasonCode(PluginInterface::REASON_CODE_SUCCESS);
     }
 
     private function sendPayment(FinancialTransactionInterface $transaction)
