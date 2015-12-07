@@ -71,6 +71,19 @@ abstract class AbstractResponse implements ResponseInterface
     /**
      * @return boolean
      */
+    public function isAuthorized()
+    {
+        return $this->getStatus() === ResponseInterface::AUTHORIZED;
+    }
+
+    public function isIncomplete()
+    {
+        return $this->getStatus() === ResponseInterface::INVALID;
+    }
+
+    /**
+     * @return boolean
+     */
     public function isSuccessful()
     {
         return !in_array($this->getStatus(), array(static::INVALID, '', null), true);
