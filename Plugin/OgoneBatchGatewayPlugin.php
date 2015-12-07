@@ -153,7 +153,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             );
 
             $this->logger->debug('Checking transaction status with Ogone with params {params}', array('params' => $params));
-            $xmlResponse = $this->sendApiRequest($params, $this->getDirectQueryUrl($this->debug, $this->utf8), 'GET');
+            $xmlResponse = $this->sendApiRequest(array(), $this->getDirectQueryUrl().'?'.http_build_query($params), 'GET');
 
             $response = new DirectResponse($xmlResponse);
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
@@ -165,6 +165,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             }
 
         } else {
+            $this->logger->debug('feedback response set.');
             $response = $this->feedbackResponse;
         }
 
@@ -214,21 +215,9 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
         if (!isset($this->feedbackResponse)) {
             $this->logger->debug('No feedback response set.');
-            $paymentInstruction = $transaction->getPayment()->getPaymentInstruction();
-            $this->logger->info('Building INV file...');
-            $file = $this->ogoneFileBuilder->buildInv(
-                $paymentInstruction->getExtendedData()->get('ORDERID'),
-                $paymentInstruction->getExtendedData()->get('CLIENTID'),
-                $paymentInstruction->getExtendedData()->get('ALIASID'),
-                self::PAYMENT,
-                $paymentInstruction->getExtendedData()->get('ARTICLES')
-            );
-            $this->logger->info('INV file content is {content}', array('content' => $file));
 
-            $this->logger->debug('Sending payment request to Ogone with file {file}', array('file' => $file));
-            $xmlResponse = $this->sendBatchRequest($file);
+            $response = $this->sendPayment($transaction);
 
-            $response = new DirectResponse($xmlResponse);
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
             if (!$response->isSuccessful()) {
                 $this->logger->debug('response is not successful');
@@ -238,7 +227,22 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             }
 
         } else {
+            $this->logger->debug('feedback response set.');
             $response = $this->feedbackResponse;
+
+            if ($response->isAuthorized()) {
+                $response = $this->sendPayment($transaction);
+                $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
+
+                if (!$response->hasError() && $response->isIncomplete()) {
+                    $transaction->setReferenceNumber($response->getPaymentId());
+                    $this->logger->debug('Payment transaction send', array('res' => $response));
+                    throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
+                } else {
+                    $this->logger->debug('response is not successful');
+                    $this->handleUnsuccessfulResponse($response, $transaction);
+                }
+            }
         }
 
         if ($response->isDepositing()) {
@@ -290,6 +294,26 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         } catch (\Exception $e) {
             throw new InvalidPaymentInstructionException($e->getMessage(), $e->getCode());
         }
+    }
+
+    private function sendPayment(FinancialTransactionInterface $transaction)
+    {
+        $paymentInstruction = $transaction->getPayment()->getPaymentInstruction();
+        $this->logger->info('Building INV file...');
+        $file = $this->ogoneFileBuilder->buildInv(
+            $paymentInstruction->getExtendedData()->get('ORDERID'),
+            $paymentInstruction->getExtendedData()->get('CLIENTID'),
+            $paymentInstruction->getExtendedData()->get('ALIASID'),
+            self::PAYMENT,
+            $paymentInstruction->getExtendedData()->get('ARTICLES'),
+            $paymentInstruction->getExtendedData()->get('PAYID')
+        );
+        $this->logger->info('INV file content is {content}', array('content' => $file));
+
+        $this->logger->debug('Sending payment request to Ogone with file {file}', array('file' => $file));
+        $xmlResponse = $this->sendBatchRequest($file);
+
+        return new DirectResponse($xmlResponse);
     }
 
     /**
