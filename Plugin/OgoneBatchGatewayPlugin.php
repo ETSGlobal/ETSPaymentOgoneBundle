@@ -288,10 +288,14 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
             $response = new DirectResponse($xmlResponse);
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
-            if (!$response->hasError()) {
+            if (!$response->hasError() && $response->isIncomplete()) {
                 $paymentInstruction->getExtendedData()->set('PAYID', $response->getPaymentId());
+            } else {
+                $this->logger->error(sprintf('Authorization failed: status %s.', $response->getStatus()));
+                throw new InvalidPaymentInstructionException(sprintf('Authorization failed: status %s.', $response->getStatus()));
             }
         } catch (\Exception $e) {
+            $this->logger->error(sprintf('Authorization failed: status %s.', $e->getMessage()));
             throw new InvalidPaymentInstructionException($e->getMessage(), $e->getCode());
         }
     }
