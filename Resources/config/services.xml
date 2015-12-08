@@ -5,10 +5,9 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <parameters>
+        <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
         <parameter key="payment.plugin.ogone.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin</parameter>
         <parameter key="payment.plugin.ogone.mock.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock</parameter>
-
-        <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
     </parameters>
 
     <services>
@@ -18,6 +17,7 @@
             <argument>%payment.ogone.api.password%</argument>
             <argument>%payment.ogone.shain%</argument>
             <argument>%payment.ogone.shaout%</argument>
+            <argument>%payment.ogone.clientRef%</argument>
         </service>
 
         <service id="payment.ogone.plugin.configuration.redirection" class="ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection">
@@ -54,9 +54,22 @@
             <tag name="payment.plugin"/>
         </service>
 
+        <service id="payment.plugin.ogone_gateway.batch" class="ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin">
+            <argument type="service" id="payment.ogone.client.token" />
+            <argument type="service" id="payment.ogone.file_builder" />
+            <argument type="service" id="logger" />
+            <argument>%payment.ogone.debug%</argument>
+            <tag name="payment.plugin"/>
+        </service>
+
         <service id="payment.form.ogone_gateway" class="ETS\Payment\OgoneBundle\Form\GatewayType">
             <tag name="payment.method_form_type" />
             <tag name="form.type" alias="ogone_gateway"/>
+        </service>
+
+        <service id="payment.form.ogone_batch_gateway" class="ETS\Payment\OgoneBundle\Form\BatchGatewayType">
+            <tag name="payment.method_form_type" />
+            <tag name="form.type" alias="ogone_caa"/>
         </service>
 
         <service id="payment.ogone.hash.sha1out" class="ETS\Payment\OgoneBundle\Hash\Sha1Out" public="false">
@@ -69,9 +82,12 @@
 
         <service id="payment.ogone" class="ETS\Payment\OgoneBundle\Service\Ogone" scope="request">
             <argument type="service" id="payment.plugin_controller" />
-            <argument type="service" id="payment.plugin.ogone_gateway" />
             <argument type="service" id="payment.ogone.hash.sha1out" />
             <argument type="service" id="payment.ogone.feedback_response" />
+        </service>
+
+        <service id="payment.ogone.file_builder" class="ETS\Payment\OgoneBundle\Service\OgoneFileBuilder">
+            <argument type="service" id="payment.ogone.client.token" />
         </service>
     </services>
 </container>

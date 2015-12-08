@@ -11,7 +11,6 @@ use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
 use JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException;
 use JMS\Payment\CoreBundle\Plugin\Exception\FinancialException;
 use JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException;
-use JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
 use JMS\Payment\CoreBundle\Plugin\PluginInterface;
 
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
@@ -40,7 +39,7 @@ use ETS\Payment\OgoneBundle\Response\ResponseInterface;
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
-class OgoneGatewayPlugin extends GatewayPlugin
+class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
 {
     /**
      * @var TokenInterface
@@ -98,7 +97,7 @@ class OgoneGatewayPlugin extends GatewayPlugin
      */
     public function __construct(TokenInterface $token, GeneratorInterface $hashGenerator, Configuration\Redirection $redirectionConfig, Configuration\Design $designConfig, $debug, $utf8)
     {
-        parent::__construct($debug);
+        parent::__construct($debug, $utf8);
 
         $this->token             = $token;
         $this->hashGenerator     = $hashGenerator;
@@ -382,30 +381,6 @@ class OgoneGatewayPlugin extends GatewayPlugin
         }
 
         return new \SimpleXMLElement($response->getContent());
-    }
-
-    /**
-     * @return string
-     */
-    protected function getStandardOrderUrl()
-    {
-        return sprintf(
-            'https://secure.ogone.com/ncol/%s/orderstandard%s.asp',
-            $this->debug ? 'test' : 'prod',
-            $this->utf8 ? '_utf8' : ''
-        );
-    }
-
-    /**
-     * @return string
-     */
-    protected function getDirectQueryUrl()
-    {
-        return sprintf(
-            'https://secure.ogone.com/ncol/%s/querydirect%s.asp',
-            $this->debug ? 'test' : 'prod',
-            $this->utf8 ? '_utf8' : ''
-        );
     }
 
     /**

@@ -68,6 +68,29 @@ abstract class AbstractResponse implements ResponseInterface
         return in_array($this->getStatus(), $this->getDepositedStatuses(), true);
     }
 
+    public function isRefunding()
+    {
+        return $this->getStatus() === ResponseInterface::REFUND_PENDING;
+    }
+
+    public function isRefund()
+    {
+        return $this->getStatus() === ResponseInterface::REFUND;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isAuthorized()
+    {
+        return $this->getStatus() === ResponseInterface::AUTHORIZED;
+    }
+
+    public function isIncomplete()
+    {
+        return $this->getStatus() === ResponseInterface::INVALID;
+    }
+
     /**
      * @return boolean
      */

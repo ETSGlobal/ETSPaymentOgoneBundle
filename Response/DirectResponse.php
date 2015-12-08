@@ -77,4 +77,12 @@ class DirectResponse extends AbstractResponse
     {
         return (string) $this->xml->attributes()->NCERRORPLUS;
     }
+
+    /**
+     * @return string
+     */
+    public function hasError()
+    {
+        return isset($this->xml->attributes()->PARAMS_ERROR) || (strlen($this->getErrorCode()) > 0 && $this->getErrorCode() !== "0");
+    }
 }
