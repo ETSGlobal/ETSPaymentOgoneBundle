@@ -283,11 +283,10 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             if (!$response->hasError() && $response->isIncomplete()) {
                 $paymentInstruction->getExtendedData()->set('PAYID', $response->getPaymentId());
             } else {
-                $this->logger->error(sprintf('Authorization failed: status %s.', $response->getStatus()));
-                throw new InvalidPaymentInstructionException(sprintf('Authorization failed: status %s.', $response->getStatus()));
+                throw new \LogicException(sprintf('status %s.', $response->getStatus()));
             }
         } catch (\Exception $e) {
-            $this->logger->error(sprintf('Authorization failed: status %s.', $e->getMessage()));
+            $this->logger->error(sprintf('Authorization failed: %s.', $e->getMessage()));
             throw new InvalidPaymentInstructionException($e->getMessage(), $e->getCode());
         }
     }
@@ -310,7 +309,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $this->logger->debug('Sending refund request to Ogone with file {file}', array('file' => $file));
             $xmlResponse = $this->sendBatchRequest($file);
 
-            $response = DirectResponse($xmlResponse);
+            $response = new DirectResponse($xmlResponse);
 
             if (!$response->hasError() && $response->isIncomplete()) {
                 $transaction->setReferenceNumber($response->getPaymentId());
