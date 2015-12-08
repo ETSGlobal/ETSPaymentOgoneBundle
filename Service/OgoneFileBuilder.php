@@ -142,6 +142,7 @@ class OgoneFileBuilder
 
         return $globalOperationLine;
     }
+
     /**
      * @param $quantity
      * @param $id

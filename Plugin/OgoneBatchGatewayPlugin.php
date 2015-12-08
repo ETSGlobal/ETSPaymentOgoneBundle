@@ -45,7 +45,6 @@ use Psr\Log\LoggerInterface;
  */
 class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 {
-
     const TRANSACTION_CODE_NEW         = 'ATR'; //code for new orders (transactions)
     const TRANSACTION_CODE_MAINTENANCE = 'MTR'; //code for maintenance operations on existing transactions
     const AUTHORIZATION                = 'RES';
