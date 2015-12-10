@@ -159,6 +159,71 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
+     * @expectedExceptionMessage Refund is still pending, status: 0
+     * @depends testNewTransactionRequiresAnAction
+     * @param FinancialTransaction $transaction
+     */
+    public function testNewRefundingTransaction(FinancialTransaction $transaction)
+    {
+        $plugin = $this->createPluginMock('new_refund');
+        $plugin->reverseDeposit($transaction, 42);
+    }
+
+    /**
+     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
+     * @expectedExceptionMessage Refund is still pending, status: 81
+     * @depends testNewTransactionRequiresAnAction
+     * @param FinancialTransaction $transaction
+     */
+    public function testRefundingTransaction(FinancialTransaction $transaction)
+    {
+        $plugin = $this->createPluginMock('refunding');
+        $plugin->reverseDeposit($transaction, 42);
+    }
+
+    /**
+     * @param FinancialTransaction $transaction
+     *
+     * @depends testNewTransactionRequiresAnAction
+     */
+    public function testRefundedTransaction(FinancialTransaction $transaction)
+    {
+        $plugin = $this->createPluginMock('refunded');
+
+        $plugin->reverseDeposit($transaction, 42);
+
+        $this->assertEquals(42, $transaction->getProcessedAmount());
+        $this->assertEquals('success', $transaction->getResponseCode());
+        $this->assertEquals('none', $transaction->getReasonCode());
+        $this->assertEquals('1111111', $transaction->getReferenceNumber());
+    }
+
+    /**
+     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @expectedExceptionMessage Refund status 9 is not valid
+     * @depends testNewTransactionRequiresAnAction
+     * @param FinancialTransaction $transaction
+     */
+    public function testRefundWithNotValidStateTransaction(FinancialTransaction $transaction)
+    {
+        $plugin = $this->createPluginMock('not_refunded');
+        $plugin->reverseDeposit($transaction, 42);
+    }
+
+    /**
+     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @expectedExceptionMessage Ogone-Response was not successful: A technical problem has occurred. Please try again.
+     * @depends testNewTransactionRequiresAnAction
+     * @param FinancialTransaction $transaction
+     */
+    public function testRefundWithErrorTransaction(FinancialTransaction $transaction)
+    {
+        $plugin = $this->createPluginMock('refund_error');
+        $plugin->reverseDeposit($transaction, 42);
+    }
+
+    /**
      * @param FinancialTransaction $transaction
      *
      * @depends testNewTransactionRequiresAnAction

@@ -311,27 +311,25 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
             $response = new DirectResponse($xmlResponse);
 
-            if (!$response->hasError() && $response->isIncomplete()) {
-                $transaction->setReferenceNumber($response->getPaymentId());
-                $this->logger->debug('Refund transaction send', array('res' => $response));
-                throw new PaymentPendingException(sprintf('Refund is still pending, status: %s.', $response->getStatus()));
-            } else {
+            if ($response->hasError()) {
                 $this->logger->debug('response is not successful');
                 $this->handleUnsuccessfulResponse($response, $transaction);
             }
+
+            $transaction->setReferenceNumber($response->getPaymentId());
         } else {
             $this->logger->debug('feedback response set.');
             $response = $this->feedbackResponse;
         }
 
-        if ($response->isRefunding()) {
+        if ($response->isRefunding() || $response->isIncomplete()) {
             $this->logger->debug('response {res} is still refunding', array('res' => $response));
             throw new PaymentPendingException(sprintf('Refund is still pending, status: %s.', $response->getStatus()));
         }
 
         if (!$response->isRefund()) {
             $this->logger->debug('response {res} is not refunded', array('res' => $response));
-            $ex = new FinancialException(sprintf('Refund status "%s" is not valid', $response->getStatus()));
+            $ex = new FinancialException(sprintf('Refund status %s is not valid', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
             $transaction->setReasonCode($response->getStatus());
