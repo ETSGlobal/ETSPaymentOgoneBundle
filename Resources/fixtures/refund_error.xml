@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<ncresponse
+orderID="99999"
+PAYID="1111111"
+NCSTATUS="4"
+NCERROR="40001001"
+NCERRORPLUS="A technical problem has occurred. Please try again."
+ACCEPTANCE="12345"
+STATUS="0"
+ECI="7"
+amount="42"
+currency="EUR"
+PM="CreditCard"
+BRAND="VISA"
+>
+</ncresponse>
