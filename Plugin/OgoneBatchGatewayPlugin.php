@@ -77,7 +77,6 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         );
     }
 
-
     /**
      * @param TokenInterface            $token
      * @param OgoneFileBuilder          $ogoneFileBuilder
@@ -329,7 +328,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             throw new PaymentPendingException(sprintf('Refund is still pending, status: %s.', $response->getStatus()));
         }
 
-        if (!$response->isRefund()) {
+        if (!$response->isRefunded()) {
             $this->logger->debug('response {res} is not refunded', array('res' => $response));
             $ex = new FinancialException(sprintf('Refund status %s is not valid', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
