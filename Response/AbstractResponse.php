@@ -129,6 +129,11 @@ abstract class AbstractResponse implements ResponseInterface
         ));
     }
 
+    public function isCancellation()
+    {
+        return $this->getStatus() === $this->isCancellationPending() || $this->getStatus() === $this->isCancelled();
+    }
+
 
     /**
      * @return bool

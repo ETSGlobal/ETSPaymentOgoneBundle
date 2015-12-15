@@ -64,7 +64,11 @@ class Ogone
 
         $pendingTransaction->setReferenceNumber($this->feedbackResponse->getPaymentId());
 
-        $this->pluginController->approveAndDeposit($pendingTransaction->getPayment()->getId(), $this->feedbackResponse->getAmount());
+        if ($this->feedbackResponse->isCancellation()) {
+            $this->pluginController->cancel($pendingTransaction);
+        } else {
+            $this->pluginController->approveAndDeposit($pendingTransaction->getPayment()->getId(), $this->feedbackResponse->getAmount());
+        }
     }
 
     /**
