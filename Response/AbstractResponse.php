@@ -144,6 +144,14 @@ abstract class AbstractResponse implements ResponseInterface
     }
 
     /**
+     * @return bool
+     */
+    public function isAuthorizationUnsure()
+    {
+        return $this->getStatus() === ResponseInterface::AUTHORIZATION_UNKNOWN;
+    }
+
+    /**
      * @return float
      */
     abstract public function getAmount();

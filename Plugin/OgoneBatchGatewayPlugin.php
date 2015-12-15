@@ -443,6 +443,17 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     }
 
     /**
+     * @return DirectResponse
+     * @throws CommunicationException
+     */
+    public function getTransactionStatus($params)
+    {
+        $xmlResponse = $this->sendApiRequest(array(), $this->getDirectQueryUrl().'?'.http_build_query($params), 'GET');
+
+        return new DirectResponse($xmlResponse);
+    }
+
+    /**
      * @param FinancialTransactionInterface $transaction
      * @return DirectResponse
      */
