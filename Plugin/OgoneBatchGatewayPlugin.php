@@ -50,6 +50,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     const AUTHORIZATION                = 'RES';
     const PAYMENT                      = 'SAS';
     const PARTIAL_REFUND               = 'RFD'; //means others operations can be done on the same transaction
+    const CANCEL                       = 'DES'; //cancels a transaction once and for all
 
     /**
      * @var TokenInterface
@@ -72,6 +73,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             'AUTHORIZATION' => OgoneBatchGatewayPlugin::AUTHORIZATION,
             'PAYMENT' => OgoneBatchGatewayPlugin::PAYMENT,
             'PARTIAL_REFUND' => OgoneBatchGatewayPlugin::PARTIAL_REFUND,
+            'CANCEL' => OgoneBatchGatewayPlugin::CANCEL,
         );
     }
 
@@ -342,24 +344,63 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         $transaction->setReasonCode(PluginInterface::REASON_CODE_SUCCESS);
     }
 
-    private function sendPayment(FinancialTransactionInterface $transaction)
+    /**
+     * @param FinancialTransactionInterface $transaction
+     * @throws ActionRequiredException
+     * @throws CommunicationException
+     * @throws FinancialException
+     * @throws PaymentPendingException
+     */
+    public function cancel(FinancialTransactionInterface $transaction)
     {
-        $paymentInstruction = $transaction->getPayment()->getPaymentInstruction();
-        $this->logger->info('Building INV file...');
-        $file = $this->ogoneFileBuilder->buildInv(
-            $paymentInstruction->getExtendedData()->get('ORDERID'),
-            $paymentInstruction->getExtendedData()->get('CLIENTID'),
-            $paymentInstruction->getExtendedData()->get('ALIASID'),
-            self::PAYMENT,
-            $paymentInstruction->getExtendedData()->get('ARTICLES'),
-            $paymentInstruction->getExtendedData()->get('PAYID')
-        );
-        $this->logger->info('INV file content is {content}', array('content' => $file));
+        $this->logger->debug('cancelling transaction {id} with PAYID {payid}...', array('id' => $transaction->getId(), 'payid' => $transaction->getExtendedData()->get('PAYID')));
+        if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
+            throw new ActionRequiredException('Transaction needs to be in state 4');
+        }
 
-        $this->logger->debug('Sending payment request to Ogone with file {file}', array('file' => $file));
-        $xmlResponse = $this->sendBatchRequest($file);
+        if (!isset($this->feedbackResponse)) {
+            $this->logger->debug('No feedback response set.');
 
-        return new DirectResponse($xmlResponse);
+            $response = $this->sendCancellation($transaction);
+
+            $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
+
+            if ($response->hasError()) {
+                $this->logger->debug('Payment is not successful');
+                $this->handleUnsuccessfulResponse($response, $transaction);
+            }
+
+            $transaction->setReferenceNumber($response->getPaymentId());
+
+        } else if (($response = $this->feedbackResponse) && $response->isCancellationPending()) {
+
+
+            if ($response->hasError()) {
+                $this->logger->debug('response is not successful');
+                $this->handleUnsuccessfulResponse($response, $transaction);
+            }
+
+            $transaction->setReferenceNumber($response->getPaymentId());
+        }
+
+        if ($response->isCancellationPending()) {
+            $this->logger->debug('response {res} is still depositing', array('res' => $response));
+            throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
+        }
+
+        if (!$response->isCancelled()) {
+            $this->logger->debug('response {res} is not cancelled', array('res' => $response));
+            $ex = new FinancialException(sprintf('Payment status "%s" is not valid for cancelling', $response->getStatus()));
+            $ex->setFinancialTransaction($transaction);
+            $transaction->setResponseCode($response->getErrorCode());
+            $transaction->setReasonCode($response->getStatus());
+
+            throw $ex;
+        }
+
+        $transaction->setProcessedAmount($response->getAmount());
+        $transaction->setResponseCode(PluginInterface::RESPONSE_CODE_SUCCESS);
+        $transaction->setReasonCode(PluginInterface::REASON_CODE_SUCCESS);
     }
 
     /**
@@ -399,6 +440,57 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         }
 
         return new \SimpleXMLElement($response->getContent());
+    }
+
+    /**
+     * @param FinancialTransactionInterface $transaction
+     * @return DirectResponse
+     */
+    private function sendPayment(FinancialTransactionInterface $transaction)
+    {
+        $paymentInstruction = $transaction->getPayment()->getPaymentInstruction();
+        $file = $this->buildFile($paymentInstruction, self::PAYMENT);
+
+        $this->logger->debug('Sending payment request to Ogone with file {file}', array('file' => $file));
+        $xmlResponse = $this->sendBatchRequest($file);
+
+        return new DirectResponse($xmlResponse);
+    }
+
+    /**
+     * @param FinancialTransactionInterface $transaction
+     * @return DirectResponse
+     */
+    private function sendCancellation(FinancialTransactionInterface $transaction)
+    {
+        $paymentInstruction = $transaction->getPayment()->getPaymentInstruction();
+        $file = $this->buildFile($paymentInstruction, self::CANCEL);
+
+        $this->logger->debug('Sending payment request to Ogone with file {file}', array('file' => $file));
+        $xmlResponse = $this->sendBatchRequest($file);
+
+        return new DirectResponse($xmlResponse);
+    }
+
+    /**
+     * @param PaymentInstructionInterface $paymentInstruction
+     * @param string $operation
+     * @return string
+     */
+    private function buildFile(PaymentInstructionInterface $paymentInstruction, $operation = self::PAYMENT)
+    {
+        $this->logger->info('Building INV file...');
+        $file = $this->ogoneFileBuilder->buildInv(
+            $paymentInstruction->getExtendedData()->get('ORDERID'),
+            $paymentInstruction->getExtendedData()->get('CLIENTID'),
+            $paymentInstruction->getExtendedData()->get('ALIASID'),
+            $operation,
+            $paymentInstruction->getExtendedData()->get('ARTICLES'),
+            $paymentInstruction->getExtendedData()->get('PAYID')
+        );
+        $this->logger->info('INV file content is {content}', array('content' => $file));
+
+        return $file;
     }
 
     /**

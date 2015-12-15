@@ -100,6 +100,45 @@ abstract class AbstractResponse implements ResponseInterface
     }
 
     /**
+     * @return bool
+     */
+    public function isCancelAuthorizationRequestPending()
+    {
+        return $this->getStatus() === ResponseInterface::AUTHORIZATION_DELETION_WAITING;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCancelPaymentRequestPending()
+    {
+        return $this->getStatus() === ResponseInterface::PAYMENT_DELETION_PENDING;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCancellationPending()
+    {
+        return in_array($this->getStatus(), array(
+           ResponseInterface::AUTHORIZATION_DELETION_WAITING,
+           ResponseInterface::AUTHORIZATION_DELETION_UNCERTAIN,
+           ResponseInterface::AUTHORIZATION_DELETION_REFUSED,
+           ResponseInterface::PAYMENT_DELETION_PENDING,
+           ResponseInterface::PAYMENT_DELETION_UNCERTAIN,
+        ));
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function isCancelled()
+    {
+        return $this->getStatus() === ResponseInterface::PAYMENT_DELETED;
+    }
+
+    /**
      * @return float
      */
     abstract public function getAmount();
