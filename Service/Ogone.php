@@ -35,11 +35,13 @@ class Ogone
     }
 
     /**
-     * Triggers the approveAndDeposit method of the plugin controller after
+     * Triggers the approveAndDeposit or reverseDeposit method of the plugin controller after
      * checking if the feedback response has a valid hash and that the payment instruction has pending transactions.
      *
      * @param PaymentInstructionInterface $instruction
-     *
+     * @param $ogonePlugin
+     * @param bool|false $isCaa
+     * @return \JMS\Payment\CoreBundle\PluginController\Result|void
      * @throws \LogicException               If hash is not valid or if there is no pending transaction
      * @throws NoPendingTransactionException If no pending transaction is found in payment instruction
      */
@@ -52,23 +54,20 @@ class Ogone
             ));
         }
 
-        if (null === $pendingTransaction = $instruction->getPendingTransaction()) {
-            throw new NoPendingTransactionException(sprintf('[Ogone - callback] no pending transaction found for the payment instruction [%d]', $instruction->getId()));
+        $pendingTransaction = $this->init($instruction, $ogonePlugin);
+
+        if ($this->feedbackResponse->isReimbursement()) {
+            return $this->pluginController->reverseDeposit($pendingTransaction->getPayment()->getId(), $this->feedbackResponse->getAmount());
         }
 
-        foreach ($this->feedbackResponse->getValues() as $field => $value) {
-            $pendingTransaction->getExtendedData()->set($field, $value);
-        }
+        return $this->pluginController->approveAndDeposit($pendingTransaction->getPayment()->getId(), $this->feedbackResponse->getAmount());
+    }
 
-        $ogonePlugin->setFeedbackResponse($this->feedbackResponse);
+    public function cancelTransaction(PaymentInstructionInterface $instruction, $ogonePlugin)
+    {
+        $pendingTransaction = $this->init($instruction, $ogonePlugin);
 
-        $pendingTransaction->setReferenceNumber($this->feedbackResponse->getPaymentId());
-
-        if ($this->feedbackResponse->isCancellation()) {
-            $this->pluginController->cancel($pendingTransaction);
-        } else {
-            $this->pluginController->approveAndDeposit($pendingTransaction->getPayment()->getId(), $this->feedbackResponse->getAmount());
-        }
+        return $this->pluginController->cancel($pendingTransaction);
     }
 
     /**
@@ -82,5 +81,28 @@ class Ogone
     private function isHashValid(array $values, $hash)
     {
         return $this->generator->generate($values) === $hash;
+    }
+
+    /**
+     * @param PaymentInstructionInterface $instruction
+     * @param $ogonePlugin
+     * @return mixed
+     * @throws NoPendingTransactionException
+     */
+    private function init(PaymentInstructionInterface $instruction, $ogonePlugin)
+    {
+        if (null === $pendingTransaction = $instruction->getPendingTransaction()) {
+            throw new NoPendingTransactionException(sprintf('[Ogone - callback] no pending transaction found for the payment instruction [%d]', $instruction->getId()));
+        }
+
+        foreach ($this->feedbackResponse->getValues() as $field => $value) {
+            $pendingTransaction->getExtendedData()->set($field, $value);
+        }
+
+        $ogonePlugin->setFeedbackResponse($this->feedbackResponse);
+
+        $pendingTransaction->setReferenceNumber($this->feedbackResponse->getPaymentId());
+
+        return $pendingTransaction;
     }
 }
