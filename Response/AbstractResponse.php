@@ -107,9 +107,9 @@ abstract class AbstractResponse implements ResponseInterface
     /**
      * @return bool
      */
-    public function isAuthorizationUnsure()
+    public function isUnsure()
     {
-        return $this->getStatus() === ResponseInterface::AUTHORIZATION_UNKNOWN;
+        return in_array($this->getStatus(), array(ResponseInterface::AUTHORIZATION_UNKNOWN, ResponseInterface::PAYMENT_DELETION_UNCERTAIN));
     }
 
     /**
