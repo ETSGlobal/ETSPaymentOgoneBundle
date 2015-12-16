@@ -73,9 +73,14 @@ abstract class AbstractResponse implements ResponseInterface
         return $this->getStatus() === ResponseInterface::REFUND_PENDING;
     }
 
-    public function isRefund()
+    public function isRefunded()
     {
         return $this->getStatus() === ResponseInterface::REFUND;
+    }
+
+    public function isReimbursement()
+    {
+        return $this->isRefunded() || $this->isRefunding();
     }
 
     /**
@@ -97,6 +102,58 @@ abstract class AbstractResponse implements ResponseInterface
     public function isSuccessful()
     {
         return !in_array($this->getStatus(), array(static::INVALID, '', null), true);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCancelAuthorizationRequestPending()
+    {
+        return $this->getStatus() === ResponseInterface::AUTHORIZATION_DELETION_WAITING;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCancelPaymentRequestPending()
+    {
+        return $this->getStatus() === ResponseInterface::PAYMENT_DELETION_PENDING;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCancellationPending()
+    {
+        return in_array($this->getStatus(), array(
+           ResponseInterface::AUTHORIZATION_DELETION_WAITING,
+           ResponseInterface::AUTHORIZATION_DELETION_UNCERTAIN,
+           ResponseInterface::AUTHORIZATION_DELETION_REFUSED,
+           ResponseInterface::PAYMENT_DELETION_PENDING,
+           ResponseInterface::PAYMENT_DELETION_UNCERTAIN,
+        ));
+    }
+
+    public function isCancellation()
+    {
+        return $this->getStatus() === $this->isCancellationPending() || $this->getStatus() === $this->isCancelled();
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function isCancelled()
+    {
+        return $this->getStatus() === ResponseInterface::PAYMENT_DELETED;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAuthorizationUnsure()
+    {
+        return $this->getStatus() === ResponseInterface::AUTHORIZATION_UNKNOWN;
     }
 
     /**

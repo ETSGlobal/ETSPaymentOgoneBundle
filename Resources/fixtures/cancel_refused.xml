@@ -2,12 +2,12 @@
 <ncresponse>
     <FORMAT_CHECK>
         <FORMAT_CHECK_ERROR>
-            <ERROR>A technical problem has occurred. Please try again.</ERROR>
+            <ERROR>Cancel request refused</ERROR>
             <LINE>1</LINE>
-            <NCERROR>50001111</NCERROR>
+            <NCERROR>30001012</NCERROR>
             <PAYID>0</PAYID>
             <ORDERID>57c6b70bsdf</ORDERID>
-            <NCSTATUS>5</NCSTATUS>
+            <NCSTATUS>0</NCSTATUS>
             <STATUS>0</STATUS>
         </FORMAT_CHECK_ERROR>
         <FILEID>1086019</FILEID>
@@ -18,9 +18,9 @@
     </FORMAT_CHECK>
     <PROCESSING>
         <NC_ERROR>
-            <NCERRORPLUS>&#124;Invalid VAT Calculation &#40; 14751 + 2891.2 &lt;&gt; 0 &#41;</NCERRORPLUS>
+            <NCERRORPLUS>Cancel request refused</NCERRORPLUS>
             <LINE>1</LINE>
-            <NCERROR>50001111</NCERROR>
+            <NCERROR>30001012</NCERROR>
             <PAYID>53859628</PAYID>
             <ORDERID>57c6b70bsdf</ORDERID>
             <NCSTATUS>5</NCSTATUS>
