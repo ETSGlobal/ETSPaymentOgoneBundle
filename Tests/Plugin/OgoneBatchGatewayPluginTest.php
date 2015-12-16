@@ -287,64 +287,6 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      * @param FinancialTransaction $transaction
      *
      * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Payment is still pending, status: 61.
-     */
-    public function testCancellingAuthorizationTransaction(FinancialTransaction $transaction)
-    {
-        $plugin = $this->createPluginMock('cancelling_authorization');
-
-        $plugin->cancel($transaction, false);
-    }
-
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Payment is still pending, status: 71.
-     */
-    public function testCancellingPaymentTransaction(FinancialTransaction $transaction)
-    {
-        $plugin = $this->createPluginMock('cancelling_payment_pending');
-
-        $plugin->cancel($transaction, false);
-    }
-
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Ogone-Response was not successful: Cancel request refused
-     */
-    public function testCancellingPaymentRefused(FinancialTransaction $transaction)
-    {
-        $plugin = $this->createPluginMock('cancel_refused');
-
-        $plugin->cancel($transaction, false);
-    }
-
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     */
-    public function testCancelledPayment(FinancialTransaction $transaction)
-    {
-        $plugin = $this->createPluginMock('cancelled');
-
-        $plugin->cancel($transaction, false);
-
-        $this->assertEquals(42, $transaction->getProcessedAmount());
-        $this->assertEquals('success', $transaction->getResponseCode());
-        $this->assertEquals('none', $transaction->getReasonCode());
-    }
-
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
      */
     public function testDepositedTransaction(FinancialTransaction $transaction)
     {
