@@ -2,13 +2,11 @@
 
 namespace ETS\Payment\OgoneBundle\Plugin;
 
+use ETS\Payment\OgoneBundle\Response\BatchResponse;
 use ETS\Payment\OgoneBundle\Service\OgoneFileBuilder;
 use JMS\Payment\CoreBundle\BrowserKit\Request;
 use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
 use JMS\Payment\CoreBundle\Model\PaymentInstructionInterface;
-use JMS\Payment\CoreBundle\Model\ExtendedDataInterface;
-use JMS\Payment\CoreBundle\Plugin\ErrorBuilder;
-use JMS\Payment\CoreBundle\Plugin\Exception\Action\VisitUrl;
 use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
 use JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException;
 use JMS\Payment\CoreBundle\Plugin\Exception\FinancialException;
@@ -17,8 +15,6 @@ use JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException;
 use JMS\Payment\CoreBundle\Plugin\PluginInterface;
 
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
-use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
-use ETS\Payment\OgoneBundle\Response\DirectResponse;
 use ETS\Payment\OgoneBundle\Response\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
@@ -70,10 +66,10 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     public static function getAvailableOperations()
     {
         return array(
-            'AUTHORIZATION' => OgoneBatchGatewayPlugin::AUTHORIZATION,
-            'PAYMENT' => OgoneBatchGatewayPlugin::PAYMENT,
+            'AUTHORIZATION'  => OgoneBatchGatewayPlugin::AUTHORIZATION,
+            'PAYMENT'        => OgoneBatchGatewayPlugin::PAYMENT,
             'PARTIAL_REFUND' => OgoneBatchGatewayPlugin::PARTIAL_REFUND,
-            'CANCEL' => OgoneBatchGatewayPlugin::CANCEL,
+            'CANCEL'         => OgoneBatchGatewayPlugin::CANCEL,
         );
     }
 
@@ -155,7 +151,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $this->logger->debug('Checking transaction status with Ogone with params {params}', array('params' => $params));
             $xmlResponse = $this->sendApiRequest(array(), $this->getDirectQueryUrl().'?'.http_build_query($params), 'GET');
 
-            $response = new DirectResponse($xmlResponse);
+            $response = new BatchResponse($xmlResponse);
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
 
             if ($response->hasError()) {
@@ -220,7 +216,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
 
             if ($response->hasError()) {
-                $this->logger->debug('Payment is not successful');
+                $this->logger->debug(sprintf('Payment is not successful: %s', $response->getErrorDescription()));
                 $this->handleUnsuccessfulResponse($response, $transaction);
             }
 
@@ -231,7 +227,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
 
             if ($response->hasError()) {
-                $this->logger->debug('response is not successful');
+                $this->logger->debug(sprintf('response is not successful! %s', $response->getErrorDescription()));
                 $this->handleUnsuccessfulResponse($response, $transaction);
             }
 
@@ -279,12 +275,13 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $this->logger->debug('Sending authorization request to Ogone with file {file}', array('file' => $file));
             $xmlResponse = $this->sendBatchRequest($file);
 
-            $response = new DirectResponse($xmlResponse);
+            $response = new BatchResponse($xmlResponse);
+
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
             if (!$response->hasError() && $response->isIncomplete()) {
                 $paymentInstruction->getExtendedData()->set('PAYID', $response->getPaymentId());
             } else {
-                throw new \LogicException(sprintf('status %s.', $response->getStatus()));
+                throw new \LogicException(sprintf('status %s, description %s.', $response->getStatus(), $response->getErrorDescription()));
             }
         } catch (\Exception $e) {
             $this->logger->error(sprintf('Authorization failed: %s.', $e->getMessage()));
@@ -310,10 +307,10 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $this->logger->debug('Sending refund request to Ogone with file {file}', array('file' => $file));
             $xmlResponse = $this->sendBatchRequest($file);
 
-            $response = new DirectResponse($xmlResponse);
+            $response = new BatchResponse($xmlResponse);
 
             if ($response->hasError()) {
-                $this->logger->debug('response is not successful');
+                $this->logger->debug(sprintf('response is not successful for revert deposit: %s', $response->getErrorDescription()));
                 $this->handleUnsuccessfulResponse($response, $transaction);
             }
 
@@ -365,17 +362,15 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
 
             if ($response->hasError()) {
-                $this->logger->debug('Payment is not successful');
+                $this->logger->debug(sprintf('Payment is not successful: %s', $response->getErrorDescription()));
                 $this->handleUnsuccessfulResponse($response, $transaction);
             }
 
             $transaction->setReferenceNumber($response->getPaymentId());
 
         } else if (($response = $this->feedbackResponse) && $response->isCancellationPending()) {
-
-
             if ($response->hasError()) {
-                $this->logger->debug('response is not successful');
+                $this->logger->debug(sprintf('response is not successful: %s', $response->getErrorDescription()));
                 $this->handleUnsuccessfulResponse($response, $transaction);
             }
 
@@ -454,7 +449,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
     /**
      * @param FinancialTransactionInterface $transaction
-     * @return DirectResponse
+     * @return BatchResponse
      */
     private function sendPayment(FinancialTransactionInterface $transaction)
     {
@@ -464,12 +459,12 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         $this->logger->debug('Sending payment request to Ogone with file {file}', array('file' => $file));
         $xmlResponse = $this->sendBatchRequest($file);
 
-        return new DirectResponse($xmlResponse);
+        return new BatchResponse($xmlResponse);
     }
 
     /**
      * @param FinancialTransactionInterface $transaction
-     * @return DirectResponse
+     * @return BatchResponse
      */
     private function sendCancellation(FinancialTransactionInterface $transaction)
     {
@@ -479,7 +474,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         $this->logger->debug('Sending payment request to Ogone with file {file}', array('file' => $file));
         $xmlResponse = $this->sendBatchRequest($file);
 
-        return new DirectResponse($xmlResponse);
+        return new BatchResponse($xmlResponse);
     }
 
     /**
@@ -522,14 +517,14 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     }
 
     /**
-     * @param DirectResponse $response
+     * @param BatchResponse $response
      * @param FinancialTransactionInterface $transaction
      * @throws FinancialException
      */
-    private function handleUnsuccessfulResponse(DirectResponse $response, FinancialTransactionInterface $transaction)
+    private function handleUnsuccessfulResponse(BatchResponse $response, FinancialTransactionInterface $transaction)
     {
         $transaction->setResponseCode($response->getErrorCode());
-        $transaction->setReasonCode($response->getStatus());
+        $transaction->setReasonCode($response->getStatusError());
 
         $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
         $ex->setFinancialTransaction($transaction);

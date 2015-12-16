@@ -2,7 +2,7 @@
 <ncresponse>
     <FORMAT_CHECK>
         <FORMAT_CHECK_ERROR>
-            <ERROR>A technical problem has occurred. Please try again.</ERROR>
+            <ERROR>Some of the data entered is incorrect. Please retry.</ERROR>
             <LINE>1</LINE>
             <NCERROR>50001111</NCERROR>
             <PAYID>0</PAYID>

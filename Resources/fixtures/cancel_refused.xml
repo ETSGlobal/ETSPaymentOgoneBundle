@@ -1,24 +1,38 @@
 <?xml version="1.0"?>
-<ncresponse
-    orderID="5118c3832a88d"
-    PAYID="19058509"
-    PAYIDSUB=""
-    NCSTATUS="0"
-    NCERROR="30001012"
-    NCERRORPLUS="Cancel request refused"
-    ACCEPTANCE="test123"
-    STATUS="63"
-    IPCTY="FR"
-    CCCTY="US"
-    ECI="7"
-    CVCCheck="NO"
-    AAVCheck="NO"
-    VC="NO"
-    amount="42"
-    currency="EUR"
-    PM="CreditCard"
-    BRAND="VISA"
-    CARDNO="XXXXXXXXXXXX1111"
-    IP="82.69.105.251"
->
+<ncresponse>
+    <FORMAT_CHECK>
+        <FORMAT_CHECK_ERROR>
+            <ERROR>Cancel request refused</ERROR>
+            <LINE>1</LINE>
+            <NCERROR>30001012</NCERROR>
+            <PAYID>0</PAYID>
+            <ORDERID>57c6b70bsdf</ORDERID>
+            <NCSTATUS>0</NCSTATUS>
+            <STATUS>0</STATUS>
+        </FORMAT_CHECK_ERROR>
+        <FILEID>1086019</FILEID>
+        <GUID>973A9C1C1CCD803D6803F46734F2E3024914829E</GUID>
+        <SUMMARY>
+            <NB_PAYMENTS>1</NB_PAYMENTS>
+        </SUMMARY>
+    </FORMAT_CHECK>
+    <PROCESSING>
+        <NC_ERROR>
+            <NCERRORPLUS>Cancel request refused</NCERRORPLUS>
+            <LINE>1</LINE>
+            <NCERROR>30001012</NCERROR>
+            <PAYID>53859628</PAYID>
+            <ORDERID>57c6b70bsdf</ORDERID>
+            <NCSTATUS>5</NCSTATUS>
+            <STATUS>0</STATUS>
+        </NC_ERROR>
+        <FILEID>1086019</FILEID>
+        <GUID>973A9C1C1CCD803D6803F46734F2E3024914829E</GUID>
+        <SUMMARY>
+            <NB_PAYMENTS>1</NB_PAYMENTS>
+            <OK_PAYMENTS>0</OK_PAYMENTS>
+            <RANGE_START>53859628</RANGE_START>
+            <RANGE_STOP>53859628</RANGE_STOP>
+        </SUMMARY>
+    </PROCESSING>
 </ncresponse>

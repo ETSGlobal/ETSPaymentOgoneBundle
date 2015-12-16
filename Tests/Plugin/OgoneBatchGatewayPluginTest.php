@@ -394,7 +394,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidStateGenerateAnException(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock('invalid');
+        $plugin = $this->createPluginMock('caa_invalid');
 
         $plugin->deposit($transaction, false);
     }
