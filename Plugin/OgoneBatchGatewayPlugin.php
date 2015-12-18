@@ -261,7 +261,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     {
         $this->logger->debug('validating payment instruction {id}...', array('id' => $paymentInstruction->getId()));
         try {
-            $this->buildFile($paymentInstruction, self::AUTHORIZATION);
+            $file = $this->buildFile($paymentInstruction, self::AUTHORIZATION);
 
             $this->logger->debug('Sending authorization request to Ogone with file {file}', array('file' => $file));
             $xmlResponse = $this->sendBatchRequest($file);
