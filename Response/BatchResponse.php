@@ -5,14 +5,6 @@ namespace ETS\Payment\OgoneBundle\Response;
 class BatchResponse extends DirectResponse
 {
     /**
-     * @param \SimpleXMLElement $xml
-     */
-    public function __construct(\SimpleXMLElement $xml)
-    {
-        parent::__construct($xml);
-    }
-
-    /**
      * @return integer
      */
     public function getStatusError()
