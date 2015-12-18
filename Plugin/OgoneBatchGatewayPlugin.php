@@ -266,6 +266,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $file = $this->ogoneFileBuilder->buildInv(
                 $paymentInstruction->getExtendedData()->get('ORDERID'),
                 $paymentInstruction->getExtendedData()->get('CLIENTID'),
+                $paymentInstruction->getExtendedData()->get('CLIENTREF'),
                 $paymentInstruction->getExtendedData()->get('ALIASID'),
                 self::AUTHORIZATION,
                 $paymentInstruction->getExtendedData()->get('ARTICLES')
@@ -297,6 +298,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $file = $this->ogoneFileBuilder->buildInv(
                 $paymentInstruction->getExtendedData()->get('ORDERID'),
                 $paymentInstruction->getExtendedData()->get('CLIENTID'),
+                $paymentInstruction->getExtendedData()->get('CLIENTREF'),
                 $paymentInstruction->getExtendedData()->get('ALIASID'),
                 self::PARTIAL_REFUND,
                 $paymentInstruction->getExtendedData()->get('ARTICLES'),
