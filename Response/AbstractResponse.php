@@ -105,14 +105,6 @@ abstract class AbstractResponse implements ResponseInterface
     }
 
     /**
-     * @return bool
-     */
-    public function isUnsure()
-    {
-        return in_array($this->getStatus(), array(ResponseInterface::AUTHORIZATION_UNKNOWN, ResponseInterface::PAYMENT_DELETION_UNCERTAIN));
-    }
-
-    /**
      * @return float
      */
     abstract public function getAmount();

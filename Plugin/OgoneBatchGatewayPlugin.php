@@ -3,6 +3,7 @@
 namespace ETS\Payment\OgoneBundle\Plugin;
 
 use ETS\Payment\OgoneBundle\Response\BatchResponse;
+use ETS\Payment\OgoneBundle\Response\DirectResponse;
 use ETS\Payment\OgoneBundle\Service\OgoneFileBuilder;
 use JMS\Payment\CoreBundle\BrowserKit\Request;
 use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
@@ -262,20 +263,10 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     {
         $this->logger->debug('validating payment instruction {id}...', array('id' => $paymentInstruction->getId()));
         try {
-            $this->logger->info('Building INV file...');
-            $file = $this->ogoneFileBuilder->buildInv(
-                $paymentInstruction->getExtendedData()->get('ORDERID'),
-                $paymentInstruction->getExtendedData()->get('CLIENTID'),
-                $paymentInstruction->getExtendedData()->get('CLIENTREF'),
-                $paymentInstruction->getExtendedData()->get('ALIASID'),
-                self::AUTHORIZATION,
-                $paymentInstruction->getExtendedData()->get('ARTICLES')
-            );
-            $this->logger->info('INV file content is {content}', array('content' => $file));
+            $this->buildFile($paymentInstruction, self::AUTHORIZATION);
 
             $this->logger->debug('Sending authorization request to Ogone with file {file}', array('file' => $file));
             $xmlResponse = $this->sendBatchRequest($file);
-
             $response = new BatchResponse($xmlResponse);
 
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
@@ -330,63 +321,6 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         if (!$response->isRefunded()) {
             $this->logger->debug('response {res} is not refunded', array('res' => $response));
             $ex = new FinancialException(sprintf('Refund status %s is not valid', $response->getStatus()));
-            $ex->setFinancialTransaction($transaction);
-            $transaction->setResponseCode($response->getErrorCode());
-            $transaction->setReasonCode($response->getStatus());
-
-            throw $ex;
-        }
-
-        $transaction->setProcessedAmount($response->getAmount());
-        $transaction->setResponseCode(PluginInterface::RESPONSE_CODE_SUCCESS);
-        $transaction->setReasonCode(PluginInterface::REASON_CODE_SUCCESS);
-    }
-
-    /**
-     * @param FinancialTransactionInterface $transaction
-     * @throws ActionRequiredException
-     * @throws CommunicationException
-     * @throws FinancialException
-     * @throws PaymentPendingException
-     */
-    public function cancel(FinancialTransactionInterface $transaction)
-    {
-        $this->logger->debug('cancelling transaction {id} with PAYID {payid}...', array('id' => $transaction->getId(), 'payid' => $transaction->getExtendedData()->get('PAYID')));
-        if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
-            throw new ActionRequiredException('Transaction needs to be in state 4');
-        }
-
-        if (!isset($this->feedbackResponse)) {
-            $this->logger->debug('No feedback response set.');
-
-            $response = $this->sendCancellation($transaction);
-
-            $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
-
-            if ($response->hasError()) {
-                $this->logger->debug(sprintf('Payment is not successful: %s', $response->getErrorDescription()));
-                $this->handleUnsuccessfulResponse($response, $transaction);
-            }
-
-            $transaction->setReferenceNumber($response->getPaymentId());
-
-        } else if (($response = $this->feedbackResponse) && $response->isCancellationPending()) {
-            if ($response->hasError()) {
-                $this->logger->debug(sprintf('response is not successful: %s', $response->getErrorDescription()));
-                $this->handleUnsuccessfulResponse($response, $transaction);
-            }
-
-            $transaction->setReferenceNumber($response->getPaymentId());
-        }
-
-        if ($response->isCancellationPending()) {
-            $this->logger->debug('response {res} is still depositing', array('res' => $response));
-            throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
-        }
-
-        if (!$response->isCancelled()) {
-            $this->logger->debug('response {res} is not cancelled', array('res' => $response));
-            $ex = new FinancialException(sprintf('Payment status "%s" is not valid for cancelling', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
             $transaction->setReasonCode($response->getStatus());
@@ -465,21 +399,6 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     }
 
     /**
-     * @param FinancialTransactionInterface $transaction
-     * @return BatchResponse
-     */
-    private function sendCancellation(FinancialTransactionInterface $transaction)
-    {
-        $paymentInstruction = $transaction->getPayment()->getPaymentInstruction();
-        $file = $this->buildFile($paymentInstruction, self::CANCEL);
-
-        $this->logger->debug('Sending payment request to Ogone with file {file}', array('file' => $file));
-        $xmlResponse = $this->sendBatchRequest($file);
-
-        return new BatchResponse($xmlResponse);
-    }
-
-    /**
      * @param PaymentInstructionInterface $paymentInstruction
      * @param string $operation
      * @return string
@@ -490,6 +409,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         $file = $this->ogoneFileBuilder->buildInv(
             $paymentInstruction->getExtendedData()->get('ORDERID'),
             $paymentInstruction->getExtendedData()->get('CLIENTID'),
+            $paymentInstruction->getExtendedData()->get('CLIENTREF'),
             $paymentInstruction->getExtendedData()->get('ALIASID'),
             $operation,
             $paymentInstruction->getExtendedData()->get('ARTICLES'),
