@@ -69,7 +69,6 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             'AUTHORIZATION'  => OgoneBatchGatewayPlugin::AUTHORIZATION,
             'PAYMENT'        => OgoneBatchGatewayPlugin::PAYMENT,
             'PARTIAL_REFUND' => OgoneBatchGatewayPlugin::PARTIAL_REFUND,
-            'CANCEL'         => OgoneBatchGatewayPlugin::CANCEL,
         );
     }
 
