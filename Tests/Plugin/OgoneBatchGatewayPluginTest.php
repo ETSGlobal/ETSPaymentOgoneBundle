@@ -96,6 +96,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
             'ORDERID' => 1234,
             'PAYID' => 9876,
             'CLIENTID' => 'CLIENT1',
+            'CLIENTREF' => 123456,
             'ALIASID' => 'ALIASID',
             'ARTICLES' => array(),
         );
@@ -336,7 +337,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidStateGenerateAnException(FinancialTransaction $transaction)
     {
-        $plugin = $this->createPluginMock('invalid');
+        $plugin = $this->createPluginMock('caa_invalid');
 
         $plugin->deposit($transaction, false);
     }
