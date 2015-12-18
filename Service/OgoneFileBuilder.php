@@ -12,28 +12,28 @@ class OgoneFileBuilder
     const INV_DET_FILE_LENGTH = 14;
 
     private $pspId;
-    private $clientRef;
     private $apiUser;
     private $apiPassword;
 
     public function __construct(TokenInterface $token)
     {
         $this->pspId = $token->getPspid();
-        $this->clientRef = $token->getClientRef();
         $this->apiUser = $token->getApiUser();
         $this->apiPassword = $token->getApiPassword();
     }
 
     /**
-     * @param $orderId
-     * @param $clientId
-     * @param $aliasId
-     * @param $operation
-     * @param array $articles
+     * @param string $orderId
+     * @param string $clientRef
+     * @param string $clientId
+     * @param string $aliasId
+     * @param string $operation
+     * @param array  $articles
      * @param string $payId
+     *
      * @return string
      */
-    public function buildInv($orderId, $clientId, $aliasId, $operation, array $articles, $payId = '')
+    public function buildInv($orderId, $clientId, $clientRef, $aliasId, $operation, array $articles, $payId = '')
     {
         $this->validateOperation($operation);
         $transaction = (OgoneBatchGatewayPlugin::AUTHORIZATION === $operation) ? OgoneBatchGatewayPlugin::TRANSACTION_CODE_NEW : OgoneBatchGatewayPlugin::TRANSACTION_CODE_MAINTENANCE;
@@ -60,7 +60,7 @@ class OgoneFileBuilder
 
         $amountTaxIncluded = $amountTaxExcluded + $amountValueAddedTax; //amount taxes included
 
-        $globalSummaryLine = $this->createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $amountTaxExcluded, $amountValueAddedTax, $amountTaxIncluded);
+        $globalSummaryLine = $this->createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountValueAddedTax, $amountTaxIncluded);
 
         $globalEndOfFileLine = $this->createEndOfFileLineArray();
 
@@ -78,24 +78,26 @@ class OgoneFileBuilder
     }
 
     /**
-     * @param $orderId
-     * @param $payId
-     * @param $operation
-     * @param $nbArticles
-     * @param $aliasId
-     * @param $clientId
-     * @param $amountTaxExcluded
-     * @param $amountVat
-     * @param $amountTaxIncluded
+     * @param string $orderId
+     * @param string $payId
+     * @param string $operation
+     * @param string $nbArticles
+     * @param string $aliasId
+     * @param string $clientId
+     * @param string $clientRef
+     * @param string $amountTaxExcluded
+     * @param string $amountVat
+     * @param string $amountTaxIncluded
+     *
      * @return array
      */
-    private function createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $amountTaxExcluded, $amountVat, $amountTaxIncluded)
+    private function createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountVat, $amountTaxIncluded)
     {
         $globalSummaryLine = $this->initArray(self::INV_FILE_LENGTH);
         $globalSummaryLine[0] = 'INV';
         $globalSummaryLine[1] = 'EUR';
         $globalSummaryLine[5] = $orderId;
-        $globalSummaryLine[6] = $this->clientRef;
+        $globalSummaryLine[6] = $clientRef;
         $globalSummaryLine[8] = $payId;
         $globalSummaryLine[9] = $operation;
         $globalSummaryLine[13] = $this->pspId;
@@ -103,7 +105,7 @@ class OgoneFileBuilder
         $globalSummaryLine[16] = $aliasId;
         $globalSummaryLine[17] = $clientId;
         $globalSummaryLine[28] = $orderId;
-        $globalSummaryLine[30] = $this->clientRef;
+        $globalSummaryLine[30] = $clientRef;
         $globalSummaryLine[31] = $amountTaxExcluded;
         $globalSummaryLine[32] = $amountVat;
         $globalSummaryLine[33] = $amountTaxIncluded;

@@ -33,7 +33,7 @@ DET;2;id26;article25;1000;0;21%;;;;;;;2000;
 OTF;
 ";
 
-        $token = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '', '1700065264');
+        $token = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '');
         $builder = new OgoneFileBuilder($token);
         $articles = array(
             0 => array(
@@ -51,7 +51,7 @@ OTF;
                 'vat' => 0.21, //VAT: 420
             ),
         );
-        $text = $builder->buildInv('order_id25', 'azerty', 'aliasGSP', 'SAS', $articles, 'payId');
+        $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'aliasGSP', 'SAS', $articles, 'payId');
 
         $this->assertEquals($expectedTextContent, $text);
     }
@@ -66,7 +66,7 @@ DET;2;id26;article25;1000;0;21%;;;;;;;2000;
 OTF;
 ";
 
-        $token = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '', '1700065264');
+        $token = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '');
         $builder = new OgoneFileBuilder($token);
         $articles = array(
             0 => array(
@@ -84,7 +84,7 @@ OTF;
                 'vat' => 0.21, //VAT: 420
             ),
         );
-        $text = $builder->buildInv('order_id25', 'azerty', 'aliasGSP', 'RES', $articles, '');
+        $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'aliasGSP', 'RES', $articles, '');
 
         $this->assertEquals($expectedTextContent, $text);
     }
@@ -94,9 +94,9 @@ OTF;
      */
     public function testInvalidOperationCodeText()
     {
-        $token = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '', '1700065264');
+        $token = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '');
         $builder = new OgoneFileBuilder($token);
         $articles = array();
-        $text = $builder->buildInv('order_id25', 'azerty', 'aliasGSP', 'EE', $articles, 'payId');
+        $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'aliasGSP', 'EE', $articles, 'payId');
     }
 }
