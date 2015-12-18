@@ -47,7 +47,6 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     const AUTHORIZATION                = 'RES';
     const PAYMENT                      = 'SAS';
     const PARTIAL_REFUND               = 'RFD'; //means others operations can be done on the same transaction
-    const CANCEL                       = 'DES'; //cancels a transaction once and for all
 
     /**
      * @var TokenInterface
