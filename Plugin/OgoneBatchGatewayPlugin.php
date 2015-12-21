@@ -445,7 +445,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     {
         $transaction->setResponseCode($response->getErrorCode());
         $transaction->setReasonCode($response->getStatusError());
-
+        $transaction->getPayment()->getPaymentInstruction()->getExtendedData()->set('ERROR_MESSAGE', $response->getErrorDescription());
         $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
         $ex->setFinancialTransaction($transaction);
 
