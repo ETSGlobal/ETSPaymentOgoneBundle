@@ -153,6 +153,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $response = new BatchResponse($xmlResponse);
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
 
+            $this->setFeedbackResponse($response);
             if ($response->hasError()) {
                 $this->handleUnsuccessfulResponse($response, $transaction);
             }
