@@ -99,6 +99,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
             'CLIENTREF' => 123456,
             'ALIASID' => 'ALIASID',
             'ARTICLES' => array(),
+            'TRANSACTIONID' => 4567
         );
 
         $transaction = $this->createTransaction(42, 'EUR', $extendedData);

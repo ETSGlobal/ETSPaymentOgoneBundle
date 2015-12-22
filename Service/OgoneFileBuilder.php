@@ -33,7 +33,7 @@ class OgoneFileBuilder
      *
      * @return string
      */
-    public function buildInv($orderId, $clientId, $clientRef, $aliasId, $operation, array $articles, $payId = '')
+    public function buildInv($orderId, $clientId, $clientRef, $aliasId, $operation, array $articles, $payId = '', $transactionId = '')
     {
         $this->validateOperation($operation);
         $transaction = (OgoneBatchGatewayPlugin::AUTHORIZATION === $operation) ? OgoneBatchGatewayPlugin::TRANSACTION_CODE_NEW : OgoneBatchGatewayPlugin::TRANSACTION_CODE_MAINTENANCE;
@@ -60,7 +60,7 @@ class OgoneFileBuilder
 
         $amountTaxIncluded = $amountTaxExcluded + $amountValueAddedTax; //amount taxes included
 
-        $globalSummaryLine = $this->createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountValueAddedTax, $amountTaxIncluded);
+        $globalSummaryLine = $this->createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountValueAddedTax, $amountTaxIncluded, $transactionId);
 
         $globalEndOfFileLine = $this->createEndOfFileLineArray();
 
@@ -88,15 +88,16 @@ class OgoneFileBuilder
      * @param string $amountTaxExcluded
      * @param string $amountVat
      * @param string $amountTaxIncluded
+     * @param string $transactionId
      *
      * @return array
      */
-    private function createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountVat, $amountTaxIncluded)
+    private function createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountVat, $amountTaxIncluded, $transactionId)
     {
         $globalSummaryLine = $this->initArray(self::INV_FILE_LENGTH);
         $globalSummaryLine[0] = 'INV';
         $globalSummaryLine[1] = 'EUR';
-        $globalSummaryLine[5] = $orderId;
+        $globalSummaryLine[5] = $transactionId;
         $globalSummaryLine[6] = $clientRef;
         $globalSummaryLine[8] = $payId;
         $globalSummaryLine[9] = $operation;
