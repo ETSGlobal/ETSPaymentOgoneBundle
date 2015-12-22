@@ -27,7 +27,7 @@ class OgoneFileBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $expectedTextContent = "OHL;ETSCPC;anglet64600;;userapi64600;
 OHF;FILEorder_id25;MTR;SAS;1;
-INV;EUR;;;;order_id25;1700065264;;payId;SAS;;;;ETSCPC;;2;aliasGSP;azerty;;;;;;;;;;;order_id25;;1700065264;3000;616;3616;
+INV;EUR;;;;transactionId;1700065264;;payId;SAS;;;;ETSCPC;;2;aliasGSP;azerty;;;;;;;;;;;order_id25;;1700065264;3000;616;3616;
 DET;1;id25;article25;1000;0;19.6%;;;;;;;1000;
 DET;2;id26;article25;1000;0;21%;;;;;;;2000;
 OTF;
@@ -51,7 +51,7 @@ OTF;
                 'vat' => 0.21, //VAT: 420
             ),
         );
-        $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'aliasGSP', 'SAS', $articles, 'payId');
+        $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'aliasGSP', 'SAS', $articles, 'payId', 'transactionId');
 
         $this->assertEquals($expectedTextContent, $text);
     }
@@ -60,7 +60,7 @@ OTF;
     {
         $expectedTextContent = "OHL;ETSCPC;anglet64600;;userapi64600;
 OHF;FILEorder_id25;ATR;RES;1;
-INV;EUR;;;;order_id25;1700065264;;;RES;;;;ETSCPC;;2;aliasGSP;azerty;;;;;;;;;;;order_id25;;1700065264;3000;616;3616;
+INV;EUR;;;;transactionId;1700065264;;;RES;;;;ETSCPC;;2;aliasGSP;azerty;;;;;;;;;;;order_id25;;1700065264;3000;616;3616;
 DET;1;id25;article25;1000;0;19.6%;;;;;;;1000;
 DET;2;id26;article25;1000;0;21%;;;;;;;2000;
 OTF;
@@ -84,7 +84,7 @@ OTF;
                 'vat' => 0.21, //VAT: 420
             ),
         );
-        $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'aliasGSP', 'RES', $articles, '');
+        $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'aliasGSP', 'RES', $articles, '', 'transactionId');
 
         $this->assertEquals($expectedTextContent, $text);
     }

@@ -272,6 +272,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             if (!$response->hasError() && $response->isIncomplete()) {
                 $paymentInstruction->getExtendedData()->set('PAYID', $response->getPaymentId());
             } else {
+                $paymentInstruction->getExtendedData()->set('ERROR_MESSAGE', $response->getErrorDescription());
                 throw new \LogicException(sprintf('status %s, description %s.', $response->getStatus(), $response->getErrorDescription()));
             }
         } catch (\Exception $e) {
@@ -292,7 +293,8 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
                 $paymentInstruction->getExtendedData()->get('ALIASID'),
                 self::PARTIAL_REFUND,
                 $paymentInstruction->getExtendedData()->get('ARTICLES'),
-                $paymentInstruction->getExtendedData()->get('PAYID')
+                $paymentInstruction->getExtendedData()->get('PAYID'),
+                $paymentInstruction->getExtendedData()->get('TRANSACTIONID')
             );
             $this->logger->info('reverseDeposit: INV file content is {content}', array('content' => $file));
 
@@ -412,7 +414,8 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $paymentInstruction->getExtendedData()->get('ALIASID'),
             $operation,
             $paymentInstruction->getExtendedData()->get('ARTICLES'),
-            $paymentInstruction->getExtendedData()->get('PAYID')
+            $paymentInstruction->getExtendedData()->get('PAYID'),
+            $paymentInstruction->getExtendedData()->get('TRANSACTIONID')
         );
         $this->logger->info('INV file content is {content}', array('content' => $file));
 
