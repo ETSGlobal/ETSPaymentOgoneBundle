@@ -78,11 +78,6 @@ abstract class AbstractResponse implements ResponseInterface
         return $this->getStatus() === ResponseInterface::REFUND;
     }
 
-    public function isReimbursement()
-    {
-        return $this->isRefunded() || $this->isRefunding();
-    }
-
     /**
      * @return boolean
      */

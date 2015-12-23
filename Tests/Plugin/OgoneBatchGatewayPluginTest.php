@@ -88,6 +88,10 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $reflectionMethod->invoke($plugin));
     }
 
+    /**
+     * @group refund
+     * @return FinancialTransaction
+     */
     public function testNewTransactionRequiresAnAction()
     {
         $plugin = $this->createPluginMock();
@@ -100,7 +104,8 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
             'LEGALCOMMITMENT' => 'LEGAL',
             'ALIASID' => 'ALIASID',
             'ARTICLES' => array(),
-            'TRANSACTIONID' => 4567
+            'TRANSACTIONID' => 4567,
+            'ISREFUND' => false
         );
 
         $transaction = $this->createTransaction(42, 'EUR', $extendedData);
@@ -163,26 +168,26 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Refund is still pending, status: 0
+     * @expectedExceptionMessage Payment/Refund is still approving/refunding, status: 0
      * @depends testNewTransactionRequiresAnAction
      * @param FinancialTransaction $transaction
      */
     public function testNewRefundingTransaction(FinancialTransaction $transaction)
     {
         $plugin = $this->createPluginMock('new_refund');
-        $plugin->reverseDeposit($transaction, 42);
+        $plugin->approveAndDeposit($transaction, 42);
     }
 
     /**
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Refund is still pending, status: 81
+     * @expectedExceptionMessage Payment/Refund is still approving/refunding, status: 81
      * @depends testNewTransactionRequiresAnAction
      * @param FinancialTransaction $transaction
      */
     public function testRefundingTransaction(FinancialTransaction $transaction)
     {
         $plugin = $this->createPluginMock('refunding');
-        $plugin->reverseDeposit($transaction, 42);
+        $plugin->approveAndDeposit($transaction, 42);
     }
 
     /**
@@ -194,7 +199,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
     {
         $plugin = $this->createPluginMock('refunded');
 
-        $plugin->reverseDeposit($transaction, 42);
+        $plugin->approveAndDeposit($transaction, 42);
 
         $this->assertEquals(42, $transaction->getProcessedAmount());
         $this->assertEquals('success', $transaction->getResponseCode());
@@ -204,26 +209,16 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Refund status 9 is not valid
-     * @depends testNewTransactionRequiresAnAction
-     * @param FinancialTransaction $transaction
-     */
-    public function testRefundWithNotValidStateTransaction(FinancialTransaction $transaction)
-    {
-        $plugin = $this->createPluginMock('not_refunded');
-        $plugin->reverseDeposit($transaction, 42);
-    }
-
-    /**
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
      * @expectedExceptionMessage Ogone-Response was not successful: A technical problem has occurred. Please try again.
      * @depends testNewTransactionRequiresAnAction
      * @param FinancialTransaction $transaction
+     * @group refund
      */
     public function testRefundWithErrorTransaction(FinancialTransaction $transaction)
     {
+        $transaction->getExtendedData()->set('ISREFUND', true);
         $plugin = $this->createPluginMock('refund_error');
-        $plugin->reverseDeposit($transaction, 42);
+        $plugin->approveAndDeposit($transaction, 42);
     }
 
     /**
@@ -247,7 +242,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      *
      * @depends testNewTransactionRequiresAnAction
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Payment is still approving, status: 51.
+     * @expectedExceptionMessage Payment/Refund is still approving/refunding, status: 51.
      */
     public function testApprovingTransaction(FinancialTransaction $transaction)
     {
@@ -307,7 +302,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      *
      * @depends testNewTransactionRequiresAnAction
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Payment status "8" is not valid for approvment
+     * @expectedExceptionMessage Status "74" is not valid for approvment
      */
     public function testApproveWithUnknowStateGenerateAnException(FinancialTransaction $transaction)
     {
@@ -321,7 +316,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      *
      * @depends testNewTransactionRequiresAnAction
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Payment status "8" is not valid for depositing
+     * @expectedExceptionMessage Payment status "74" is not valid for depositing/refunding
      */
     public function testDepositWithUnknowStateGenerateAnException(FinancialTransaction $transaction)
     {
