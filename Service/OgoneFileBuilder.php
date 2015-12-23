@@ -23,17 +23,18 @@ class OgoneFileBuilder
     }
 
     /**
-     * @param string $orderId
-     * @param string $clientRef
-     * @param string $clientId
-     * @param string $aliasId
-     * @param string $operation
-     * @param array  $articles
+     * @param $orderId
+     * @param $clientId
+     * @param $clientRef
+     * @param $legalCommitment
+     * @param $aliasId
+     * @param $operation
+     * @param array $articles
      * @param string $payId
-     *
+     * @param string $transactionId
      * @return string
      */
-    public function buildInv($orderId, $clientId, $clientRef, $aliasId, $operation, array $articles, $payId = '', $transactionId = '')
+    public function buildInv($orderId, $clientId, $clientRef, $legalCommitment, $aliasId, $operation, array $articles, $payId = '', $transactionId = '')
     {
         $this->validateOperation($operation);
         $transaction = (OgoneBatchGatewayPlugin::AUTHORIZATION === $operation) ? OgoneBatchGatewayPlugin::TRANSACTION_CODE_NEW : OgoneBatchGatewayPlugin::TRANSACTION_CODE_MAINTENANCE;
@@ -64,11 +65,14 @@ class OgoneFileBuilder
 
         $globalEndOfFileLine = $this->createEndOfFileLineArray();
 
+        $globalClientFileLine = $this->createGlobalClientFileArray($legalCommitment);
+
         $lines = array();
 
         $lines[] = $globalInformationLine;
         $lines[] = $globalOperationLine;
         $lines[] = $globalSummaryLine;
+        $lines[] = $globalClientFileLine;
         foreach ($articlesLines as $articlesLine) {
             $lines[] = $articlesLine;
         }
@@ -126,6 +130,20 @@ class OgoneFileBuilder
         $globalInformationLine[4] = $this->apiUser;
 
         return $globalInformationLine;
+    }
+
+
+    /**
+     * @param $legalCommitment
+     * @return array
+     */
+    private function createGlobalClientFileArray($legalCommitment)
+    {
+        $clientLine = $this->initArray(20);
+        $clientLine[0] = 'CLI';
+        $clientLine[1] = $legalCommitment;
+
+        return $clientLine;
     }
 
     /**

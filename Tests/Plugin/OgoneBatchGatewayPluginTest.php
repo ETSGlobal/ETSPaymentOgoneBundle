@@ -97,6 +97,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
             'PAYID' => 9876,
             'CLIENTID' => 'CLIENT1',
             'CLIENTREF' => 123456,
+            'LEGALCOMMITMENT' => 'LEGAL',
             'ALIASID' => 'ALIASID',
             'ARTICLES' => array(),
             'TRANSACTIONID' => 4567
