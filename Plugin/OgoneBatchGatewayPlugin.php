@@ -328,6 +328,8 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
     /**
      * @param FinancialTransactionInterface $transaction
+     * @param $operation
+     *
      * @return BatchResponse
      */
     private function sendPayment(FinancialTransactionInterface $transaction, $operation)
