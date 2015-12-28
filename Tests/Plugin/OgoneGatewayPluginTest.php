@@ -228,7 +228,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      *
      * @depends testNewTransactionRequiresAnAction
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Payment status "8" is not valid for approvment
+     * @expectedExceptionMessage Payment status "74" is not valid for approvment
      */
     public function testApproveWithUnknowStateGenerateAnException(FinancialTransaction $transaction)
     {
@@ -242,7 +242,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      *
      * @depends testNewTransactionRequiresAnAction
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Payment status "8" is not valid for depositing
+     * @expectedExceptionMessage Payment status "74" is not valid for depositing
      */
     public function testDepositWithUnknowStateGenerateAnException(FinancialTransaction $transaction)
     {

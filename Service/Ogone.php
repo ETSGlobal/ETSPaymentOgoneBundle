@@ -35,7 +35,7 @@ class Ogone
     }
 
     /**
-     * Triggers the approveAndDeposit or reverseDeposit method of the plugin controller after
+     * Triggers the approveAndDeposit method of the plugin controller after
      * checking if the feedback response has a valid hash and that the payment instruction has pending transactions.
      *
      * @param PaymentInstructionInterface $instruction
@@ -55,10 +55,6 @@ class Ogone
         }
 
         $pendingTransaction = $this->init($instruction, $ogonePlugin);
-
-        if ($this->feedbackResponse->isReimbursement()) {
-            return $this->pluginController->reverseDeposit($pendingTransaction->getPayment()->getId(), $this->feedbackResponse->getAmount());
-        }
 
         return $this->pluginController->approveAndDeposit($pendingTransaction->getPayment()->getId(), $this->feedbackResponse->getAmount());
     }

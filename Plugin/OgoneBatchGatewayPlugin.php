@@ -164,14 +164,14 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $response = $this->feedbackResponse;
         }
 
-        if ($response->isApproving() || $response->isIncomplete()) {
+        if ($response->isApproving() || $response->isIncomplete() || $response->isRefunding()) {
             $this->logger->debug('response {res} is still approving', array('res' => $response));
-            throw new PaymentPendingException(sprintf('Payment is still approving, status: %s.', $response->getStatus()));
+            throw new PaymentPendingException(sprintf('Payment/Refund is still approving/refunding, status: %s.', $response->getStatus()));
         }
 
-        if (!$response->isApproved()) {
+        if (!$response->isApproved() && !$response->isRefunded()) {
             $this->logger->debug('response {res} is not approved', array('res' => $response));
-            $ex = new FinancialException(sprintf('Payment status "%s" is not valid for approvment', $response->getStatus()));
+            $ex = new FinancialException(sprintf('Status "%s" is not valid for approvment', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
             $transaction->setReasonCode($response->getStatus());
@@ -211,37 +211,29 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         if (!isset($this->feedbackResponse)) {
             $this->logger->debug('No feedback response set.');
 
-            $response = $this->sendPayment($transaction);
+            $response = $this->sendPayment($transaction, self::PAYMENT);
+            $this->handleResponse($response, $transaction, self::PAYMENT);
 
-            $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
+        } elseif (($response = $this->feedbackResponse) && $response->isAuthorized()) {
 
-            if ($response->hasError()) {
-                $this->logger->debug(sprintf('Payment is not successful: %s', $response->getErrorDescription()));
-                $this->handleUnsuccessfulResponse($response, $transaction);
-            }
+            $response = $this->sendPayment($transaction, self::PAYMENT);
+            $this->handleResponse($response, $transaction,self::PAYMENT);
 
-            $transaction->setReferenceNumber($response->getPaymentId());
+        } elseif ($response->isDeposited() && $transaction->getExtendedData()->get('ISREFUND')) {
 
-        } else if (($response = $this->feedbackResponse) && $response->isAuthorized()) {
-            $response = $this->sendPayment($transaction);
-            $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
+            $response = $this->sendPayment($transaction, self::PARTIAL_REFUND);
+            $this->handleResponse($response, $transaction, self::PARTIAL_REFUND);
 
-            if ($response->hasError()) {
-                $this->logger->debug(sprintf('response is not successful! %s', $response->getErrorDescription()));
-                $this->handleUnsuccessfulResponse($response, $transaction);
-            }
-
-            $transaction->setReferenceNumber($response->getPaymentId());
         }
 
-        if ($response->isDepositing() || $response->isIncomplete()) {
+        if ($response->isDepositing() || $response->isIncomplete() || $response->isRefunding()) {
             $this->logger->debug('response {res} is still depositing', array('res' => $response));
             throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
         }
 
-        if (!$response->isDeposited()) {
+        if (!$response->isDeposited() && !$response->isRefunded()) {
             $this->logger->debug('response {res} is not deposited', array('res' => $response));
-            $ex = new FinancialException(sprintf('Payment status "%s" is not valid for depositing', $response->getStatus()));
+            $ex = new FinancialException(sprintf('Payment status "%s" is not valid for depositing/refunding', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
             $transaction->setReasonCode($response->getStatus());
@@ -260,6 +252,9 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      */
     public function validatePaymentInstruction(PaymentInstructionInterface $paymentInstruction)
     {
+        if ($paymentInstruction->getExtendedData()->get('ISREFUND')) {
+            return;
+        }
         $this->logger->debug('validating payment instruction {id}...', array('id' => $paymentInstruction->getId()));
         try {
             $file = $this->buildFile($paymentInstruction, self::AUTHORIZATION);
@@ -279,60 +274,6 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $this->logger->error(sprintf('Authorization failed: %s.', $e->getMessage()));
             throw new InvalidPaymentInstructionException($e->getMessage(), $e->getCode());
         }
-    }
-
-    public function reverseDeposit(FinancialTransactionInterface $transaction, $retry)
-    {
-        if (!isset($this->feedbackResponse)) {
-            $paymentInstruction = $transaction->getPayment()->getPaymentInstruction();
-            $this->logger->info('reverseDeposit: Building INV file...');
-            $file = $this->ogoneFileBuilder->buildInv(
-                $paymentInstruction->getExtendedData()->get('ORDERID'),
-                $paymentInstruction->getExtendedData()->get('CLIENTID'),
-                $paymentInstruction->getExtendedData()->get('CLIENTREF'),
-                $paymentInstruction->getExtendedData()->get('LEGALCOMMITMENT'),
-                $paymentInstruction->getExtendedData()->get('ALIASID'),
-                self::PARTIAL_REFUND,
-                $paymentInstruction->getExtendedData()->get('ARTICLES'),
-                $paymentInstruction->getExtendedData()->get('PAYID'),
-                $paymentInstruction->getExtendedData()->get('TRANSACTIONID')
-            );
-            $this->logger->info('reverseDeposit: INV file content is {content}', array('content' => $file));
-
-            $this->logger->debug('Sending refund request to Ogone with file {file}', array('file' => $file));
-            $xmlResponse = $this->sendBatchRequest($file);
-
-            $response = new BatchResponse($xmlResponse);
-
-            if ($response->hasError()) {
-                $this->logger->debug(sprintf('response is not successful for revert deposit: %s', $response->getErrorDescription()));
-                $this->handleUnsuccessfulResponse($response, $transaction);
-            }
-
-            $transaction->setReferenceNumber($response->getPaymentId());
-        } else {
-            $this->logger->debug('feedback response set.');
-            $response = $this->feedbackResponse;
-        }
-
-        if ($response->isRefunding() || $response->isIncomplete()) {
-            $this->logger->debug('response {res} is still refunding', array('res' => $response));
-            throw new PaymentPendingException(sprintf('Refund is still pending, status: %s.', $response->getStatus()));
-        }
-
-        if (!$response->isRefunded()) {
-            $this->logger->debug('response {res} is not refunded', array('res' => $response));
-            $ex = new FinancialException(sprintf('Refund status %s is not valid', $response->getStatus()));
-            $ex->setFinancialTransaction($transaction);
-            $transaction->setResponseCode($response->getErrorCode());
-            $transaction->setReasonCode($response->getStatus());
-
-            throw $ex;
-        }
-
-        $transaction->setProcessedAmount($response->getAmount());
-        $transaction->setResponseCode(PluginInterface::RESPONSE_CODE_SUCCESS);
-        $transaction->setReasonCode(PluginInterface::REASON_CODE_SUCCESS);
     }
 
     /**
@@ -387,17 +328,39 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
     /**
      * @param FinancialTransactionInterface $transaction
+     * @param $operation
+     *
      * @return BatchResponse
      */
-    private function sendPayment(FinancialTransactionInterface $transaction)
+    private function sendPayment(FinancialTransactionInterface $transaction, $operation)
     {
         $paymentInstruction = $transaction->getPayment()->getPaymentInstruction();
-        $file = $this->buildFile($paymentInstruction, self::PAYMENT);
+        $file = $this->buildFile($paymentInstruction, $operation);
 
         $this->logger->debug('Sending payment request to Ogone with file {file}', array('file' => $file));
-        $xmlResponse = $this->sendBatchRequest($file);
 
-        return new BatchResponse($xmlResponse);
+        $xmlResponse = $this->sendBatchRequest($file);
+        $response = new BatchResponse($xmlResponse);
+
+        $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
+
+        return $response;
+    }
+
+    /**
+     * @param BatchResponse $response
+     * @param FinancialTransactionInterface $transaction
+     * @param $operation
+     * @throws FinancialException
+     */
+    private function handleResponse(BatchResponse $response, FinancialTransactionInterface $transaction, $operation)
+    {
+        if ($response->hasError()) {
+            $this->logger->debug(sprintf('response for operation %s is not successful! %s', $operation, $response->getErrorDescription()));
+            $this->handleUnsuccessfulResponse($response, $transaction);
+        }
+
+        $transaction->setReferenceNumber($response->getPaymentId());
     }
 
     /**
@@ -452,6 +415,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         $transaction->setResponseCode($response->getErrorCode());
         $transaction->setReasonCode($response->getStatusError());
         $transaction->getPayment()->getPaymentInstruction()->getExtendedData()->set('ERROR_MESSAGE', $response->getErrorDescription());
+
         $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
         $ex->setFinancialTransaction($transaction);
 
