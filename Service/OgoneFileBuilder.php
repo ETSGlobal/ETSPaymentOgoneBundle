@@ -11,15 +11,11 @@ class OgoneFileBuilder
     const INV_FILE_LENGTH = 34;
     const INV_DET_FILE_LENGTH = 14;
 
-    private $pspId;
-    private $apiUser;
-    private $apiPassword;
+    private $token;
 
     public function __construct(TokenInterface $token)
     {
-        $this->pspId = $token->getPspid();
-        $this->apiUser = $token->getApiUser();
-        $this->apiPassword = $token->getApiPassword();
+        $this->token = $token;
     }
 
     /**
@@ -47,6 +43,7 @@ class OgoneFileBuilder
         $nbArticles = 0;
         $articlesLines = array();
         foreach($articles as $k => $article) {
+            $this->validateArticle($article);
             $id        = $article['id'];
             $quantity  = $article['quantity'];
             $unitPrice = $article['price'] * 100;
@@ -105,7 +102,7 @@ class OgoneFileBuilder
         $globalSummaryLine[6] = $clientRef;
         $globalSummaryLine[8] = $payId;
         $globalSummaryLine[9] = $operation;
-        $globalSummaryLine[13] = $this->pspId;
+        $globalSummaryLine[13] = $this->token->getPspid();
         $globalSummaryLine[15] = $nbArticles;
         $globalSummaryLine[16] = $aliasId;
         $globalSummaryLine[17] = $clientId;
@@ -125,9 +122,9 @@ class OgoneFileBuilder
     {
         $globalInformationLine = $this->initArray(4);
         $globalInformationLine[0] = 'OHL';
-        $globalInformationLine[1] = $this->pspId;
-        $globalInformationLine[2] = $this->apiPassword;
-        $globalInformationLine[4] = $this->apiUser;
+        $globalInformationLine[1] = $this->token->getPspid();
+        $globalInformationLine[2] = $this->token->getApiPassword();
+        $globalInformationLine[4] = $this->token->getApiUser();
 
         return $globalInformationLine;
     }
@@ -206,6 +203,19 @@ class OgoneFileBuilder
     {
         if (!in_array($operation, OgoneBatchGatewayPlugin::getAvailableOperations())) {
             throw new \InvalidArgumentException('Invalid parameter "operation"');
+        }
+    }
+
+    /**
+     * @param array $article
+     */
+    private function validateArticle(array $article)
+    {
+        $keys = ['id', 'quantity', 'price', 'name', 'vat'];
+        foreach ($keys as $key) {
+            if (!isset($article[$key])) {
+                throw new \InvalidArgumentException("Parameter $key is missing");
+            }
         }
     }
 
