@@ -91,6 +91,23 @@ OTF;
         $this->assertEquals($expectedTextContent, $text);
     }
 
+    public function provideInvalidArticles()
+    {
+        return array(
+            array(
+                array(
+                    array(),
+                ),
+                array(
+                    array('id' => 2),
+                ),
+                array(
+                    array('id' => 2, 'quantity' => 1),
+                ),
+            ),
+        );
+    }
+
     /**
      * @expectedException InvalidArgumentException
      */
@@ -100,5 +117,17 @@ OTF;
         $builder = new OgoneFileBuilder($token);
         $articles = array();
         $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'LEGAL', 'aliasGSP', 'EE', $articles, 'payId');
+    }
+
+    /**
+     * @dataProvider provideInvalidArticles
+     * @expectedException InvalidArgumentException
+     */
+    public function testMissingKey(array $articles)
+    {
+        $token = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '');
+        $builder = new OgoneFileBuilder($token);
+
+        $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'LEGAL', 'aliasGSP', 'RES', $articles, 'payId');
     }
 }
