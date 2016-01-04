@@ -211,7 +211,7 @@ class OgoneFileBuilder
      */
     private function validateArticle(array $article)
     {
-        $keys = ['id', 'quantity', 'price', 'name', 'vat'];
+        $keys = array('id', 'quantity', 'price', 'name', 'vat');
         foreach ($keys as $key) {
             if (!isset($article[$key])) {
                 throw new \InvalidArgumentException("Parameter $key is missing");

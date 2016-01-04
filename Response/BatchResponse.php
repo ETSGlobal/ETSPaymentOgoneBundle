@@ -19,7 +19,7 @@ class BatchResponse extends DirectResponse
     {
         $error = parent::getErrorCode();
 
-        if ($this->hasError()) {
+        if ($this->hasErrorDetails()) {
             $error = (string) $this->xml->FORMAT_CHECK[0]->FORMAT_CHECK_ERROR[0]->NCERROR;
         }
 
@@ -31,14 +31,28 @@ class BatchResponse extends DirectResponse
      */
     public function getErrorDescription()
     {
-        return (string) $this->xml->FORMAT_CHECK[0]->FORMAT_CHECK_ERROR[0]->ERROR;
+        $errorDescription = parent::getErrorDescription();
+
+        if ($this->hasErrorDetails()) {
+            $errorDescription = (string) $this->xml->FORMAT_CHECK[0]->FORMAT_CHECK_ERROR[0]->ERROR;
+        }
+
+        return $errorDescription;
     }
 
     /**
-     * @return string
+     * @return bool
+     */
+    private function hasErrorDetails()
+    {
+        return isset($this->xml->FORMAT_CHECK) && isset($this->xml->FORMAT_CHECK[0]->FORMAT_CHECK_ERROR);
+    }
+
+    /**
+     * @return bool
      */
     public function hasError()
     {
-        return isset($this->xml->FORMAT_CHECK) && isset($this->xml->FORMAT_CHECK[0]->FORMAT_CHECK_ERROR);
+        return parent::hasError() || $this->hasErrorDetails();
     }
 }
