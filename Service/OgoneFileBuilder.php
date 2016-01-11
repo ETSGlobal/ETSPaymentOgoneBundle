@@ -6,28 +6,38 @@ namespace ETS\Payment\OgoneBundle\Service;
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
 use ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin;
 
+/**
+ * To build the batch file that will be sent to Ogone
+ */
 class OgoneFileBuilder
 {
     const INV_FILE_LENGTH = 34;
     const INV_DET_FILE_LENGTH = 14;
 
+    /**
+     * @var TokenInterface
+     */
     private $token;
 
+    /**
+     *  @param TokenInterface $token
+     */
     public function __construct(TokenInterface $token)
     {
         $this->token = $token;
     }
 
     /**
-     * @param $orderId
-     * @param $clientId
-     * @param $clientRef
-     * @param $legalCommitment
-     * @param $aliasId
-     * @param $operation
-     * @param array $articles
+     * @param string $orderId
+     * @param string $clientId
+     * @param string $clientRef
+     * @param string $legalCommitment
+     * @param string $aliasId
+     * @param string $operation
+     * @param array  $articles
      * @param string $payId
      * @param string $transactionId
+     *
      * @return string
      */
     public function buildInv($orderId, $clientId, $clientRef, $legalCommitment, $aliasId, $operation, array $articles, $payId = '', $transactionId = '')
@@ -42,6 +52,7 @@ class OgoneFileBuilder
         $amountValueAddedTax = 0;
         $nbArticles = 0;
         $articlesLines = array();
+
         foreach($articles as $k => $article) {
             $this->validateArticle($article);
             $id        = $article['id'];
@@ -131,7 +142,8 @@ class OgoneFileBuilder
 
 
     /**
-     * @param $legalCommitment
+     * @param string $legalCommitment
+     *
      * @return array
      */
     private function createGlobalClientFileArray($legalCommitment)
@@ -144,9 +156,10 @@ class OgoneFileBuilder
     }
 
     /**
-     * @param $orderId
-     * @param $transaction
-     * @param $operation
+     * @param string $orderId
+     * @param string $transaction
+     * @param string $operation
+     *
      * @return array
      */
     private function createGlobalOperationLineArray($orderId, $transaction, $operation)
@@ -162,12 +175,13 @@ class OgoneFileBuilder
     }
 
     /**
-     * @param $quantity
-     * @param $id
-     * @param $name
-     * @param $unitPrice
-     * @param $vat
-     * @param $price
+     * @param string $quantity
+     * @param string $id
+     * @param string $name
+     * @param string $unitPrice
+     * @param string $vat
+     * @param string $price
+     *
      * @return array
      */
     private function createDetailLineArray($quantity, $id, $name, $unitPrice, $vat, $price)
@@ -197,7 +211,9 @@ class OgoneFileBuilder
     }
 
     /**
-     * @param $operation
+     * @param string $operation
+     *
+     * @throws \InvalidArgumentException
      */
     private function validateOperation($operation)
     {
@@ -220,7 +236,8 @@ class OgoneFileBuilder
     }
 
     /**
-     * @param $size
+     * @param string $size
+     *
      * @return array
      */
     private function initArray($size)
@@ -235,6 +252,7 @@ class OgoneFileBuilder
 
     /**
      * @param array $lines
+     *
      * @return string
      */
     private function buildText(array $lines)
