@@ -36,7 +36,7 @@ use Psr\Log\LoggerInterface;
  */
 
 /**
- * Ogone gateway plugin
+ * Ogone Batch Gateway plugin
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
@@ -52,7 +52,15 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      * @var TokenInterface
      */
     protected $token;
+
+    /**
+     * @var OgoneFileBuilder
+     */
     protected $ogoneFileBuilder;
+
+    /**
+     * @var LoggerInterface
+     */
     protected $logger;
 
     /**
@@ -73,9 +81,10 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     }
 
     /**
-     * @param TokenInterface            $token
-     * @param OgoneFileBuilder          $ogoneFileBuilder
-     * @param boolean                   $debug
+     * @param TokenInterface   $token
+     * @param OgoneFileBuilder $ogoneFileBuilder
+     * @param LoggerInterface  $logger
+     * @param boolean          $debug
      */
     public function __construct(TokenInterface $token, OgoneFileBuilder $ogoneFileBuilder, LoggerInterface $logger, $debug)
     {
@@ -195,8 +204,6 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      * @param FinancialTransactionInterface $transaction The transaction
      * @param boolean                       $retry       Retry
      *
-     * @return mixed
-     *
      * @throws ActionRequiredException If the transaction's state is NEW
      * @throws FinancialException      If payment is not approved
      * @throws PaymentPendingException If payment is still approving
@@ -248,6 +255,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
     /**
      * @param PaymentInstructionInterface $paymentInstruction
+     *
      * @throws InvalidPaymentInstructionException
      */
     public function validatePaymentInstruction(PaymentInstructionInterface $paymentInstruction)
@@ -351,6 +359,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      * @param BatchResponse $response
      * @param FinancialTransactionInterface $transaction
      * @param $operation
+     *
      * @throws FinancialException
      */
     private function handleResponse(BatchResponse $response, FinancialTransactionInterface $transaction, $operation)
@@ -365,7 +374,8 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
     /**
      * @param PaymentInstructionInterface $paymentInstruction
-     * @param string $operation
+     * @param string                      $operation
+     *
      * @return string
      */
     private function buildFile(PaymentInstructionInterface $paymentInstruction, $operation = self::PAYMENT)
@@ -388,8 +398,9 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     }
 
     /**
-     * @param $file
-     * @param $method
+     * @param string $file
+     * @param string $method
+     *
      * @return \SimpleXMLElement
      * @throws CommunicationException
      */
@@ -406,8 +417,9 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     }
 
     /**
-     * @param BatchResponse $response
+     * @param BatchResponse                 $response
      * @param FinancialTransactionInterface $transaction
+     *
      * @throws FinancialException
      */
     private function handleUnsuccessfulResponse(BatchResponse $response, FinancialTransactionInterface $transaction)

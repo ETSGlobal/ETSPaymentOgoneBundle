@@ -8,6 +8,8 @@
         <parameter key="payment.ogone.client.token.class">ETS\Payment\OgoneBundle\Client\Token</parameter>
         <parameter key="payment.plugin.ogone.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin</parameter>
         <parameter key="payment.plugin.ogone.mock.class">ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock</parameter>
+        <parameter key="payment.plugin.ogone.batch.class">ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin</parameter>
+        <parameter key="payment.plugin.ogone.batch.mock.class">ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPluginMock</parameter>
     </parameters>
 
     <services>
@@ -53,12 +55,13 @@
             <tag name="payment.plugin"/>
         </service>
 
-        <service id="payment.plugin.ogone_gateway.batch" class="ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin">
+        <service id="payment.plugin.ogone_gateway.batch" class="%payment.plugin.ogone.batch.class%">
             <argument type="service" id="payment.ogone.client.token" />
             <argument type="service" id="payment.ogone.file_builder" />
             <argument type="service" id="logger" />
             <argument>%payment.ogone.debug%</argument>
             <tag name="payment.plugin"/>
+            <tag name="monolog.logger" channel="ogoneBatch" />
         </service>
 
         <service id="payment.form.ogone_gateway" class="ETS\Payment\OgoneBundle\Form\GatewayType">
