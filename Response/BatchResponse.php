@@ -9,7 +9,13 @@ class BatchResponse extends DirectResponse
      */
     public function getStatusError()
     {
-        return (int) $this->xml->FORMAT_CHECK[0]->FORMAT_CHECK_ERROR[0]->STATUS;
+        $statusError = parent::getStatus();
+
+        if ($this->hasErrorDetails()) {
+            $statusError = (int) $this->xml->FORMAT_CHECK[0]->FORMAT_CHECK_ERROR[0]->STATUS;
+        }
+
+        return $statusError;
     }
 
     /**
