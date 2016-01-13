@@ -271,9 +271,8 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             $xmlResponse = $this->sendBatchRequest($file);
             $response = new BatchResponse($xmlResponse);
 
-            $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
             if (!$response->hasError() && $response->isIncomplete()) {
-                $paymentInstruction->getExtendedData()->set('PAYID', $response->getPaymentId());
+                $paymentInstruction->getExtendedData()->set('PAYID', $response->getPaymentIdOnOgoneCallbackAfterAuthorizationRequest());
             } else {
                 $paymentInstruction->getExtendedData()->set('ERROR_MESSAGE', $response->getErrorDescription());
                 throw new \LogicException(sprintf('status %s, description %s.', $response->getStatus(), $response->getErrorDescription()));
@@ -319,6 +318,8 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         if (200 !== $response->getStatus()) {
             throw new CommunicationException(sprintf('The API request was not successful (Status: %s): %s', $response->getStatus(), $response->getContent()));
         }
+
+        $this->logger->debug('response authorization is {result}', array('result' => $response->getContent()));
 
         return new \SimpleXMLElement($response->getContent());
     }
