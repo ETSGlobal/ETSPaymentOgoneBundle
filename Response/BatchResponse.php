@@ -61,4 +61,9 @@ class BatchResponse extends DirectResponse
     {
         return parent::hasError() || $this->hasErrorDetails();
     }
+
+    public function getPaymentIdOnOgoneCallbackAfterAuthorizationRequest()
+    {
+        return (string) $this->xml->PROCESSING[0]->SUMMARY[0]->RANGE_START;
+    }
 }
