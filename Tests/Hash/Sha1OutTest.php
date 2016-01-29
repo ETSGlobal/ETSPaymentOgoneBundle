@@ -38,7 +38,7 @@ class Sha1OutTest extends \PHPUnit_Framework_TestCase
 
         $sha1outGen = new Sha1Out($this->createTokenMock());
 
-        $class = new \ReflectionClass($sha1outGen);
+        $class                 = new \ReflectionClass($sha1outGen);
         $getStringToHashMethod = $class->getMethod('getStringToHash');
         $getStringToHashMethod->setAccessible(true);
 
@@ -61,7 +61,7 @@ class Sha1OutTest extends \PHPUnit_Framework_TestCase
             'PayId'    => 123456,
             'CURRENCY' => 'EUR',
             'NCERROR'  => 0,
-            'BRAND'    => '',
+            'BRAND'    => ''
         );
 
         $sha1outGen = new Sha1Out($this->createTokenMock());
