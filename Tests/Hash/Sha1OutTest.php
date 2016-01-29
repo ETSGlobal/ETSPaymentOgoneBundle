@@ -1,6 +1,6 @@
 <?php
 
-namespace ETSGlobal\Presentation\WebBundle\Tests\Controller\Api;
+namespace ETS\Payment\OgoneBundle\Tests\Hash;
 
 use ETS\Payment\OgoneBundle\Hash\Sha1Out;
 
@@ -29,12 +29,12 @@ class Sha1OutTest extends \PHPUnit_Framework_TestCase
 {
     public function testGetStringToHashFollowsOgoneRules()
     {
-        $params = [
+        $params = array(
             'PayId'    => 123456,
             'CURRENCY' => 'EUR',
             'NCERROR'  => 0,
             'BRAND'    => '',
-        ];
+        );
 
         $sha1outGen = new Sha1Out($this->createTokenMock());
 
@@ -42,7 +42,7 @@ class Sha1OutTest extends \PHPUnit_Framework_TestCase
         $getStringToHashMethod = $class->getMethod('getStringToHash');
         $getStringToHashMethod->setAccessible(true);
 
-        $stringToHash = $getStringToHashMethod->invokeArgs($sha1outGen, [$params]);
+        $stringToHash = $getStringToHashMethod->invokeArgs($sha1outGen, array($params));
 
         $this->assertTrue(false !== strpos($stringToHash, 'NCERROR'), 'Fields must be included for hash calculation even if their value is 0.');
         $this->assertTrue(false === strpos($stringToHash, 'BRAND'), 'Parameters that do not have a value should NOT be included in the string to hash.');
