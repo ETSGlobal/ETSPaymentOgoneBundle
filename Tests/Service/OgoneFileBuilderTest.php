@@ -27,7 +27,7 @@ class OgoneFileBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $expectedTextContent = "OHL;ETSCPC;anglet64600;;userapi64600;
 OHF;FILEorder_id25;MTR;SAS;1;
-INV;EUR;;;;transactionId;1700065264;;payId;SAS;;;;ETSCPC;;2;aliasGSP;azerty;;;;;;;;;;;order_id25;;1700065264;3000;616;3616;
+INV;EUR;;;;transactionId;LEGAL;;payId;SAS;;;;ETSCPC;;2;aliasGSP;azerty;;;1700065264;;;;;;;;order_id25;;;3000;616;3616;
 CLI;LEGAL;;;;;;;;;;;;;;;;;;;
 DET;1;id25;article25;1000;0;19.6%;;;;;;;1000;
 DET;2;id26;article25;1000;0;21%;;;;;;;2000;
@@ -61,7 +61,7 @@ OTF;
     {
         $expectedTextContent = "OHL;ETSCPC;anglet64600;;userapi64600;
 OHF;FILEorder_id25;ATR;RES;1;
-INV;EUR;;;;transactionId;1700065264;;;RES;;;;ETSCPC;;2;aliasGSP;azerty;;;;;;;;;;;order_id25;;1700065264;3000;616;3616;
+INV;EUR;;;;transactionId;LEGAL;;;RES;;;;ETSCPC;;2;aliasGSP;azerty;;;1700065264;;;;;;;;order_id25;;;3000;616;3616;
 CLI;LEGAL;;;;;;;;;;;;;;;;;;;
 DET;1;id25;article25;1000;0;19.6%;;;;;;;1000;
 DET;2;id26;article25;1000;0;21%;;;;;;;2000;

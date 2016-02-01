@@ -69,7 +69,20 @@ class OgoneFileBuilder
 
         $amountTaxIncluded = $amountTaxExcluded + $amountValueAddedTax; //amount taxes included
 
-        $globalSummaryLine = $this->createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountValueAddedTax, $amountTaxIncluded, $transactionId);
+        $globalSummaryLine = $this->createGlobalSummaryLineArray(
+            $orderId,
+            $payId,
+            $operation,
+            $nbArticles,
+            $aliasId,
+            $clientId,
+            $clientRef,
+            $amountTaxExcluded,
+            $amountValueAddedTax,
+            $amountTaxIncluded,
+            $transactionId,
+            $legalCommitment
+        );
 
         $globalEndOfFileLine = $this->createEndOfFileLineArray();
 
@@ -101,24 +114,25 @@ class OgoneFileBuilder
      * @param string $amountVat
      * @param string $amountTaxIncluded
      * @param string $transactionId
+     * @param string $legalCommitment
      *
      * @return array
      */
-    private function createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountVat, $amountTaxIncluded, $transactionId)
+    private function createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountVat, $amountTaxIncluded, $transactionId, $legalCommitment)
     {
         $globalSummaryLine = $this->initArray(self::INV_FILE_LENGTH);
         $globalSummaryLine[0] = 'INV';
         $globalSummaryLine[1] = 'EUR';
         $globalSummaryLine[5] = $transactionId;
-        $globalSummaryLine[6] = $clientRef;
+        $globalSummaryLine[6] = $legalCommitment;
         $globalSummaryLine[8] = $payId;
         $globalSummaryLine[9] = $operation;
         $globalSummaryLine[13] = $this->token->getPspid();
         $globalSummaryLine[15] = $nbArticles;
         $globalSummaryLine[16] = $aliasId;
         $globalSummaryLine[17] = $clientId;
+        $globalSummaryLine[20] = $clientRef;
         $globalSummaryLine[28] = $orderId;
-        $globalSummaryLine[30] = $clientRef;
         $globalSummaryLine[31] = $amountTaxExcluded;
         $globalSummaryLine[32] = $amountVat;
         $globalSummaryLine[33] = $amountTaxIncluded;
