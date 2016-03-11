@@ -13,8 +13,9 @@ abstract class OgoneGatewayBasePlugin extends GatewayPlugin
 
     public function __construct($isDebug, $utf8 = false)
     {
-        $this->utf8 = $utf8;
         parent::__construct($isDebug);
+        $this->utf8 = $utf8;
+        $this->setCurlOption(CURLOPT_SSLVERSION, 6);
     }
 
     /**
