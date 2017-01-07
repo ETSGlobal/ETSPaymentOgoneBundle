@@ -109,13 +109,20 @@ class Sha1In implements GeneratorInterface
      * @var TokenInterface
      */
     protected $token;
+    
+    /**
+     *
+     * @var string 
+     */
+    protected $hashAlgorithm;
 
     /**
      * @param TokenInterface $token
      */
-    public function __construct(TokenInterface $token)
+    public function __construct(TokenInterface $token, $hashAlgorithm)
     {
         $this->token = $token;
+	$this->hashAlgorithm = $hashAlgorithm;
     }
 
     /**
@@ -145,7 +152,7 @@ class Sha1In implements GeneratorInterface
             }
         }
 
-        return strtoupper(sha1($shainString));
+        return strtoupper(hash($this->hashAlgorithm, $shainString));
     }
 
     /**

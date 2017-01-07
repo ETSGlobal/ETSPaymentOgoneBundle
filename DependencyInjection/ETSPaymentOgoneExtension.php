@@ -42,8 +42,9 @@ class ETSPaymentOgoneExtension extends Extension
 
         $xmlLoader     = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $xmlLoader->load('services.xml');
-
+	
         $container->setParameter('payment.ogone.pspid', $config['pspid']);
+        $container->setParameter('payment.ogone.hash_algorithm', $config['hash_algorithm']);
         $container->setParameter('payment.ogone.shain', $config['shain']);
         $container->setParameter('payment.ogone.shaout', $config['shaout']);
         $container->setParameter('payment.ogone.debug', $config['debug']);
