@@ -116,7 +116,7 @@ OTF;
         $token = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '');
         $builder = new OgoneFileBuilder($token);
         $articles = array();
-        $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'LEGAL', 'aliasGSP', 'EE', $articles, 'payId');
+        $builder->buildInv('order_id25', 'azerty', '1700065264', 'LEGAL', 'aliasGSP', 'EE', $articles, 'payId');
     }
 
     /**
@@ -128,6 +128,33 @@ OTF;
         $token = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '');
         $builder = new OgoneFileBuilder($token);
 
-        $text = $builder->buildInv('order_id25', 'azerty', '1700065264', 'LEGAL', 'aliasGSP', 'RES', $articles, 'payId');
+        $builder->buildInv('order_id25', 'azerty', '1700065264', 'LEGAL', 'aliasGSP', 'RES', $articles, 'payId');
+    }
+
+    public function testValidRound()
+    {
+        $expectedTextContent = "OHL;ETSCPC;anglet64600;;userapi64600;
+OHF;FILEorder_id25;MTR;SAS;1;
+INV;EUR;;;;transactionId;LEGAL;;payId;SAS;;;;ETSCPC;;1;aliasGSP;azerty;;;1700065264;;;;;;;;order_id25;;;4403;881;5284;
+CLI;LEGAL;;;;;;;;;;;;;;;;;;;
+DET;1;id25;article25;4403;0;20%;;;;;;;4403;
+OTF;
+";
+
+        $token   = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '');
+        $builder = new OgoneFileBuilder($token);
+        $article = array(
+            0 => array(
+                'id'       => 'id25',
+                'quantity' => 1,
+                'price'    => 44.03,
+                'name'     => 'article25',
+                'vat'      => 0.2,
+            )
+        );
+
+        $result = $builder->buildInv('order_id25', 'azerty', '1700065264', 'LEGAL', 'aliasGSP', 'SAS', $article, 'payId', 'transactionId');
+
+        $this->assertEquals($expectedTextContent, $result);
     }
 }

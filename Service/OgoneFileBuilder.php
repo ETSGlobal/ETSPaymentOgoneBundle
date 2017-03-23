@@ -57,13 +57,13 @@ class OgoneFileBuilder
             $this->validateArticle($article);
             $id        = $article['id'];
             $quantity  = $article['quantity'];
-            $unitPrice = $article['price'] * 100;
+            $unitPrice = round($article['price'], 2) * 100;
             $name      = substr($article['name'], 0, 39);
             $vat       = $article['vat'];
             $price     = $quantity * $unitPrice;
             $articlesLines[$k] = $this->createDetailLineArray($quantity, $id, $name, $unitPrice, $vat, $price);
             $amountTaxExcluded += $price; //tax excluded
-            $amountValueAddedTax += $price * $vat;
+            $amountValueAddedTax += round($price * $vat);
             $nbArticles++;
         }
 
