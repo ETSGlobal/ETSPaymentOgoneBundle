@@ -3,6 +3,11 @@ language: php
 php:
   - 7.1
 
+cache:
+  directories:
+    - $HOME/.composer/cache
+    - $HOME/.cache/phan-ast/build
+
 env:
   - SYMFONY_VERSION=2.2.*
   - SYMFONY_VERSION=2.3.*
@@ -14,6 +19,7 @@ env:
 
 before_install:
   - composer self-update
+  - .phan/travis_setup.sh
 
 install:
   - composer require symfony/symfony:${SYMFONY_VERSION} --no-update
