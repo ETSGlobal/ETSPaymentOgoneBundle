@@ -2,7 +2,10 @@
 
 namespace ETS\Payment\OgoneBundle\Test;
 
-class RequestStubber extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
+
+class RequestStubber extends TestCase
 {
     /**
      * @var array
@@ -18,36 +21,21 @@ class RequestStubber extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return \Symfony\Component\HttpFoundation\Request
+     * @return Request
      */
-    public function getStubbedRequest()
+    public function getStubbedRequest(): Request
     {
-        $requestStub = $this->getMock('Symfony\Component\HttpFoundation\Request', array('get'));
-
-        $requestStub
-            ->expects($this->any())
-            ->method('get')
-            ->will($this->returnValueMap($this->map));
-
-        $publicPropertyStub = $this->getMock('Symfony\Component\HttpFoundation\ParameterBag', array('all'));
-        $publicPropertyStub
-            ->expects($this->any())
-            ->method('all')
-            ->will($this->returnValue($this->getMapForParameterBags()));
-
-        $requestStub->query   = $publicPropertyStub;
-        $requestStub->request = clone $publicPropertyStub;
-
-        return $requestStub;
+        return new Request($this->getMapForParameterBags(), $this->getMapForParameterBags());
     }
 
     /**
      * @param  boolean $withShasign
+     *
      * @return array
      */
-    public function getMapForParameterBags($withShasign = true)
+    public function getMapForParameterBags($withShasign = true): array
     {
-        $mappedFields = array();
+        $mappedFields = [];
 
         foreach ($this->map as $fieldMap) {
             if (false === $withShasign && 'SHASign' === $fieldMap[0]) {
@@ -63,10 +51,10 @@ class RequestStubber extends \PHPUnit_Framework_TestCase
     /**
      * @return string
      */
-    public function getHashFromMap()
+    public function getHashFromMap(): string
     {
         foreach ($this->map as $fieldMap) {
-            if (in_array('SHASign', $fieldMap)) {
+            if (in_array('SHASign', $fieldMap, true)) {
                 return $fieldMap[3];
             }
         }

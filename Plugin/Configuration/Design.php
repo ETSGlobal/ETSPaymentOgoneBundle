@@ -2,7 +2,7 @@
 
 namespace ETS\Payment\OgoneBundle\Plugin\Configuration;
 
-use JMS\Payment\CoreBundle\Entity\ExtendedData;
+use JMS\Payment\CoreBundle\Model\ExtendedDataInterface;
 
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -65,113 +65,113 @@ class Design
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getTp(ExtendedData $data)
+    public function getTp(ExtendedDataInterface $data): ?string
     {
         return $data->has('tp') ? $data->get('tp') : $this->tp;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getTitle(ExtendedData $data)
+    public function getTitle(ExtendedDataInterface $data): ?string
     {
         return $data->has('title') ? $data->get('title') : $this->title;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getBgColor(ExtendedData $data)
+    public function getBgColor(ExtendedDataInterface $data): ?string
     {
         return $data->has('bgColor') ? $data->get('bgColor') : $this->bgColor;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getTxtColor(ExtendedData $data)
+    public function getTxtColor(ExtendedDataInterface $data): ?string
     {
         return $data->has('txtColor') ? $data->get('txtColor') : $this->txtColor;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getTblBgColor(ExtendedData $data)
+    public function getTblBgColor(ExtendedDataInterface $data): ?string
     {
         return $data->has('tblBgColor') ? $data->get('tblBgColor') : $this->tblBgColor;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getTblTxtColor(ExtendedData $data)
+    public function getTblTxtColor(ExtendedDataInterface $data): ?string
     {
         return $data->has('tblTxtColor') ? $data->get('tblTxtColor') : $this->tblTxtColor;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getButtonBgColor(ExtendedData $data)
+    public function getButtonBgColor(ExtendedDataInterface $data): ?string
     {
         return $data->has('buttonBgColor') ? $data->get('buttonBgColor') : $this->buttonBgColor;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getButtonTxtColor(ExtendedData $data)
+    public function getButtonTxtColor(ExtendedDataInterface $data): ?string
     {
         return $data->has('buttonTxtColor') ? $data->get('buttonTxtColor') : $this->buttonTxtColor;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getFontType(ExtendedData $data)
+    public function getFontType(ExtendedDataInterface $data): ?string
     {
         return $data->has('fontType') ? $data->get('fontType') : $this->fontType;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getLogo(ExtendedData $data)
+    public function getLogo(ExtendedDataInterface $data): ?string
     {
         return $data->has('logo') ? $data->get('logo') : $this->logo;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
-     * @return string|null
+     * @return array
      */
-    public function getRequestParameters(ExtendedData $data)
+    public function getRequestParameters(ExtendedDataInterface $data): array
     {
-        return array(
+        return [
             'TP'             => $this->getTp($data),
             'TITLE'          => $this->getTitle($data),
             'BGCOLOR'        => $this->getBgColor($data),
@@ -182,6 +182,6 @@ class Design
             'BUTTONTXTCOLOR' => $this->getButtonTxtColor($data),
             'FONTTYPE'       => $this->getFontType($data),
             'LOGO'           => $this->getLogo($data),
-        );
+        ];
     }
 }

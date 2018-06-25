@@ -3,6 +3,7 @@
 namespace ETS\Payment\OgoneBundle\Tests\Client;
 
 use ETS\Payment\OgoneBundle\Client\Token;
+use PHPUnit\Framework\TestCase;
 
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -25,7 +26,7 @@ use ETS\Payment\OgoneBundle\Client\Token;
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
-class TokenTest extends \PHPUnit_Framework_TestCase
+class TokenTest extends TestCase
 {
     /**
      * Test the object construction

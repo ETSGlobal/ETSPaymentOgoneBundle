@@ -25,40 +25,40 @@ namespace ETS\Payment\OgoneBundle\Response;
  */
 interface ResponseInterface
 {
-    const INVALID                           = 0;
-    const CANCELLED                         = 1;
-    const AUTHORIZATION_REFUSED             = 2;
-    const STORED                            = 4;
-    const WAITING_CLIENT_PAYMENT            = 41;
-    const AUTHORIZED                        = 5;
-    const AUTHORIZATION_WAITING             = 51;
-    const AUTHORIZATION_UNKNOWN             = 52;
-    const AUTHORIZATION_MANUALLY            = 59;
-    const AUTHORIZED_AND_CANCELLED          = 6;
-    const AUTHORIZATION_DELETION_WAITING    = 61;
-    const AUTHORIZATION_DELETION_UNCERTAIN  = 62;
-    const AUTHORIZATION_DELETION_REFUSED    = 63;
-    const PAYMENT_DELETED                   = 7;
-    const PAYMENT_DELETION_PENDING          = 71;
-    const PAYMENT_DELETION_UNCERTAIN        = 72;
-    const PAYMENT_DELETION_REFUSED          = 73;
-    const PAYMENT_DELETED_NOT_ACCEPTED      = 74;
-    const DELETED                           = 75;
-    const REFUND                            = 8;
-    const REFUND_PENDING                    = 81;
-    const REFUND_UNCERTAIN                  = 82;
-    const REFUND_REFUSED                    = 83;
-    const PAYMENT_DECLINED                  = 84;
-    const REFUND_DECLINED                   = 94;
-    const REFUNDED                          = 85;
-    const PAYMENT_REQUESTED                 = 9;
-    const PAYMENT_PROCESSING                = 91;
-    const PAYMENT_UNCERTAIN                 = 92;
-    const PAYMENT_REFUSED                   = 93;
-    const PAYMENT_PROCESSED                 = 95;
-    const PAYMENT_PROCESSING_1              = 97;
-    const PAYMENT_PROCESSING_2              = 98;
-    const PAYMENT_PROCESSING_3              = 99;
+    public const INVALID                           = 0;
+    public const CANCELLED                         = 1;
+    public const AUTHORIZATION_REFUSED             = 2;
+    public const STORED                            = 4;
+    public const WAITING_CLIENT_PAYMENT            = 41;
+    public const AUTHORIZED                        = 5;
+    public const AUTHORIZATION_WAITING             = 51;
+    public const AUTHORIZATION_UNKNOWN             = 52;
+    public const AUTHORIZATION_MANUALLY            = 59;
+    public const AUTHORIZED_AND_CANCELLED          = 6;
+    public const AUTHORIZATION_DELETION_WAITING    = 61;
+    public const AUTHORIZATION_DELETION_UNCERTAIN  = 62;
+    public const AUTHORIZATION_DELETION_REFUSED    = 63;
+    public const PAYMENT_DELETED                   = 7;
+    public const PAYMENT_DELETION_PENDING          = 71;
+    public const PAYMENT_DELETION_UNCERTAIN        = 72;
+    public const PAYMENT_DELETION_REFUSED          = 73;
+    public const PAYMENT_DELETED_NOT_ACCEPTED      = 74;
+    public const DELETED                           = 75;
+    public const REFUND                            = 8;
+    public const REFUND_PENDING                    = 81;
+    public const REFUND_UNCERTAIN                  = 82;
+    public const REFUND_REFUSED                    = 83;
+    public const PAYMENT_DECLINED                  = 84;
+    public const REFUND_DECLINED                   = 94;
+    public const REFUNDED                          = 85;
+    public const PAYMENT_REQUESTED                 = 9;
+    public const PAYMENT_PROCESSING                = 91;
+    public const PAYMENT_UNCERTAIN                 = 92;
+    public const PAYMENT_REFUSED                   = 93;
+    public const PAYMENT_PROCESSED                 = 95;
+    public const PAYMENT_PROCESSING_1              = 97;
+    public const PAYMENT_PROCESSING_2              = 98;
+    public const PAYMENT_PROCESSING_3              = 99;
 
     public function isApproving();
     public function isApproved();
@@ -70,8 +70,8 @@ interface ResponseInterface
 
     public function getAmount();
     public function getPaymentId();
-    public function getStatus();
+    public function getStatus(): int;
 
-    public function getErrorCode();
+    public function getErrorCode(): string;
     public function getErrorDescription();
 }

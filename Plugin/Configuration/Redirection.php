@@ -2,7 +2,7 @@
 
 namespace ETS\Payment\OgoneBundle\Plugin\Configuration;
 
-use JMS\Payment\CoreBundle\Entity\ExtendedData;
+use JMS\Payment\CoreBundle\Model\ExtendedDataInterface;
 
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -50,68 +50,68 @@ class Redirection
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getAcceptUrl(ExtendedData $data)
+    public function getAcceptUrl(ExtendedDataInterface $data): ?string
     {
         return $data->has('acceptUrl') ? $data->get('acceptUrl') : $this->acceptUrl;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getDeclineUrl(ExtendedData $data)
+    public function getDeclineUrl(ExtendedDataInterface $data): ?string
     {
         return $data->has('declineUrl') ? $data->get('declineUrl') : $this->declineUrl;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getExceptionUrl(ExtendedData $data)
+    public function getExceptionUrl(ExtendedDataInterface $data): ?string
     {
         return $data->has('exceptionUrl') ? $data->get('exceptionUrl') : $this->exceptionUrl;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getCancelUrl(ExtendedData $data)
+    public function getCancelUrl(ExtendedDataInterface $data): ?string
     {
         return $data->has('cancelUrl') ? $data->get('cancelUrl') : $this->cancelUrl;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return string|null
      */
-    public function getBackUrl(ExtendedData $data)
+    public function getBackUrl(ExtendedDataInterface $data): ?string
     {
         return $data->has('backUrl') ? $data->get('backUrl') : $this->backUrl;
     }
 
     /**
-     * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
+     * @param ExtendedDataInterface $data
      *
      * @return array
      */
-    public function getRequestParameters(ExtendedData $data)
+    public function getRequestParameters(ExtendedDataInterface $data): array
     {
-        return array(
-            "ACCEPTURL"    => $this->getAcceptUrl($data),
-            "DECLINEURL"   => $this->getDeclineUrl($data),
-            "EXCEPTIONURL" => $this->getExceptionUrl($data),
-            "CANCELURL"    => $this->getCancelUrl($data),
-            "BACKURL"      => $this->getBackUrl($data),
-        );
+        return [
+            'ACCEPTURL' => $this->getAcceptUrl($data),
+            'DECLINEURL' => $this->getDeclineUrl($data),
+            'EXCEPTIONURL' => $this->getExceptionUrl($data),
+            'CANCELURL' => $this->getCancelUrl($data),
+            'BACKURL' => $this->getBackUrl($data),
+        ];
     }
 }

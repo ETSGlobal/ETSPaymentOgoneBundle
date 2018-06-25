@@ -4,6 +4,7 @@ namespace ETS\Payment\OgoneBundle\Tests\Response;
 
 use ETS\Payment\OgoneBundle\Response\DirectResponse;
 use ETS\Payment\OgoneBundle\Response\ResponseInterface;
+use PHPUnit\Framework\TestCase;
 
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -26,7 +27,7 @@ use ETS\Payment\OgoneBundle\Response\ResponseInterface;
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
-class DirectResponseTest extends \PHPUnit_Framework_TestCase
+class DirectResponseTest extends TestCase
 {
     /**
      * Test an invalid response

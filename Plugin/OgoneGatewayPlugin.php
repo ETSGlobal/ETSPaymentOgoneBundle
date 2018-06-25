@@ -75,16 +75,16 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      * @var array
      */
     public static $additionalData = array(
-        "PM"           => 25,
-        "BRAND"        => 25,
-        "CN"           => 35,
-        "EMAIL"        => 50,
-        "OWNERZIP"     => 10,
-        "OWNERADDRESS" => 35,
-        "OWNERCTY"     => 2,
-        "OWNERTOWN"    => 40,
-        "OWNERTELNO"   => 20,
-        "OWNERTELNO2"  => 20,
+        'PM' => 25,
+        'BRAND' => 25,
+        'CN' => 35,
+        'EMAIL' => 50,
+        'OWNERZIP' => 10,
+        'OWNERADDRESS' => 35,
+        'OWNERCTY' => 2,
+        'OWNERTOWN' => 40,
+        'OWNERTELNO' => 20,
+        'OWNERTELNO2' => 20,
     );
 
     /**
@@ -158,11 +158,11 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
         $response = $this->getResponse($transaction);
 
         if ($response->isApproving()) {
-            throw new PaymentPendingException(sprintf('Payment is still approving, status: %s.', $response->getStatus()));
+            throw new PaymentPendingException(sprintf('Payment is still approving, status: %d.', $response->getStatus()));
         }
 
         if (!$response->isApproved()) {
-            $ex = new FinancialException(sprintf('Payment status "%s" is not valid for approvment', $response->getStatus()));
+            $ex = new FinancialException(sprintf('Payment status "%d" is not valid for approvment', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
             $transaction->setReasonCode($response->getStatus());
@@ -186,13 +186,13 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      * @param FinancialTransactionInterface $transaction The transaction
      * @param boolean                       $retry       Retry
      *
-     * @return mixed
+     * @return void
      *
      * @throws ActionRequiredException If the transaction's state is NEW
      * @throws FinancialException      If payment is not approved
      * @throws PaymentPendingException If payment is still approving
      */
-    public function deposit(FinancialTransactionInterface $transaction, $retry)
+    public function deposit(FinancialTransactionInterface $transaction, $retry): void
     {
         if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
             throw $this->createRedirectActionException($transaction);
@@ -201,11 +201,11 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
         $response = $this->getResponse($transaction);
 
         if ($response->isDepositing()) {
-            throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
+            throw new PaymentPendingException(sprintf('Payment is still pending, status: %d.', $response->getStatus()));
         }
 
         if (!$response->isDeposited()) {
-            $ex = new FinancialException(sprintf('Payment status "%s" is not valid for depositing', $response->getStatus()));
+            $ex = new FinancialException(sprintf('Payment status "%d" is not valid for depositing', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
             $transaction->setReasonCode($response->getStatus());
@@ -268,6 +268,8 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      * @param  FinancialTransactionInterface $transaction
      *
      * @return ActionRequiredException
+     *
+     * @throws FinancialException
      */
     public function createRedirectActionException(FinancialTransactionInterface $transaction)
     {
@@ -275,11 +277,18 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
         $actionRequestException->setFinancialTransaction($transaction);
 
         $extendedData = $transaction->getExtendedData();
-        if (!$extendedData->has('ORDERID')) {
-            $extendedData->set('ORDERID', uniqid());
+        if (null === $extendedData || null === $transaction->getPayment()) {
+            $ex = new FinancialException('Transaction does not have extended data or payment');
+            $ex->setFinancialTransaction($transaction);
+
+            throw $ex;
         }
 
-        $additionalData = array();
+        if (!$extendedData->has('ORDERID')) {
+            $extendedData->set('ORDERID', uniqid('ORDERID', true));
+        }
+
+        $additionalData = [];
         foreach (self::getAdditionalDataKeys() as $key) {
             if ($extendedData->has($key)) {
                 $additionalData[$key] = $extendedData->get($key);
@@ -290,18 +299,18 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
             self::normalize($additionalData),
             $this->redirectionConfig->getRequestParameters($extendedData),
             $this->designConfig->getRequestParameters($extendedData),
-            array(
-                "ORDERID"  => $extendedData->get('ORDERID'),
-                "PSPID"    => $this->token->getPspid(),
-                "AMOUNT"   => $transaction->getRequestedAmount() * 100,
-                "CURRENCY" => $transaction->getPayment()->getPaymentInstruction()->getCurrency(),
-                "LANGUAGE" => $extendedData->get('lang')
-            )
+            [
+                'ORDERID' => $extendedData->get('ORDERID'),
+                'PSPID' => $this->token->getPspid(),
+                'AMOUNT' => $transaction->getRequestedAmount() * 100,
+                'CURRENCY' => $transaction->getPayment()->getPaymentInstruction()->getCurrency(),
+                'LANGUAGE' => $extendedData->get('lang')
+            ]
         );
 
         $parameters['SHASIGN'] = $this->hashGenerator->generate($parameters);
 
-        ksort($parameters);
+        ksort($parameters, SORT_STRING);
 
         $actionRequestException->setAction(new VisitUrl($this->getStandardOrderUrl() . '?' . http_build_query($parameters)));
 
@@ -345,9 +354,11 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      *
      * @param FinancialTransactionInterface $transaction
      *
-     * @return \ETS\Payment\OgoneBundle\Response\DirectResponse
+     * @return DirectResponse
+     *
+     * @throws CommunicationException
      */
-    protected function getDirectResponse(FinancialTransactionInterface $transaction)
+    protected function getDirectResponse(FinancialTransactionInterface $transaction): DirectResponse
     {
         $apiData = array(
             'PSPID'   => $this->token->getPspid(),
@@ -377,7 +388,7 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
         $response = $this->request(new Request($this->getDirectQueryUrl(), 'POST', $parameters));
 
         if (200 !== $response->getStatus()) {
-            throw new CommunicationException(sprintf('The API request was not successful (Status: %s): %s', $response->getStatus(), $response->getContent()));
+            throw new CommunicationException(sprintf('The API request was not successful (Status: %d): %s', $response->getStatus(), $response->getContent()));
         }
 
         return new \SimpleXMLElement($response->getContent());
@@ -418,7 +429,7 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      *
      * @throws \InvalidArgumentException
      */
-    protected static function getAdditionalDataMaxLength($key)
+    protected static function getAdditionalDataMaxLength($key): int
     {
         if (!isset(self::$additionalData[$key])) {
             throw new \InvalidArgumentException(sprintf(
@@ -434,17 +445,20 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
     /**
      * Return direct response content
      *
-     * @param \JMS\Payment\CoreBundle\Model\FinancialTransactionInterface $transaction
-     * @return type
-     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @param FinancialTransactionInterface $transaction
+     *
+     * @return DirectResponse
+     *
+     * @throws FinancialException
+     * @throws CommunicationException
      */
-    public function getDirectResponseContent(FinancialTransactionInterface $transaction)
+    public function getDirectResponseContent(FinancialTransactionInterface $transaction): DirectResponse
     {
         $response = $this->getDirectResponse($transaction);
 
         if (!$response->isSuccessful()) {
 
-            $ex = new FinancialException('Direct Ogone-Response was not successful: '.$response->getErrorDescription());
+            $ex = new FinancialException('Direct Ogone-Response was not successful: ' . $response->getErrorDescription());
             $ex->setFinancialTransaction($transaction);
 
             throw $ex;

@@ -28,7 +28,7 @@ abstract class AbstractResponse implements ResponseInterface
     /**
      * @return boolean
      */
-    public function isApproving()
+    public function isApproving(): bool
     {
         return in_array($this->getStatus(), $this->getApprovingStatuses(), true);
     }
@@ -38,7 +38,7 @@ abstract class AbstractResponse implements ResponseInterface
      *
      * @return boolean
      */
-    public function isApproved()
+    public function isApproved(): bool
     {
         return in_array($this->getStatus(), array_merge(
             $this->getApprovedStatuses(),
@@ -52,7 +52,7 @@ abstract class AbstractResponse implements ResponseInterface
      *
      * @return boolean
      */
-    public function isDepositing()
+    public function isDepositing(): bool
     {
         return in_array($this->getStatus(), array_merge(
             $this->getApprovedStatuses(),
@@ -110,14 +110,14 @@ abstract class AbstractResponse implements ResponseInterface
     abstract public function getPaymentId();
 
     /**
-     * @return string
+     * @return int
      */
-    abstract public function getStatus();
+    abstract public function getStatus(): int;
 
     /**
-     * @return integer
+     * @return string
      */
-    abstract public function getErrorCode();
+    abstract public function getErrorCode(): string;
 
     /**
      * @return string
@@ -127,31 +127,31 @@ abstract class AbstractResponse implements ResponseInterface
     /**
      * @return array
      */
-    protected function getApprovingStatuses()
+    protected function getApprovingStatuses(): array
     {
-        return array(
+        return [
             static::AUTHORIZATION_MANUALLY,
             static::AUTHORIZATION_UNKNOWN,
             static::AUTHORIZATION_WAITING,
-        );
+        ];
     }
 
     /**
      * @return array
      */
-    protected function getApprovedStatuses()
+    protected function getApprovedStatuses(): array
     {
-        return array(
+        return [
             static::AUTHORIZED,
-        );
+        ];
     }
 
     /**
      * @return array
      */
-    protected function getDepositingStatuses()
+    protected function getDepositingStatuses(): array
     {
-        return array(
+        return [
             static::PAYMENT_UNCERTAIN,
             static::PAYMENT_PROCESSING,
             static::PAYMENT_PROCESSING_1,
@@ -159,17 +159,17 @@ abstract class AbstractResponse implements ResponseInterface
             static::PAYMENT_PROCESSING_3,
             static::WAITING_CLIENT_PAYMENT,
             static::STORED,
-        );
+        ];
     }
 
     /**
      * @return array
      */
-    protected function getDepositedStatuses()
+    protected function getDepositedStatuses(): array
     {
-        return array(
+        return [
             static::PAYMENT_PROCESSED,
             static::PAYMENT_REQUESTED,
-        );
+        ];
     }
 }

@@ -1,10 +1,7 @@
 language: php
 
 php:
-  - 5.4
-  - 5.5
-  - 5.6
-  - hhvm
+  - 7.1
 
 env:
   - SYMFONY_VERSION=2.2.*
@@ -12,6 +9,8 @@ env:
   - SYMFONY_VERSION=2.4.*
   - SYMFONY_VERSION=2.5.*
   - SYMFONY_VERSION=2.6.*
+  - SYMFONY_VERSION=2.7.*
+  - SYMFONY_VERSION=2.8.*
 
 before_install:
   - composer self-update
@@ -22,7 +21,5 @@ install:
 
 script:
   - vendor/bin/phpunit
+  - vendor/bin/phan
 
-matrix:
-  allow_failures:
-    - php: hhvm

@@ -2,7 +2,11 @@
 
 namespace ETS\Payment\OgoneBundle\Tests\Hash;
 
+use ETS\Payment\OgoneBundle\Client\Token;
+use ETS\Payment\OgoneBundle\Client\TokenInterface;
 use ETS\Payment\OgoneBundle\Hash\Sha1In;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -25,7 +29,7 @@ use ETS\Payment\OgoneBundle\Hash\Sha1In;
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
-class Sha1InTest extends \PHPUnit_Framework_TestCase
+class Sha1InTest extends TestCase
 {
     /**
      * Test that the generate function uppercase the keys
@@ -80,10 +84,10 @@ class Sha1InTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return \ETS\Payment\OgoneBundle\Client\TokenInterface
+     * @return TokenInterface|MockObject
      */
     protected function createTokenMock()
     {
-        return $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
+        return new Token('', '', '', '', '');
     }
 }
