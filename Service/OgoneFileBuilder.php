@@ -63,9 +63,10 @@ class OgoneFileBuilder
             $price     = $quantity * $unitPrice;
             $articlesLines[$k] = $this->createDetailLineArray($quantity, $id, $name, $unitPrice, $vat, $price);
             $amountTaxExcluded += $price; //tax excluded
-            $amountValueAddedTax += round($price * $vat);
+            $amountValueAddedTax += $price * $vat;
             $nbArticles++;
         }
+        $amountValueAddedTax = round($amountValueAddedTax);
 
         $amountTaxIncluded = $amountTaxExcluded + $amountValueAddedTax; //amount taxes included
 
