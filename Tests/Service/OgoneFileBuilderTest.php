@@ -157,4 +157,39 @@ OTF;
 
         $this->assertEquals($expectedTextContent, $result);
     }
+
+    public function testValidRoundMultiArticles()
+    {
+        $expectedTextContent = "OHL;ETSCPC;anglet64600;;userapi64600;
+OHF;FILEorder_id25;MTR;SAS;1;
+INV;EUR;;;;transactionId;LEGAL;;payId;SAS;;;;ETSCPC;;2;aliasGSP;azerty;;;1700065264;;;;;;;;order_id25;;;5012;1002;6014;
+CLI;LEGAL;;;;;;;;;;;;;;;;;;;
+DET;1;id25;article25;4403;0;20%;;;;;;;4403;
+DET;1;id26;article26;609;0;20%;;;;;;;609;
+OTF;
+";
+
+        $token   = new Token('ETSCPC', 'userapi64600', 'anglet64600', '', '');
+        $builder = new OgoneFileBuilder($token);
+        $article = array(
+            0 => array(
+                'id'       => 'id25',
+                'quantity' => 1,
+                'price'    => 44.03,
+                'name'     => 'article25',
+                'vat'      => 0.2,
+            ),
+            1 => array(
+                'id'       => 'id26',
+                'quantity' => 1,
+                'price'    => 6.09,
+                'name'     => 'article26',
+                'vat'      => 0.2,
+            )
+        );
+
+        $result = $builder->buildInv('order_id25', 'azerty', '1700065264', 'LEGAL', 'aliasGSP', 'SAS', $article, 'payId', 'transactionId');
+
+        $this->assertEquals($expectedTextContent, $result);
+    }
 }
