@@ -78,6 +78,7 @@ class Sha1Out implements GeneratorInterface
         'NCERROR',
         'ORDERID',
         'PAYID',
+        'PAYIDSUB',
         'PAYMENT_REFERENCE',
         'PM',
         'SCO_CATEGORY',
@@ -87,6 +88,7 @@ class Sha1Out implements GeneratorInterface
         'STATUS',
         'SUBBRAND',
         'SUBSCRIPTION_ID',
+        'TICKET',
         'TRXDATE',
         'VC',
     );
