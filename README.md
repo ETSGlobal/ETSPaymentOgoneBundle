@@ -3,7 +3,7 @@ ETSPaymentOgoneBundle [![Build Status](https://secure.travis-ci.org/ETSGlobal/ET
 
 A Ogone provider for JMSPaymentCoreBundle
 
-Instalation:
+Installation:
 [Resources/doc/install](https://github.com/ETSGlobal/ETSPaymentOgoneBundle/blob/master/Resources/doc/install.rst)
 
 Usage:
