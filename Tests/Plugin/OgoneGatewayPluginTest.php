@@ -2,14 +2,7 @@
 
 namespace ETS\Payment\OgoneBundle\Tests\Plugin;
 
-use JMS\Payment\CoreBundle\Entity\ExtendedData;
-use JMS\Payment\CoreBundle\Entity\FinancialTransaction;
-use JMS\Payment\CoreBundle\Entity\Payment;
-use JMS\Payment\CoreBundle\Entity\PaymentInstruction;
-use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
-use JMS\Payment\CoreBundle\Plugin\Exception\Action\VisitUrl;
-use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
-
+use ETS\Payment\OgoneBundle\Client\Token;
 use ETS\Payment\OgoneBundle\Hash\Sha1In;
 use ETS\Payment\OgoneBundle\Plugin\Configuration\Design;
 use ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection;
@@ -17,6 +10,14 @@ use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin;
 use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 use ETS\Payment\OgoneBundle\Test\RequestStubber;
+use JMS\Payment\CoreBundle\Entity\ExtendedData;
+use JMS\Payment\CoreBundle\Entity\FinancialTransaction;
+use JMS\Payment\CoreBundle\Entity\Payment;
+use JMS\Payment\CoreBundle\Entity\PaymentInstruction;
+use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
+use JMS\Payment\CoreBundle\Plugin\Exception\Action\VisitUrl;
+use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -37,7 +38,7 @@ use ETS\Payment\OgoneBundle\Test\RequestStubber;
 /**
  * OgoneGatewayPlugin tests
  */
-class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
+class OgoneGatewayPluginTest extends TestCase
 {
     /**
      * @var \ETS\Payment\OgoneBundle\Test\RequestStubber
@@ -46,31 +47,33 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->requestStubber = new RequestStubber(array(
-            array('orderID', null, false, 42),
-            array('amount', null, false, '42'),
-            array('currency', null, false, 'EUR'),
-            array('PM', null, false, 'credit card'),
-            array('STATUS', null, false, 5),
-            array('CARDNO', null, false, 4567123478941234),
-            array('PAYID', null, false, 43),
-            array('SHASign', null, false, 'fzgzgzghz4648zh6z5h')
-        ));
+        $this->requestStubber = new RequestStubber(
+            [
+                ['orderID', null, false, 42],
+                ['amount', null, false, '42'],
+                ['currency', null, false, 'EUR'],
+                ['PM', null, false, 'credit card'],
+                ['STATUS', null, false, 5],
+                ['CARDNO', null, false, 4567123478941234],
+                ['PAYID', null, false, 43],
+                ['SHASign', null, false, 'fzgzgzghz4648zh6z5h']
+            ]
+        );
     }
 
     /**
      * @return array
      */
-    public function provideTestTestRequestUrls()
+    public function provideTestTestRequestUrls(): array
     {
-        return array(
-            array(true, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/test/orderstandard.asp'),
-            array(false, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard.asp'),
-            array(false, true, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard_utf8.asp'),
-            array(true, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/test/querydirect.asp'),
-            array(false, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect.asp'),
-            array(false, true, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect_utf8.asp'),
-        );
+        return [
+            [true, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/test/orderstandard.asp'],
+            [false, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard.asp'],
+            [false, true, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard_utf8.asp'],
+            [true, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/test/querydirect.asp'],
+            [false, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect.asp'],
+            [false, true, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect_utf8.asp'],
+        ];
     }
 
     /**
@@ -80,12 +83,14 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      * @param string  $expected Expected result
      *
      * @dataProvider provideTestTestRequestUrls
+     *
+     * @throws \ReflectionException
      */
     public function testRequestUrls($debug, $utf8, $method, $expected)
     {
-        $plugin = $this->createPluginMock(null, $debug, $utf8);
+        $plugin = $this->createPluginMock('', $debug, $utf8);
 
-        $reflectionMethod = new \ReflectionMethod('ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin', $method);
+        $reflectionMethod = new \ReflectionMethod(OgoneGatewayPlugin::class, $method);
         $reflectionMethod->setAccessible(true);
 
         $this->assertEquals($expected, $reflectionMethod->invoke($plugin));
@@ -99,7 +104,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
         $transaction->getExtendedData()->set('lang', 'en_US');
 
         try {
-            $plugin->approveAndDeposit($transaction, 42);
+            $plugin->approveAndDeposit($transaction, true);
 
             $this->fail('Plugin was expected to throw an exception.');
         } catch (ActionRequiredException $ex) {
@@ -130,7 +135,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
         $transaction = $this->createTransaction(42, 'EUR');
         $transaction->getExtendedData()->set('lang', 'en_US');
 
-        $plugin->approve($transaction, 42);
+        $plugin->approve($transaction, true);
     }
 
     /**
@@ -144,7 +149,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
         $transaction = $this->createTransaction(42, 'EUR');
         $transaction->getExtendedData()->set('lang', 'en_US');
 
-        $plugin->deposit($transaction, 42);
+        $plugin->deposit($transaction, true);
     }
 
     /**
@@ -304,8 +309,10 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
         try {
             $plugin->checkPaymentInstruction($transaction->getPayment()->getPaymentInstruction());
         } catch (\Exception $ex) {
-            $this->fail("Exception should not be throw here.");
+            $this->fail('Exception should not be throw here.');
         }
+
+        $this->assertNotEmpty($transaction->getPayment());
     }
 
     /**
@@ -335,17 +342,17 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
 
         $response = $getResponseMethod->invokeArgs($plugin, array($transaction));
 
-        $this->assertInstanceOf('ETS\Payment\OgoneBundle\Response\FeedbackResponse', $response);
+        $this->assertInstanceOf(FeedbackResponse::class, $response);
     }
 
     /**
-     * @param string $amount
+     * @param $amount
      * @param string $currency
      * @param array  $extendedDataValues
      *
      * @return \JMS\Payment\CoreBundle\Entity\FinancialTransaction
      */
-    protected function createTransaction($amount, $currency, array $extendedDataValues = array('CN' => 'Foo Bar'))
+    protected function createTransaction($amount, $currency, array $extendedDataValues = ['CN' => 'Foo Bar'])
     {
         $transaction = new FinancialTransaction();
         $transaction->setRequestedAmount($amount);
@@ -370,9 +377,9 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      *
      * @return OgoneGatewayPlugin
      */
-    protected function createPluginMock($state = null, $debug = true, $utf8 = false)
+    protected function createPluginMock($state = '', $debug = true, $utf8 = false): OgoneGatewayPlugin
     {
-        $tokenMock  = $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
+        $tokenMock  = new Token('', '', '', '', '');
         $pluginMock = new OgoneGatewayPluginMock(
             $tokenMock,
             new Sha1In($tokenMock),
@@ -382,7 +389,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
             $utf8
         );
 
-        if (null !== $state) {
+        if ($state) {
             $pluginMock->setFilename($state);
         }
 
@@ -392,18 +399,18 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @return array
      */
-    public function provideAdditionalData()
+    public function provideAdditionalData(): array
     {
-        return array(
-            array(
-                array("EMAIL" => "aa.bb@test.com", "OWNERCTY" => "city"),
-                array("EMAIL" => "aa.bb@test.com"),
-            ),
-            array(
-                array("EMAIL" => "aa.bb@test.com", "OWNERADDRESS" => "main street"),
-                array("EMAIL" => "aa.bb@test.com", "OWNERADDRESS" => "main street"),
-            ),
-        );
+        return [
+            [
+                ['EMAIL' => 'aa.bb@test.com', 'OWNERCTY' => 'city'],
+                ['EMAIL' => 'aa.bb@test.com'],
+            ],
+            [
+                ['EMAIL' => 'aa.bb@test.com', 'OWNERADDRESS' => 'main street'],
+                ['EMAIL' => 'aa.bb@test.com', 'OWNERADDRESS' => 'main street'],
+            ],
+        ];
     }
 
     /**
@@ -423,6 +430,6 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testNormalizeException()
     {
-        OgoneGatewayPlugin::normalize(array('foo' => 'bar'));
+        OgoneGatewayPlugin::normalize(['foo' => 'bar']);
     }
 }

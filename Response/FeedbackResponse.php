@@ -79,12 +79,12 @@ class FeedbackResponse extends AbstractResponse
         return $this->getValue('amount');
     }
 
-    public function getStatus()
+    public function getStatus(): int
     {
         return (int) $this->getValue('status');
     }
 
-    public function getErrorCode()
+    public function getErrorCode(): string
     {
         return $this->getValue('NCERROR');
     }

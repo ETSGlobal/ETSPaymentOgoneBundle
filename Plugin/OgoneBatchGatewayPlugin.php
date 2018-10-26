@@ -2,6 +2,7 @@
 
 namespace ETS\Payment\OgoneBundle\Plugin;
 
+use ETS\Payment\OgoneBundle\Response\AbstractResponse;
 use ETS\Payment\OgoneBundle\Response\BatchResponse;
 use ETS\Payment\OgoneBundle\Response\DirectResponse;
 use ETS\Payment\OgoneBundle\Service\OgoneFileBuilder;
@@ -42,11 +43,11 @@ use Psr\Log\LoggerInterface;
  */
 class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 {
-    const TRANSACTION_CODE_NEW         = 'ATR'; //code for new orders (transactions)
-    const TRANSACTION_CODE_MAINTENANCE = 'MTR'; //code for maintenance operations on existing transactions
-    const AUTHORIZATION                = 'RES';
-    const PAYMENT                      = 'SAS';
-    const PARTIAL_REFUND               = 'RFD'; //means others operations can be done on the same transaction
+    public const TRANSACTION_CODE_NEW         = 'ATR'; //code for new orders (transactions)
+    public const TRANSACTION_CODE_MAINTENANCE = 'MTR'; //code for maintenance operations on existing transactions
+    public const AUTHORIZATION                = 'RES';
+    public const PAYMENT                      = 'SAS';
+    public const PARTIAL_REFUND               = 'RFD'; //means others operations can be done on the same transaction
 
     /**
      * @var TokenInterface
@@ -64,7 +65,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     protected $logger;
 
     /**
-     * @var ResponseInterface
+     * @var AbstractResponse
      */
     protected $feedbackResponse;
 
@@ -73,11 +74,11 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      */
     public static function getAvailableOperations()
     {
-        return array(
-            'AUTHORIZATION'  => OgoneBatchGatewayPlugin::AUTHORIZATION,
-            'PAYMENT'        => OgoneBatchGatewayPlugin::PAYMENT,
-            'PARTIAL_REFUND' => OgoneBatchGatewayPlugin::PARTIAL_REFUND,
-        );
+        return [
+            'AUTHORIZATION'  => self::AUTHORIZATION,
+            'PAYMENT'        => self::PAYMENT,
+            'PARTIAL_REFUND' => self::PARTIAL_REFUND,
+        ];
     }
 
     /**
@@ -148,16 +149,16 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
         if (!isset($this->feedbackResponse)) {
             $this->logger->debug('No feedback response set.');
-            $params  = array(
+            $params  = [
                 'ORDERID' => $transaction->getExtendedData()->get('ORDERID'),
                 'PAYID' => $transaction->getExtendedData()->get('PAYID'),
                 'PSPID' => $this->token->getPspid(),
                 'PSWD' => $this->token->getApiPassword(),
                 'USERID' => $this->token->getApiUser(),
-            );
+            ];
 
             $this->logger->debug('Checking transaction status with Ogone with params {params}', array('params' => $params));
-            $xmlResponse = $this->sendApiRequest(array(), $this->getDirectQueryUrl().'?'.http_build_query($params), 'GET');
+            $xmlResponse = $this->sendApiRequest([], $this->getDirectQueryUrl().'?'.http_build_query($params), 'GET');
 
             $response = new BatchResponse($xmlResponse);
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
@@ -175,12 +176,12 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
         if ($response->isApproving() || $response->isIncomplete() || $response->isRefunding()) {
             $this->logger->debug('response {res} is still approving', array('res' => $response));
-            throw new PaymentPendingException(sprintf('Payment/Refund is still approving/refunding, status: %s.', $response->getStatus()));
+            throw new PaymentPendingException(sprintf('Payment/Refund is still approving/refunding, status: %d.', $response->getStatus()));
         }
 
         if (!$response->isApproved() && !$response->isRefunded()) {
             $this->logger->debug('response {res} is not approved', array('res' => $response));
-            $ex = new FinancialException(sprintf('Status "%s" is not valid for approvment', $response->getStatus()));
+            $ex = new FinancialException(sprintf('Status "%d" is not valid for approvment', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
             $transaction->setReasonCode($response->getStatus());
@@ -210,12 +211,12 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      */
     public function deposit(FinancialTransactionInterface $transaction, $retry)
     {
-        $this->logger->debug('depositing transaction {id} with PAYID {payid}...', array('id' => $transaction->getId(), 'payid' => $transaction->getExtendedData()->get('PAYID')));
+        $this->logger->debug('depositing transaction {id} with PAYID {payid}...', ['id' => $transaction->getId(), 'payid' => $transaction->getExtendedData()->get('PAYID')]);
         if ($transaction->getState() === FinancialTransactionInterface::STATE_NEW) {
             throw new ActionRequiredException('Transaction needs to be in state 4');
         }
 
-        if (!isset($this->feedbackResponse)) {
+        if (null === $this->feedbackResponse) {
             $this->logger->debug('No feedback response set.');
 
             $response = $this->sendPayment($transaction, self::PAYMENT);
@@ -235,12 +236,12 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
         if ($response->isDepositing() || $response->isIncomplete() || $response->isRefunding()) {
             $this->logger->debug('response {res} is still depositing', array('res' => $response));
-            throw new PaymentPendingException(sprintf('Payment is still pending, status: %s.', $response->getStatus()));
+            throw new PaymentPendingException(sprintf('Payment is still pending, status: %d.', $response->getStatus()));
         }
 
         if (!$response->isDeposited() && !$response->isRefunded()) {
             $this->logger->debug('response {res} is not deposited', array('res' => $response));
-            $ex = new FinancialException(sprintf('Payment status "%s" is not valid for depositing/refunding', $response->getStatus()));
+            $ex = new FinancialException(sprintf('Payment status "%d" is not valid for depositing/refunding', $response->getStatus()));
             $ex->setFinancialTransaction($transaction);
             $transaction->setResponseCode($response->getErrorCode());
             $transaction->setReasonCode($response->getStatus());
@@ -275,7 +276,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
                 $paymentInstruction->getExtendedData()->set('PAYID', $response->getPaymentIdOnOgoneCallbackAfterAuthorizationRequest());
             } else {
                 $paymentInstruction->getExtendedData()->set('ERROR_MESSAGE', $response->getErrorDescription());
-                throw new \LogicException(sprintf('status %s, description %s.', $response->getStatus(), $response->getErrorDescription()));
+                throw new \LogicException(sprintf('status %d, description %s.', $response->getStatus(), $response->getErrorDescription()));
             }
         } catch (\Exception $e) {
             $this->logger->error(sprintf('Authorization failed: %s.', $e->getMessage()));
@@ -316,7 +317,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
         $response = $this->request(new Request($url, $method, $parameters));
 
         if (200 !== $response->getStatus()) {
-            throw new CommunicationException(sprintf('The API request was not successful (Status: %s): %s', $response->getStatus(), $response->getContent()));
+            throw new CommunicationException(sprintf('The API request was not successful (Status: %d): %s', $response->getStatus(), $response->getContent()));
         }
 
         $this->logger->debug('response authorization is {result}', array('result' => $response->getContent()));
@@ -423,13 +424,13 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      *
      * @throws FinancialException
      */
-    private function handleUnsuccessfulResponse(BatchResponse $response, FinancialTransactionInterface $transaction)
+    private function handleUnsuccessfulResponse(BatchResponse $response, FinancialTransactionInterface $transaction): void
     {
         $transaction->setResponseCode($response->getErrorCode());
         $transaction->setReasonCode($response->getStatusError());
         $transaction->getPayment()->getPaymentInstruction()->getExtendedData()->set('ERROR_MESSAGE', $response->getErrorDescription());
 
-        $ex = new FinancialException('Ogone-Response was not successful: '.$response->getErrorDescription());
+        $ex = new FinancialException('Ogone-Response was not successful: ' . $response->getErrorDescription());
         $ex->setFinancialTransaction($transaction);
 
         throw $ex;

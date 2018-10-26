@@ -2,6 +2,8 @@
 
 namespace ETS\Payment\OgoneBundle\Tests\Response;
 
+use PHPUnit\Framework\TestCase;
+
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
  *
@@ -21,7 +23,7 @@ namespace ETS\Payment\OgoneBundle\Tests\Response;
 use ETS\Payment\OgoneBundle\Client\Token;
 use ETS\Payment\OgoneBundle\Service\OgoneFileBuilder;
 
-class OgoneFileBuilderTest extends \PHPUnit_Framework_TestCase
+class OgoneFileBuilderTest extends TestCase
 {
     public function testIsValidWithPayIdText()
     {

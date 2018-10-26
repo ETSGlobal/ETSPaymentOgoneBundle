@@ -41,48 +41,48 @@ class DirectResponse extends AbstractResponse
     /**
      * @return string
      */
-    public function getPaymentId()
+    public function getPaymentId(): string
     {
-        return (string) $this->xml->attributes()->PAYID;
+        return (string) $this->xml->attributes()['PAYID'];
     }
 
     /**
      * @return float
      */
-    public function getAmount()
+    public function getAmount(): float
     {
-        return (float) $this->xml->attributes()->amount;
+        return (float) $this->xml->attributes()['amount'];
     }
 
     /**
      * @return integer
      */
-    public function getStatus()
+    public function getStatus(): int
     {
-        return (int) $this->xml->attributes()->STATUS;
+        return (int) $this->xml->attributes()['STATUS'];
     }
 
     /**
      * @return string
      */
-    public function getErrorCode()
+    public function getErrorCode(): string
     {
-        return (string) $this->xml->attributes()->NCERROR;
+        return (string) $this->xml->attributes()['NCERROR'];
     }
 
     /**
      * @return string
      */
-    public function getErrorDescription()
+    public function getErrorDescription(): string
     {
-        return (string) $this->xml->attributes()->NCERRORPLUS;
+        return (string) $this->xml->attributes()['NCERRORPLUS'];
     }
 
     /**
-     * @return string
+     * @return bool
      */
-    public function hasError()
+    public function hasError(): bool
     {
-        return isset($this->xml->attributes()->PARAMS_ERROR) || (strlen($this->getErrorCode()) > 0 && $this->getErrorCode() !== "0");
+        return isset($this->xml->attributes()['PARAMS_ERROR']) || (strlen($this->getErrorCode()) > 0 && $this->getErrorCode() !== '0');
     }
 }

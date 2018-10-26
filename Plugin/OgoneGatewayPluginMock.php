@@ -53,12 +53,12 @@ class OgoneGatewayPluginMock extends OgoneGatewayPlugin
      *
      * @return Response
      */
-    public function request(Request $request)
+    public function request(Request $request): Response
     {
         if (file_exists($this->getFilename())) {
             return new Response(file_get_contents($this->getFilename()), 200);
-        } else {
-            return new Response('', 500);
         }
+
+        return new Response('', 500);
     }
 }

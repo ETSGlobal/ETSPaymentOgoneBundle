@@ -2,17 +2,18 @@
 
 namespace ETS\Payment\OgoneBundle\Tests\Plugin;
 
+use ETS\Payment\OgoneBundle\Client\Token;
+use ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin;
 use ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPluginMock;
 use ETS\Payment\OgoneBundle\Service\OgoneFileBuilder;
+use ETS\Payment\OgoneBundle\Test\RequestStubber;
 use JMS\Payment\CoreBundle\Entity\ExtendedData;
 use JMS\Payment\CoreBundle\Entity\FinancialTransaction;
 use JMS\Payment\CoreBundle\Entity\Payment;
 use JMS\Payment\CoreBundle\Entity\PaymentInstruction;
 use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
 use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
-
-use ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin;
-use ETS\Payment\OgoneBundle\Test\RequestStubber;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Tests\Logger;
 
 /**
@@ -34,55 +35,54 @@ use Symfony\Component\HttpKernel\Tests\Logger;
 /**
  * OgoneBatchGatewayPluginTest tests
  */
-class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
+class OgoneBatchGatewayPluginTest extends TestCase
 {
     /**
-     * @var \ETS\Payment\OgoneBundle\Test\RequestStubber
+     * @var RequestStubber
      */
     private $requestStubber;
 
     public function setUp()
     {
-        $this->requestStubber = new RequestStubber(array(
-            array('orderID', null, false, 42),
-            array('amount', null, false, '42'),
-            array('currency', null, false, 'EUR'),
-            array('PM', null, false, 'credit card'),
-            array('STATUS', null, false, 5),
-            array('CARDNO', null, false, 4567123478941234),
-            array('PAYID', null, false, 43),
-            array('SHASign', null, false, 'fzgzgzghz4648zh6z5h')
-        ));
+        $this->requestStubber = new RequestStubber([
+            ['orderID', null, false, 42],
+            ['amount', null, false, '42'],
+            ['currency', null, false, 'EUR'],
+            ['PM', null, false, 'credit card'],
+            ['STATUS', null, false, 5],
+            ['CARDNO', null, false, 4567123478941234],
+            ['PAYID', null, false, 43],
+            ['SHASign', null, false, 'fzgzgzghz4648zh6z5h']
+        ]);
     }
 
     /**
      * @return array
      */
-    public function provideTestTestRequestUrls()
+    public function provideTestTestRequestUrls(): array
     {
-        return array(
-            array(true, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/test/orderstandard.asp'),
-            array(false, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard.asp'),
-            array(true, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/test/querydirect.asp'),
-            array(false, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect.asp'),
-            array(true, false, 'getBatchUrl', 'https://secure.ogone.com/ncol/test/AFU_agree.asp'),
-            array(false, true, 'getBatchUrl', 'https://secure.ogone.com/ncol/prod/AFU_agree.asp'),
-        );
+        return [
+            [true, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/test/orderstandard.asp'],
+            [false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard.asp'],
+            [true, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/test/querydirect.asp'],
+            [false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect.asp'],
+            [true, 'getBatchUrl', 'https://secure.ogone.com/ncol/test/AFU_agree.asp'],
+            [false, 'getBatchUrl', 'https://secure.ogone.com/ncol/prod/AFU_agree.asp'],
+        ];
     }
 
     /**
      * @param boolean $debug    Debug mode
-     * @param boolean $utf8     UTF8 mode
      * @param string  $method   Method to test
      * @param string  $expected Expected result
      *
      * @dataProvider provideTestTestRequestUrls
      */
-    public function testRequestUrls($debug, $utf8, $method, $expected)
+    public function testRequestUrls($debug, $method, $expected)
     {
-        $plugin = $this->createPluginMock(null, $debug, $utf8);
+        $plugin = $this->createPluginMock('', $debug);
 
-        $reflectionMethod = new \ReflectionMethod('ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin', $method);
+        $reflectionMethod = new \ReflectionMethod(OgoneBatchGatewayPlugin::class, $method);
         $reflectionMethod->setAccessible(true);
 
         $this->assertEquals($expected, $reflectionMethod->invoke($plugin));
@@ -94,25 +94,25 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testNewTransactionRequiresAnAction()
     {
-        $plugin = $this->createPluginMock();
+        $plugin = $this->createPluginMock('');
 
-        $extendedData = array(
+        $extendedData = [
             'ORDERID' => 1234,
             'PAYID' => 9876,
             'CLIENTID' => 'CLIENT1',
             'CLIENTREF' => 123456,
             'LEGALCOMMITMENT' => 'LEGAL',
             'ALIASID' => 'ALIASID',
-            'ARTICLES' => array(),
+            'ARTICLES' => [],
             'TRANSACTIONID' => 4567,
             'ISREFUND' => false
-        );
+        ];
 
-        $transaction = $this->createTransaction(42, 'EUR', $extendedData);
+        $transaction = $this->createTransaction('42', 'EUR', $extendedData);
         $transaction->getExtendedData()->set('lang', 'en_US');
 
         try {
-            $plugin->approveAndDeposit($transaction, 42);
+            $plugin->approveAndDeposit($transaction, true);
         } catch(\Exception $e) {
             $this->assertTrue($e instanceof ActionRequiredException);
         }
@@ -130,7 +130,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testApproveRequiresAnActionForNewTransactions()
     {
-        $plugin = $this->createPluginMock();
+        $plugin = $this->createPluginMock('');
         $extendedData = array(
             'ORDERID' => 1234,
             'PAYID' => 9876,
@@ -139,10 +139,10 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
             'ARTICLES' => array(),
         );
 
-        $transaction = $this->createTransaction(42, 'EUR', $extendedData);
+        $transaction = $this->createTransaction('42', 'EUR', $extendedData);
         $transaction->getExtendedData()->set('lang', 'en_US');
 
-        $plugin->approve($transaction, 42);
+        $plugin->approve($transaction, true);
     }
 
     /**
@@ -151,7 +151,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     public function testDepositRequiresAnActionForNewTransactions()
     {
-        $plugin = $this->createPluginMock();
+        $plugin = $this->createPluginMock('');
         $extendedData = array(
             'ORDERID' => 1234,
             'PAYID' => 9876,
@@ -160,10 +160,10 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
             'ARTICLES' => array(),
         );
 
-        $transaction = $this->createTransaction(42, 'EUR', $extendedData);
+        $transaction = $this->createTransaction('42', 'EUR', $extendedData);
         $transaction->getExtendedData()->set('lang', 'en_US');
 
-        $plugin->deposit($transaction, 42);
+        $plugin->deposit($transaction, true);
     }
 
     /**
@@ -175,7 +175,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
     public function testNewRefundingTransaction(FinancialTransaction $transaction)
     {
         $plugin = $this->createPluginMock('new_refund');
-        $plugin->approveAndDeposit($transaction, 42);
+        $plugin->approveAndDeposit($transaction, true);
     }
 
     /**
@@ -187,7 +187,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
     public function testRefundingTransaction(FinancialTransaction $transaction)
     {
         $plugin = $this->createPluginMock('refunding');
-        $plugin->approveAndDeposit($transaction, 42);
+        $plugin->approveAndDeposit($transaction, true);
     }
 
     /**
@@ -199,7 +199,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
     {
         $plugin = $this->createPluginMock('refunded');
 
-        $plugin->approveAndDeposit($transaction, 42);
+        $plugin->approveAndDeposit($transaction, true);
 
         $this->assertEquals(42, $transaction->getProcessedAmount());
         $this->assertEquals('success', $transaction->getResponseCode());
@@ -218,7 +218,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
     {
         $transaction->getExtendedData()->set('ISREFUND', true);
         $plugin = $this->createPluginMock('refund_error');
-        $plugin->approveAndDeposit($transaction, 42);
+        $plugin->approveAndDeposit($transaction, true);
     }
 
     /**
@@ -395,9 +395,9 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      *
      * @return OgoneBatchGatewayPlugin
      */
-    protected function createPluginMock($state = null, $debug = true)
+    protected function createPluginMock($state = '', $debug = true): OgoneBatchGatewayPlugin
     {
-        $tokenMock  = $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
+        $tokenMock  = new Token('', '', '', '', '');
         $ogoneFileBuilder = new OgoneFileBuilder($tokenMock);
         $logger = new Logger();
         $pluginMock = new OgoneBatchGatewayPluginMock(
@@ -407,7 +407,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
             $debug
         );
 
-        if (null !== $state) {
+        if ($state) {
             $pluginMock->setFilename($state);
         }
 

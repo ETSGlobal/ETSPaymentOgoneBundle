@@ -11,8 +11,8 @@ use ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin;
  */
 class OgoneFileBuilder
 {
-    const INV_FILE_LENGTH = 34;
-    const INV_DET_FILE_LENGTH = 14;
+    private const INV_FILE_LENGTH = 34;
+    private const INV_DET_FILE_LENGTH = 14;
 
     /**
      * @var TokenInterface
@@ -40,7 +40,7 @@ class OgoneFileBuilder
      *
      * @return string
      */
-    public function buildInv($orderId, $clientId, $clientRef, $legalCommitment, $aliasId, $operation, array $articles, $payId = '', $transactionId = '')
+    public function buildInv($orderId, $clientId, $clientRef, $legalCommitment, $aliasId, $operation, array $articles, $payId = '', $transactionId = ''): string
     {
         $this->validateOperation($operation);
         $transaction = (OgoneBatchGatewayPlugin::AUTHORIZATION === $operation) ? OgoneBatchGatewayPlugin::TRANSACTION_CODE_NEW : OgoneBatchGatewayPlugin::TRANSACTION_CODE_MAINTENANCE;
@@ -48,9 +48,9 @@ class OgoneFileBuilder
         $globalInformationLine = $this->createGlobalInformationLineArray();
         $globalOperationLine = $this->createGlobalOperationLineArray($orderId, $transaction, $operation);
 
-        $amountTaxExcluded  = 0;
-        $amountValueAddedTax = 0;
-        $nbArticles = 0;
+        $amountTaxExcluded  = 0.0;
+        $amountValueAddedTax = 0.0;
+        $nbArticles = 0.0;
         $articlesLines = array();
 
         foreach($articles as $k => $article) {
@@ -107,19 +107,19 @@ class OgoneFileBuilder
      * @param string $orderId
      * @param string $payId
      * @param string $operation
-     * @param string $nbArticles
+     * @param float $nbArticles
      * @param string $aliasId
      * @param string $clientId
      * @param string $clientRef
-     * @param string $amountTaxExcluded
-     * @param string $amountVat
-     * @param string $amountTaxIncluded
+     * @param float $amountTaxExcluded
+     * @param float $amountVat
+     * @param float $amountTaxIncluded
      * @param string $transactionId
      * @param string $legalCommitment
      *
      * @return array
      */
-    private function createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountVat, $amountTaxIncluded, $transactionId, $legalCommitment)
+    private function createGlobalSummaryLineArray($orderId, $payId, $operation, $nbArticles, $aliasId, $clientId, $clientRef, $amountTaxExcluded, $amountVat, $amountTaxIncluded, $transactionId, $legalCommitment): array
     {
         $globalSummaryLine = $this->initArray(self::INV_FILE_LENGTH);
         $globalSummaryLine[0] = 'INV';
@@ -193,13 +193,13 @@ class OgoneFileBuilder
      * @param string $quantity
      * @param string $id
      * @param string $name
-     * @param string $unitPrice
+     * @param float $unitPrice
      * @param string $vat
-     * @param string $price
+     * @param float $price
      *
      * @return array
      */
-    private function createDetailLineArray($quantity, $id, $name, $unitPrice, $vat, $price)
+    private function createDetailLineArray($quantity, $id, $name, $unitPrice, $vat, $price): array
     {
         $articlesLines = $this->initArray(self::INV_DET_FILE_LENGTH);
         $articlesLines[0] = 'DET';
@@ -251,11 +251,11 @@ class OgoneFileBuilder
     }
 
     /**
-     * @param string $size
+     * @param int $size
      *
      * @return array
      */
-    private function initArray($size)
+    private function initArray(int $size): array
     {
         $array = array();
         for ($i = 0; $i < $size; $i++) {

@@ -57,8 +57,8 @@ class OgoneBatchGatewayPluginMock extends OgoneBatchGatewayPlugin
     {
         if (file_exists($this->getFilename())) {
             return new Response(file_get_contents($this->getFilename()), 200);
-        } else {
-            return new Response('', 500);
         }
+
+        return new Response('', 500);
     }
 }

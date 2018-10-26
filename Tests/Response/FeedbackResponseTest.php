@@ -4,8 +4,9 @@ namespace ETS\Payment\OgoneBundle\Tests\Response;
 
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 use ETS\Payment\OgoneBundle\Test\RequestStubber;
+use PHPUnit\Framework\TestCase;
 
-class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
+class FeedbackResponseTest extends TestCase
 {
     /**
      * @var \ETS\Payment\OgoneBundle\Test\RequestStubber

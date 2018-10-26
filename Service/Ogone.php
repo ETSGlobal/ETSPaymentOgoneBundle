@@ -3,27 +3,24 @@
 namespace ETS\Payment\OgoneBundle\Service;
 
 use JMS\Payment\CoreBundle\Model\PaymentInstructionInterface;
-use JMS\Payment\CoreBundle\Plugin\GatewayPlugin;
 use JMS\Payment\CoreBundle\PluginController\PluginControllerInterface;
-
 use ETS\Payment\OgoneBundle\Exception\NoPendingTransactionException;
 use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 
 class Ogone
 {
-    /** @var \JMS\Payment\CoreBundle\Plugin\PluginInterface */
+    /** @var PluginControllerInterface */
     protected $pluginController;
 
-    /** @var \ETS\Payment\OgoneBundle\Hash\GeneratorInterface */
+    /** @var GeneratorInterface */
     protected $generator;
 
-    /** @var \ETS\Payment\OgoneBundle\Response\FeedbackResponse */
+    /** @var FeedbackResponse */
     protected $feedbackResponse;
 
     /**
      * @param PluginControllerInterface $pluginController
-     * @param GatewayPlugin             $ogonePlugin
      * @param GeneratorInterface        $generator
      * @param FeedbackResponse          $feedbackResponse
      */
