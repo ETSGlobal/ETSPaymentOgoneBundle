@@ -20,6 +20,7 @@ namespace ETS\Payment\OgoneBundle\Tests\Response;
 
 use ETS\Payment\OgoneBundle\Client\Token;
 use ETS\Payment\OgoneBundle\Service\OgoneFileBuilder;
+use InvalidArgumentException;
 
 class OgoneFileBuilderTest extends \PHPUnit_Framework_TestCase
 {

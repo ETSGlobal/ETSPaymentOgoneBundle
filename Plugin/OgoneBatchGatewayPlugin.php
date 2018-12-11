@@ -14,7 +14,6 @@ use JMS\Payment\CoreBundle\Plugin\Exception\FinancialException;
 use JMS\Payment\CoreBundle\Plugin\Exception\InvalidPaymentInstructionException;
 use JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException;
 use JMS\Payment\CoreBundle\Plugin\PluginInterface;
-
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
 use ETS\Payment\OgoneBundle\Response\ResponseInterface;
 use Psr\Log\LoggerInterface;
@@ -113,7 +112,12 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      * another transaction.
      *
      * @param FinancialTransactionInterface $transaction The transaction
-     * @param boolean                       $retry       Whether this is a retry transaction
+     * @param boolean $retry Whether this is a retry transaction
+     *
+     * @throws ActionRequiredException
+     * @throws CommunicationException
+     * @throws FinancialException
+     * @throws PaymentPendingException
      */
     public function approveAndDeposit(FinancialTransactionInterface $transaction, $retry)
     {
@@ -132,11 +136,12 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      * authorized.
      *
      * @param FinancialTransactionInterface $transaction The transaction
-     * @param boolean                       $retry       Whether this is a retry transaction
+     * @param boolean $retry Whether this is a retry transaction
      *
      * @throws ActionRequiredException If the transaction's state is NEW
      * @throws FinancialException      If payment is not approved
      * @throws PaymentPendingException If payment is still approving
+     * @throws CommunicationException
      */
     public function approve(FinancialTransactionInterface $transaction, $retry)
     {
@@ -202,11 +207,12 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      * A typical use case are Credit Card payments.
      *
      * @param FinancialTransactionInterface $transaction The transaction
-     * @param boolean                       $retry       Retry
+     * @param boolean $retry Retry
      *
      * @throws ActionRequiredException If the transaction's state is NEW
      * @throws FinancialException      If payment is not approved
      * @throws PaymentPendingException If payment is still approving
+     * @throws CommunicationException
      */
     public function deposit(FinancialTransactionInterface $transaction, $retry)
     {
@@ -325,7 +331,10 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
     }
 
     /**
+     * @param $params
+     *
      * @return DirectResponse
+     *
      * @throws CommunicationException
      */
     public function getTransactionStatus($params)
@@ -340,6 +349,8 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      * @param $operation
      *
      * @return BatchResponse
+     *
+     * @throws CommunicationException
      */
     private function sendPayment(FinancialTransactionInterface $transaction, $operation)
     {

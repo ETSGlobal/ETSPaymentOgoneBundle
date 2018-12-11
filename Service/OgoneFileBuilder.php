@@ -2,7 +2,6 @@
 
 namespace ETS\Payment\OgoneBundle\Service;
 
-
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
 use ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin;
 

@@ -78,11 +78,11 @@
             <argument type="service" id="payment.ogone.client.token" />
         </service>
 
-        <service id="payment.ogone.feedback_response" class="ETS\Payment\OgoneBundle\Response\FeedbackResponse" scope="request" public="false">
+        <service id="payment.ogone.feedback_response" class="ETS\Payment\OgoneBundle\Response\FeedbackResponse" shared="false" public="false">
             <argument type="service" id="request" />
         </service>
 
-        <service id="payment.ogone" class="ETS\Payment\OgoneBundle\Service\Ogone" scope="request">
+        <service id="payment.ogone" class="ETS\Payment\OgoneBundle\Service\Ogone" shared="false">
             <argument type="service" id="payment.plugin_controller" />
             <argument type="service" id="payment.ogone.hash.sha1out" />
             <argument type="service" id="payment.ogone.feedback_response" />
