@@ -3,6 +3,7 @@
 namespace ETS\Payment\OgoneBundle\Plugin;
 
 use JMS\Payment\CoreBundle\BrowserKit\Request;
+use JMS\Payment\CoreBundle\Entity\ExtendedData;
 use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
 use JMS\Payment\CoreBundle\Model\PaymentInstructionInterface;
 use JMS\Payment\CoreBundle\Plugin\ErrorBuilder;
@@ -12,7 +13,6 @@ use JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException;
 use JMS\Payment\CoreBundle\Plugin\Exception\FinancialException;
 use JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException;
 use JMS\Payment\CoreBundle\Plugin\PluginInterface;
-
 use ETS\Payment\OgoneBundle\Client\TokenInterface;
 use ETS\Payment\OgoneBundle\Hash\GeneratorInterface;
 use ETS\Payment\OgoneBundle\Response\DirectResponse;
@@ -124,7 +124,12 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      * another transaction.
      *
      * @param FinancialTransactionInterface $transaction The transaction
-     * @param boolean                       $retry       Whether this is a retry transaction
+     * @param boolean $retry Whether this is a retry transaction
+     *
+     * @throws ActionRequiredException
+     * @throws FinancialException
+     * @throws PaymentPendingException
+     * @throws CommunicationException
      */
     public function approveAndDeposit(FinancialTransactionInterface $transaction, $retry)
     {
@@ -143,11 +148,12 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      * authorized.
      *
      * @param FinancialTransactionInterface $transaction The transaction
-     * @param boolean                       $retry       Whether this is a retry transaction
+     * @param boolean $retry Whether this is a retry transaction
      *
      * @throws ActionRequiredException If the transaction's state is NEW
      * @throws FinancialException      If payment is not approved
      * @throws PaymentPendingException If payment is still approving
+     * @throws CommunicationException
      */
     public function approve(FinancialTransactionInterface $transaction, $retry)
     {
@@ -184,13 +190,12 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      * A typical use case are Credit Card payments.
      *
      * @param FinancialTransactionInterface $transaction The transaction
-     * @param boolean                       $retry       Retry
-     *
-     * @return mixed
+     * @param boolean $retry Retry
      *
      * @throws ActionRequiredException If the transaction's state is NEW
      * @throws FinancialException      If payment is not approved
      * @throws PaymentPendingException If payment is still approving
+     * @throws CommunicationException
      */
     public function deposit(FinancialTransactionInterface $transaction, $retry)
     {
@@ -274,6 +279,7 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
         $actionRequestException = new ActionRequiredException('User must authorize the transaction');
         $actionRequestException->setFinancialTransaction($transaction);
 
+        /** @var ExtendedData $extendedData */
         $extendedData = $transaction->getExtendedData();
         if (!$extendedData->has('ORDERID')) {
             $extendedData->set('ORDERID', uniqid());
@@ -313,11 +319,12 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      * or from a call to ogone's api.
      *
      * @param  FinancialTransactionInterface $transaction
-     * @param  boolean                       $forceDirect
+     * @param  boolean $forceDirect
      *
      * @return \ETS\Payment\OgoneBundle\Response\ResponseInterface
      *
      * @throws FinancialException
+     * @throws CommunicationException
      */
     protected function getResponse(FinancialTransactionInterface $transaction, $forceDirect = false)
     {
@@ -346,6 +353,8 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      * @param FinancialTransactionInterface $transaction
      *
      * @return \ETS\Payment\OgoneBundle\Response\DirectResponse
+     *
+     * @throws CommunicationException
      */
     protected function getDirectResponse(FinancialTransactionInterface $transaction)
     {
@@ -435,8 +444,11 @@ class OgoneGatewayPlugin extends OgoneGatewayBasePlugin
      * Return direct response content
      *
      * @param \JMS\Payment\CoreBundle\Model\FinancialTransactionInterface $transaction
-     * @return type
+     *
+     * @return DirectResponse
+     *
      * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws CommunicationException
      */
     public function getDirectResponseContent(FinancialTransactionInterface $transaction)
     {

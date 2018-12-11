@@ -167,7 +167,7 @@ class Design
     /**
      * @param \JMS\Payment\CoreBundle\Entity\ExtendedData $data
      *
-     * @return string|null
+     * @return array
      */
     public function getRequestParameters(ExtendedData $data)
     {

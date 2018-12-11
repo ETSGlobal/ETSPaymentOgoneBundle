@@ -29,6 +29,8 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException        \BadMethodCallException
      * @expectedExceptionMessage already set
+     *
+     * @throws \ReflectionException
      */
     public function testAddValueFieldAlreadySetEvenIfDifferentCase()
     {
@@ -44,6 +46,8 @@ class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException        \OutOfRangeException
      * @expectedExceptionMessage was not sent with the Request
+     *
+     * @throws \ReflectionException
      */
     public function testGetValueUnsetField()
     {

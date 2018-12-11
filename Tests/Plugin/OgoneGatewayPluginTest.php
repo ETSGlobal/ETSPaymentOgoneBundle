@@ -9,7 +9,6 @@ use JMS\Payment\CoreBundle\Entity\PaymentInstruction;
 use JMS\Payment\CoreBundle\Model\FinancialTransactionInterface;
 use JMS\Payment\CoreBundle\Plugin\Exception\Action\VisitUrl;
 use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
-
 use ETS\Payment\OgoneBundle\Hash\Sha1In;
 use ETS\Payment\OgoneBundle\Plugin\Configuration\Design;
 use ETS\Payment\OgoneBundle\Plugin\Configuration\Redirection;
@@ -74,12 +73,13 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param boolean $debug    Debug mode
-     * @param boolean $utf8     UTF8 mode
-     * @param string  $method   Method to test
-     * @param string  $expected Expected result
+     * @param boolean $debug Debug mode
+     * @param boolean $utf8 UTF8 mode
+     * @param string $method Method to test
+     * @param string $expected Expected result
      *
      * @dataProvider provideTestTestRequestUrls
+     * @throws \ReflectionException
      */
     public function testRequestUrls($debug, $utf8, $method, $expected)
     {
@@ -91,6 +91,12 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $reflectionMethod->invoke($plugin));
     }
 
+    /**
+     * @return FinancialTransaction
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
+     */
     public function testNewTransactionRequiresAnAction()
     {
         $plugin = $this->createPluginMock();
@@ -122,6 +128,11 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException
      * @expectedExceptionMessage User must authorize the transaction
+     *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
      */
     public function testApproveRequiresAnActionForNewTransactions()
     {
@@ -136,6 +147,11 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException
      * @expectedExceptionMessage User must authorize the transaction
+     *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
      */
     public function testDepositRequiresAnActionForNewTransactions()
     {
@@ -149,6 +165,11 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @param FinancialTransaction $transaction
+     *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
      *
      * @depends testNewTransactionRequiresAnAction
      */
@@ -166,7 +187,13 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @param FinancialTransaction $transaction
      *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
+     *
      * @depends testNewTransactionRequiresAnAction
+     *
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
      * @expectedExceptionMessage Payment is still approving, status: 51.
      */
@@ -179,6 +206,11 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @param FinancialTransaction $transaction
+     *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
      *
      * @depends testNewTransactionRequiresAnAction
      */
@@ -196,7 +228,13 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @param FinancialTransaction $transaction
      *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
+     *
      * @depends testNewTransactionRequiresAnAction
+     *
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
      * @expectedExceptionMessage Payment is still pending, status: 91.
      */
@@ -209,6 +247,11 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @param FinancialTransaction $transaction
+     *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
      *
      * @depends testNewTransactionRequiresAnAction
      */
@@ -226,7 +269,13 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @param FinancialTransaction $transaction
      *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
+     *
      * @depends testNewTransactionRequiresAnAction
+     *
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
      * @expectedExceptionMessage Payment status "74" is not valid for approvment
      */
@@ -240,7 +289,13 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @param FinancialTransaction $transaction
      *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
+     *
      * @depends testNewTransactionRequiresAnAction
+     *
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
      * @expectedExceptionMessage Payment status "74" is not valid for depositing
      */
@@ -254,7 +309,13 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @param FinancialTransaction $transaction
      *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
+     *
      * @depends testNewTransactionRequiresAnAction
+     *
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
      * @expectedExceptionMessage Ogone-Response was not successful: Some of the data entered is incorrect. Please retry.
      */
@@ -268,7 +329,13 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
     /**
      * @param FinancialTransaction $transaction
      *
+     * @throws ActionRequiredException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
+     * @throws \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
+     *
      * @depends testNewTransactionRequiresAnAction
+     *
      * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
      * @expectedExceptionMessage The API request was not successful (Status: 500):
      */
@@ -323,6 +390,8 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      * @param FinancialTransaction $transaction
      *
      * @depends testNewTransactionRequiresAnAction
+     *
+     * @throws \ReflectionException
      */
     public function testGetResponseReturnsFeedbackResponse(FinancialTransaction $transaction)
     {
