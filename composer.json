@@ -1,5 +1,5 @@
 {
-    "name": "ets/payment-ogone-bundle",
+    "name": "ovidiuenache/payment-ogone-bundle",
     "type": "symfony-bundle",
     "description": "Payment Bundle providing access to Ogone gateway",
     "keywords": ["payment", "ogone"],
