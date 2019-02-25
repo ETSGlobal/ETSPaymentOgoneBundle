@@ -31,7 +31,7 @@ before_install:
   - composer require symfony/framework-bundle:${SYMFONY_VERSION} --no-update
 
 install:
-  - COMPOSER_MEMORY_LIMIT=-1 composer install --no-interaction --prefer-dist $COMPOSER_FLAGS
+  - COMPOSER_MEMORY_LIMIT=-1 composer update --no-interaction --prefer-dist $COMPOSER_FLAGS
 
 script:
   - vendor/bin/phpunit
