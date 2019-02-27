@@ -25,7 +25,7 @@ use ETS\Payment\OgoneBundle\Hash\Sha1Out;
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
-class Sha1OutTest extends \PHPUnit_Framework_TestCase
+class Sha1OutTest extends \PHPUnit\Framework\TestCase
 {
     public function testGetStringToHashFollowsOgoneRules()
     {
@@ -74,7 +74,7 @@ class Sha1OutTest extends \PHPUnit_Framework_TestCase
      */
     protected function createTokenMock()
     {
-        $tokenMock = $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
+        $tokenMock = $this->createMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
         $tokenMock->expects($this->any())
             ->method('getShaout')
             ->will($this->returnValue('passphrase'));

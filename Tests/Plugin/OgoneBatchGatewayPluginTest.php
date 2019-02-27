@@ -34,7 +34,7 @@ use Symfony\Component\HttpKernel\Tests\Logger;
 /**
  * OgoneBatchGatewayPluginTest tests
  */
-class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
+class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var \ETS\Payment\OgoneBundle\Test\RequestStubber
@@ -397,7 +397,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     protected function createPluginMock($state = null, $debug = true)
     {
-        $tokenMock  = $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
+        $tokenMock  = $this->createMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
         $ogoneFileBuilder = new OgoneFileBuilder($tokenMock);
         $logger = new Logger();
         $pluginMock = new OgoneBatchGatewayPluginMock(

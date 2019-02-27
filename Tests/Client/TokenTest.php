@@ -25,7 +25,7 @@ use ETS\Payment\OgoneBundle\Client\Token;
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
-class TokenTest extends \PHPUnit_Framework_TestCase
+class TokenTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * Test the object construction
