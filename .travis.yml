@@ -1,28 +1,40 @@
 language: php
 
 php:
-  - 5.4
-  - 5.5
   - 5.6
-  - hhvm
+  - 7.0
+  - 7.1
+  - 7.2
 
 env:
-  - SYMFONY_VERSION=2.2.*
-  - SYMFONY_VERSION=2.3.*
   - SYMFONY_VERSION=2.4.*
-  - SYMFONY_VERSION=2.5.*
-  - SYMFONY_VERSION=2.6.*
+  - SYMFONY_VERSION=2.8.*
+  - SYMFONY_VERSION=3.4.*
+  - SYMFONY_VERSION=4.2.*
+
+matrix:
+  fast_finish: true
+  include:
+    - php: 5.6
+      env: SYMFONY_VERSION="2.4.*" COMPOSER_FLAGS="--prefer-lowest"
+    - php: 7.2
+      env: SYMFONY_VERSION="2.4.*" COMPOSER_FLAGS="--prefer-lowest"
+  exclude:
+    - php: 5.6
+      env: SYMFONY_VERSION=4.2.*
+    - php: 7.0
+      env: SYMFONY_VERSION=4.2.*
+
+cache:
+  directories:
+    - $HOME/.composer/cache
 
 before_install:
   - composer self-update
+  - composer require symfony/framework-bundle:${SYMFONY_VERSION} --no-update
 
 install:
-  - composer require symfony/symfony:${SYMFONY_VERSION} --no-update
-  - composer install --dev --no-interaction --prefer-dist
+  - COMPOSER_MEMORY_LIMIT=-1 composer update --no-interaction --prefer-dist $COMPOSER_FLAGS
 
 script:
   - vendor/bin/phpunit
-
-matrix:
-  allow_failures:
-    - php: hhvm

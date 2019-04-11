@@ -37,7 +37,7 @@ use ETS\Payment\OgoneBundle\Test\RequestStubber;
 /**
  * OgoneGatewayPlugin tests
  */
-class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
+class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var \ETS\Payment\OgoneBundle\Test\RequestStubber
@@ -372,7 +372,7 @@ class OgoneGatewayPluginTest extends \PHPUnit_Framework_TestCase
      */
     protected function createPluginMock($state = null, $debug = true, $utf8 = false)
     {
-        $tokenMock  = $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
+        $tokenMock  = $this->createMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
         $pluginMock = new OgoneGatewayPluginMock(
             $tokenMock,
             new Sha1In($tokenMock),

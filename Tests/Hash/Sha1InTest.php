@@ -25,7 +25,7 @@ use ETS\Payment\OgoneBundle\Hash\Sha1In;
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
-class Sha1InTest extends \PHPUnit_Framework_TestCase
+class Sha1InTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * Test that the generate function uppercase the keys
@@ -84,6 +84,6 @@ class Sha1InTest extends \PHPUnit_Framework_TestCase
      */
     protected function createTokenMock()
     {
-        return $this->getMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
+        return $this->createMock('ETS\Payment\OgoneBundle\Client\TokenInterface');
     }
 }

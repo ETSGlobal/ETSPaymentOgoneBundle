@@ -5,7 +5,7 @@ namespace ETS\Payment\OgoneBundle\Tests\Response;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 use ETS\Payment\OgoneBundle\Test\RequestStubber;
 
-class FeedbackResponseTest extends \PHPUnit_Framework_TestCase
+class FeedbackResponseTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var \ETS\Payment\OgoneBundle\Test\RequestStubber

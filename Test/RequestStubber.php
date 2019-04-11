@@ -2,7 +2,7 @@
 
 namespace ETS\Payment\OgoneBundle\Test;
 
-class RequestStubber extends \PHPUnit_Framework_TestCase
+class RequestStubber extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var array
@@ -22,14 +22,14 @@ class RequestStubber extends \PHPUnit_Framework_TestCase
      */
     public function getStubbedRequest()
     {
-        $requestStub = $this->getMock('Symfony\Component\HttpFoundation\Request', array('get'));
+        $requestStub = $this->createMock('Symfony\Component\HttpFoundation\Request', array('get'));
 
         $requestStub
             ->expects($this->any())
             ->method('get')
             ->will($this->returnValueMap($this->map));
 
-        $publicPropertyStub = $this->getMock('Symfony\Component\HttpFoundation\ParameterBag', array('all'));
+        $publicPropertyStub = $this->createMock('Symfony\Component\HttpFoundation\ParameterBag', array('all'));
         $publicPropertyStub
             ->expects($this->any())
             ->method('all')

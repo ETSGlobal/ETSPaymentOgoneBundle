@@ -26,7 +26,7 @@ use ETS\Payment\OgoneBundle\Response\ResponseInterface;
  *
  * @author ETSGlobal <ecs@etsglobal.org>
  */
-class DirectResponseTest extends \PHPUnit_Framework_TestCase
+class DirectResponseTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * Test an invalid response
