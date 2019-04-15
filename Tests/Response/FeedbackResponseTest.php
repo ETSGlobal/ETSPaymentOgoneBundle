@@ -4,13 +4,20 @@ namespace ETS\Payment\OgoneBundle\Tests\Response;
 
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 use ETS\Payment\OgoneBundle\Test\RequestStubber;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\RequestStack;
 
-class FeedbackResponseTest extends \PHPUnit\Framework\TestCase
+class FeedbackResponseTest extends TestCase
 {
     /**
-     * @var \ETS\Payment\OgoneBundle\Test\RequestStubber
+     * @var RequestStubber
      */
     private $requestStubber;
+
+    /**
+     * @var RequestStack
+     */
+    private $requestStack;
 
     public function setUp()
     {
@@ -24,6 +31,8 @@ class FeedbackResponseTest extends \PHPUnit\Framework\TestCase
             array('PAYID', null, false, 43),
             array('SHASign', null, false, 'fzgzgzghz4648zh6z5h')
         ));
+
+        $this->requestStack = new RequestStack();
     }
 
     /**
@@ -32,7 +41,8 @@ class FeedbackResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddValueFieldAlreadySetEvenIfDifferentCase()
     {
-        $feedbackResponse = new FeedbackResponse($this->requestStubber->getStubbedRequest());
+        $this->requestStack->push($this->requestStubber->getStubbedRequest());
+        $feedbackResponse = new FeedbackResponse($this->requestStack);
 
         $class = new \ReflectionClass($feedbackResponse);
         $addValueMethod = $class->getMethod('addValue');
@@ -47,7 +57,8 @@ class FeedbackResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetValueUnsetField()
     {
-        $feedbackResponse = new FeedbackResponse($this->requestStubber->getStubbedRequest());
+        $this->requestStack->push($this->requestStubber->getStubbedRequest());
+        $feedbackResponse = new FeedbackResponse($this->requestStack);
 
         $class = new \ReflectionClass($feedbackResponse);
         $getValueMethod = $class->getMethod('getValue');
@@ -58,7 +69,8 @@ class FeedbackResponseTest extends \PHPUnit\Framework\TestCase
 
     public function testConstructor()
     {
-        $feedbackResponse = new FeedbackResponse($this->requestStubber->getStubbedRequest());
+        $this->requestStack->push($this->requestStubber->getStubbedRequest());
+        $feedbackResponse = new FeedbackResponse($this->requestStack);
 
         $this->assertSame($this->requestStubber->getMapForParameterBags(false), $feedbackResponse->getValues());
         $this->assertSame($this->requestStubber->getHashFromMap(), $feedbackResponse->getHash());

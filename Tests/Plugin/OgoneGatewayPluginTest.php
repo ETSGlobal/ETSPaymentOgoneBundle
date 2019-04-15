@@ -17,6 +17,7 @@ use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin;
 use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 use ETS\Payment\OgoneBundle\Test\RequestStubber;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -326,8 +327,12 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetResponseReturnsFeedbackResponse(FinancialTransaction $transaction)
     {
+        $requestStack = new RequestStack();
+        $requestStack->push($this->requestStubber->getStubbedRequest());
+        $feedbackResponse = new FeedbackResponse($requestStack);
+
         $plugin = $this->createPluginMock();
-        $plugin->setFeedbackResponse(new FeedbackResponse($this->requestStubber->getStubbedRequest()));
+        $plugin->setFeedbackResponse($feedbackResponse);
 
         $class = new \ReflectionClass($plugin);
         $getResponseMethod = $class->getMethod('getResponse');
