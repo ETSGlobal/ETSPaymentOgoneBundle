@@ -2,9 +2,9 @@
 
 namespace ETS\Payment\OgoneBundle\Response;
 
-use Symfony\Component\HttpFoundation\Request;
-
 use ETS\Payment\OgoneBundle\Hash\Sha1Out;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -32,14 +32,16 @@ class FeedbackResponse extends AbstractResponse
     private $values = array();
     private $hash;
 
-    /**
-     * FeedbackResponse constructor
-     *
-     * @param  Request $request
-     */
-    public function __construct(Request $request)
+    public function __construct(RequestStack $requestStack)
     {
-        foreach (array_merge($request->query->all(), $request->request->all()) as $receivedField => $value) {
+        $requestParams = [];
+
+        $request = $requestStack->getCurrentRequest();
+        if ($request instanceof Request) {
+            $requestParams = array_merge($request->query->all(), $request->request->all());
+        }
+
+        foreach ($requestParams as $receivedField => $value) {
             if (Sha1Out::isAcceptableField($receivedField)) {
                 if ((string) $value !== '') {
                     $this->addValue($receivedField, $value);
