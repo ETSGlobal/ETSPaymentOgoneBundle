@@ -97,13 +97,20 @@ class Sha1Out implements GeneratorInterface
      * @var TokenInterface
      */
     protected $token;
+    
+    /**
+     *
+     * @var string 
+     */
+    protected $hashAlgorithm;
 
     /**
      * @param TokenInterface $token
      */
-    public function __construct(TokenInterface $token)
+    public function __construct(TokenInterface $token, $hashAlgorithm)
     {
         $this->token = $token;
+	$this->hashAlgorithm = $hashAlgorithm;
     }
 
     /**
@@ -125,7 +132,7 @@ class Sha1Out implements GeneratorInterface
     {
         $stringToHash = $this->getStringToHash($parameters);
 
-        return strtoupper(sha1($stringToHash));
+        return strtoupper(hash($this->hashAlgorithm, $stringToHash));
     }
 
     /**
