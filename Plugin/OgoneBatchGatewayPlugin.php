@@ -157,7 +157,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             );
 
             $this->logger->debug('Checking transaction status with Ogone with params {params}', array('params' => $params));
-            $xmlResponse = $this->sendApiRequest(array(), $this->getDirectQueryUrl().'?'.http_build_query($params));
+            $xmlResponse = $this->sendApiRequest($params, $this->getDirectQueryUrl());
 
             $response = new BatchResponse($xmlResponse);
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
@@ -329,7 +329,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      */
     public function getTransactionStatus($params)
     {
-        $xmlResponse = $this->sendApiRequest(array(), $this->getDirectQueryUrl().'?'.http_build_query($params));
+        $xmlResponse = $this->sendApiRequest($params, $this->getDirectQueryUrl());
 
         return new DirectResponse($xmlResponse);
     }
