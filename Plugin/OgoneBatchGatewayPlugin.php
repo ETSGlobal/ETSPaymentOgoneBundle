@@ -157,7 +157,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             );
 
             $this->logger->debug('Checking transaction status with Ogone with params {params}', array('params' => $params));
-            $xmlResponse = $this->sendApiRequest(array(), $this->getDirectQueryUrl().'?'.http_build_query($params), 'GET');
+            $xmlResponse = $this->sendApiRequest(array(), $this->getDirectQueryUrl().'?'.http_build_query($params));
 
             $response = new BatchResponse($xmlResponse);
             $this->logger->debug('response status is {status}', array('status' => $response->getStatus()));
@@ -305,15 +305,14 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      *
      * @param array $parameters
      * @param string $url
-     * @param string $method
      *
      * @return \SimpleXMLElement
      *
      * @throws CommunicationException
      */
-    protected function sendApiRequest(array $parameters, $url, $method = 'POST')
+    protected function sendApiRequest(array $parameters, $url)
     {
-        $response = $this->request(new Request($url, $method, $parameters));
+        $response = $this->request(new Request($url, 'POST', $parameters));
 
         if (200 !== $response->getStatus()) {
             throw new CommunicationException(sprintf('The API request was not successful (Status: %s): %s', $response->getStatus(), $response->getContent()));
@@ -330,7 +329,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
      */
     public function getTransactionStatus($params)
     {
-        $xmlResponse = $this->sendApiRequest(array(), $this->getDirectQueryUrl().'?'.http_build_query($params), 'GET');
+        $xmlResponse = $this->sendApiRequest(array(), $this->getDirectQueryUrl().'?'.http_build_query($params));
 
         return new DirectResponse($xmlResponse);
     }
@@ -400,12 +399,11 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
 
     /**
      * @param string $file
-     * @param string $method
      *
      * @return \SimpleXMLElement
      * @throws CommunicationException
      */
-    private function sendBatchRequest($file, $method = 'POST')
+    private function sendBatchRequest($file)
     {
         $apiData = array(
             'FILE'         => $file,
@@ -414,7 +412,7 @@ class OgoneBatchGatewayPlugin extends OgoneGatewayBasePlugin
             'PROCESS_MODE' => 'CHECKANDPROCESS'
         );
 
-        return $this->sendApiRequest($apiData, $this->getBatchUrl(), $method);
+        return $this->sendApiRequest($apiData, $this->getBatchUrl());
     }
 
     /**
