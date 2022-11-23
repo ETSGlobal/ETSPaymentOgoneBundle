@@ -39,6 +39,7 @@ class Configuration implements ConfigurationInterface
             ->root('ets_payment_ogone','array')
                 ->children()
                     ->scalarNode('pspid')->isRequired()->cannotBeEmpty()->end()
+		    ->enumNode('hash_algorithm')->values(array('sha1', 'sha256', 'sha512'))->defaultValue('sha1')->end()
                     ->scalarNode('shain')->isRequired()->cannotBeEmpty()->end()
                     ->scalarNode('shaout')->isRequired()->cannotBeEmpty()->end()
                     ->booleanNode('debug')->defaultValue('%kernel.debug%')->end()

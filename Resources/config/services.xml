@@ -43,6 +43,7 @@
 
         <service id="payment.ogone.hash.sha1in" class="ETS\Payment\OgoneBundle\Hash\Sha1In">
             <argument type="service" id="payment.ogone.client.token" />
+            <argument>%payment.ogone.hash_algorithm%</argument>
         </service>
 
         <service id="payment.plugin.ogone_gateway" class="%payment.plugin.ogone.class%">
@@ -76,6 +77,7 @@
 
         <service id="payment.ogone.hash.sha1out" class="ETS\Payment\OgoneBundle\Hash\Sha1Out" public="false">
             <argument type="service" id="payment.ogone.client.token" />
+            <argument>%payment.ogone.hash_algorithm%</argument>
         </service>
 
         <service id="payment.ogone.feedback_response" class="ETS\Payment\OgoneBundle\Response\FeedbackResponse" public="false">

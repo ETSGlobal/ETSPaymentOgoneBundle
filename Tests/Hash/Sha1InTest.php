@@ -32,7 +32,7 @@ class Sha1InTest extends \PHPUnit\Framework\TestCase
      */
     public function testGenerateUseUppercase()
     {
-        $hashGenerator = new Sha1In($this->createTokenMock());
+        $hashGenerator = new Sha1In($this->createTokenMock(), 'sha1');
 
         $refSha1  = $hashGenerator->generate(array('CN' => 'Foo Bar'));
         $testSha1 = $hashGenerator->generate(array('cn' => 'Foo Bar'));
@@ -45,7 +45,7 @@ class Sha1InTest extends \PHPUnit\Framework\TestCase
      */
     public function testGenerateSortKeys()
     {
-        $hashGenerator = new Sha1In($this->createTokenMock());
+        $hashGenerator = new Sha1In($this->createTokenMock(), 'sha1');
 
         $refSha1  = $hashGenerator->generate(array('PSPID' => 42, 'CN' => 'Foo Bar'));
         $testSha1 = $hashGenerator->generate(array('CN' => 'Foo Bar', 'PSPID' => 42));
@@ -58,7 +58,7 @@ class Sha1InTest extends \PHPUnit\Framework\TestCase
      */
     public function testGenerateShouldSkipNotAllowedParameters()
     {
-        $hashGenerator = new Sha1In($this->createTokenMock());
+        $hashGenerator = new Sha1In($this->createTokenMock(), 'sha1');
 
         $refSha1  = $hashGenerator->generate(array());
         $testSha1 = $hashGenerator->generate(array('foo' => 'bar'));
@@ -71,7 +71,7 @@ class Sha1InTest extends \PHPUnit\Framework\TestCase
      */
     public function testGenerateShouldAllowWildcardedParameters()
     {
-        $hashGenerator = new Sha1In($this->createTokenMock());
+        $hashGenerator = new Sha1In($this->createTokenMock(), 'sha1');
 
         $refSha1  = $hashGenerator->generate(array());
         $testSha1 = $hashGenerator->generate(array('ITEMNAME01' => 'foobar'));

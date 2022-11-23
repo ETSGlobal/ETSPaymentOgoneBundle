@@ -36,7 +36,7 @@ class Sha1OutTest extends \PHPUnit\Framework\TestCase
             'BRAND'    => '',
         );
 
-        $sha1outGen = new Sha1Out($this->createTokenMock());
+        $sha1outGen = new Sha1Out($this->createTokenMock(), 'sha1');
 
         $class                 = new \ReflectionClass($sha1outGen);
         $getStringToHashMethod = $class->getMethod('getStringToHash');
@@ -64,7 +64,7 @@ class Sha1OutTest extends \PHPUnit\Framework\TestCase
             'BRAND'    => ''
         );
 
-        $sha1outGen = new Sha1Out($this->createTokenMock());
+        $sha1outGen = new Sha1Out($this->createTokenMock(), 'sha1');
 
         $this->assertEquals('236FC768128A1104F949912E67ADFD4F2ED54341', $sha1outGen->generate($params), 'Generated hash is different from expected.');
     }
