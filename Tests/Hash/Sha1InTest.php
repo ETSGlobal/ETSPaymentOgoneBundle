@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ETS\Payment\OgoneBundle\Tests\Hash;
 
 use ETS\Payment\OgoneBundle\Hash\Sha1In;
+use PHPUnit\Framework\TestCase;
 
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -20,68 +23,50 @@ use ETS\Payment\OgoneBundle\Hash\Sha1In;
  * limitations under the License.
  */
 
-/**
- * Sha-1 In test
- *
- * @author ETSGlobal <ecs@etsglobal.org>
- */
-class Sha1InTest extends \PHPUnit\Framework\TestCase
+/** @author ETSGlobal <ecs@etsglobal.org> */
+class Sha1InTest extends TestCase
 {
-    /**
-     * Test that the generate function uppercase the keys
-     */
-    public function testGenerateUseUppercase()
+    public function testGenerateUseUppercase(): void
     {
         $hashGenerator = new Sha1In($this->createTokenMock());
 
-        $refSha1  = $hashGenerator->generate(array('CN' => 'Foo Bar'));
-        $testSha1 = $hashGenerator->generate(array('cn' => 'Foo Bar'));
+        $refSha1  = $hashGenerator->generate(['CN' => 'Foo Bar']);
+        $testSha1 = $hashGenerator->generate(['cn' => 'Foo Bar']);
 
         $this->assertEquals($refSha1, $testSha1);
     }
 
-    /**
-     * Test that the generate function sort key alphabetically
-     */
-    public function testGenerateSortKeys()
+    public function testGenerateSortKeys(): void
     {
         $hashGenerator = new Sha1In($this->createTokenMock());
 
-        $refSha1  = $hashGenerator->generate(array('PSPID' => 42, 'CN' => 'Foo Bar'));
-        $testSha1 = $hashGenerator->generate(array('CN' => 'Foo Bar', 'PSPID' => 42));
+        $refSha1  = $hashGenerator->generate(['PSPID' => 42, 'CN' => 'Foo Bar']);
+        $testSha1 = $hashGenerator->generate(['CN' => 'Foo Bar', 'PSPID' => 42]);
 
         $this->assertEquals($refSha1, $testSha1);
     }
 
-    /**
-     * Test that the generate function only use allowed parameters
-     */
-    public function testGenerateShouldSkipNotAllowedParameters()
+    public function testGenerateShouldSkipNotAllowedParameters(): void
     {
         $hashGenerator = new Sha1In($this->createTokenMock());
 
-        $refSha1  = $hashGenerator->generate(array());
-        $testSha1 = $hashGenerator->generate(array('foo' => 'bar'));
+        $refSha1  = $hashGenerator->generate([]);
+        $testSha1 = $hashGenerator->generate(['foo' => 'bar']);
 
         $this->assertEquals($refSha1, $testSha1);
     }
 
-    /**
-     * Test that the generate function take care of wildcarded parameters
-     */
-    public function testGenerateShouldAllowWildcardedParameters()
+    public function testGenerateShouldAllowWildcardedParameters(): void
     {
         $hashGenerator = new Sha1In($this->createTokenMock());
 
-        $refSha1  = $hashGenerator->generate(array());
-        $testSha1 = $hashGenerator->generate(array('ITEMNAME01' => 'foobar'));
+        $refSha1  = $hashGenerator->generate([]);
+        $testSha1 = $hashGenerator->generate(['ITEMNAME01' => 'foobar']);
 
         $this->assertNotEquals($refSha1, $testSha1);
     }
 
-    /**
-     * @return \ETS\Payment\OgoneBundle\Client\TokenInterface
-     */
+    /** @return \ETS\Payment\OgoneBundle\Client\TokenInterface */
     protected function createTokenMock()
     {
         return $this->createMock('ETS\Payment\OgoneBundle\Client\TokenInterface');

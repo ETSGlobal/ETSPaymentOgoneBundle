@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ETS\Payment\OgoneBundle\Tests\Plugin;
 
 use ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPluginMock;
@@ -13,6 +15,10 @@ use JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException;
 
 use ETS\Payment\OgoneBundle\Plugin\OgoneBatchGatewayPlugin;
 use ETS\Payment\OgoneBundle\Test\RequestStubber;
+use JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException;
+use JMS\Payment\CoreBundle\Plugin\Exception\FinancialException;
+use JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Tests\Logger;
 
 /**
@@ -31,43 +37,34 @@ use Symfony\Component\HttpKernel\Tests\Logger;
  * limitations under the License.
  */
 
-/**
- * OgoneBatchGatewayPluginTest tests
- */
-class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
+class OgoneBatchGatewayPluginTest extends TestCase
 {
-    /**
-     * @var \ETS\Payment\OgoneBundle\Test\RequestStubber
-     */
-    private $requestStubber;
+    private RequestStubber $requestStubber;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->requestStubber = new RequestStubber(array(
-            array('orderID', null, false, 42),
-            array('amount', null, false, '42'),
-            array('currency', null, false, 'EUR'),
-            array('PM', null, false, 'credit card'),
-            array('STATUS', null, false, 5),
-            array('CARDNO', null, false, 4567123478941234),
-            array('PAYID', null, false, 43),
-            array('SHASign', null, false, 'fzgzgzghz4648zh6z5h')
-        ));
+        $this->requestStubber = new RequestStubber([
+            ['orderID', null, false, 42],
+            ['amount', null, false, '42'],
+            ['currency', null, false, 'EUR'],
+            ['PM', null, false, 'credit card'],
+            ['STATUS', null, false, 5],
+            ['CARDNO', null, false, 4567123478941234],
+            ['PAYID', null, false, 43],
+            ['SHASign', null, false, 'fzgzgzghz4648zh6z5h'],
+        ]);
     }
 
-    /**
-     * @return array
-     */
-    public function provideTestTestRequestUrls()
+    public function provideTestTestRequestUrls(): array
     {
-        return array(
-            array(true, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/test/orderstandard.asp'),
-            array(false, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard.asp'),
-            array(true, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/test/querydirect.asp'),
-            array(false, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect.asp'),
-            array(true, false, 'getBatchUrl', 'https://secure.ogone.com/ncol/test/AFU_agree.asp'),
-            array(false, true, 'getBatchUrl', 'https://secure.ogone.com/ncol/prod/AFU_agree.asp'),
-        );
+        return [
+            [true, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/test/orderstandard.asp'],
+            [false, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard.asp'],
+            [true, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/test/querydirect.asp'],
+            [false, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect.asp'],
+            [true, false, 'getBatchUrl', 'https://secure.ogone.com/ncol/test/AFU_agree.asp'],
+            [false, true, 'getBatchUrl', 'https://secure.ogone.com/ncol/prod/AFU_agree.asp'],
+        ];
     }
 
     /**
@@ -78,7 +75,7 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
      *
      * @dataProvider provideTestTestRequestUrls
      */
-    public function testRequestUrls($debug, $utf8, $method, $expected)
+    public function testRequestUrls($debug, $utf8, $method, $expected): void
     {
         $plugin = $this->createPluginMock(null, $debug, $utf8);
 
@@ -96,17 +93,17 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
     {
         $plugin = $this->createPluginMock();
 
-        $extendedData = array(
+        $extendedData = [
             'ORDERID' => 1234,
             'PAYID' => 9876,
             'CLIENTID' => 'CLIENT1',
             'CLIENTREF' => 123456,
             'LEGALCOMMITMENT' => 'LEGAL',
             'ALIASID' => 'ALIASID',
-            'ARTICLES' => array(),
+            'ARTICLES' => [],
             'TRANSACTIONID' => 4567,
             'ISREFUND' => false
-        );
+        ];
 
         $transaction = $this->createTransaction(42, 'EUR', $extendedData);
         $transaction->getExtendedData()->set('lang', 'en_US');
@@ -124,20 +121,19 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
         return $transaction;
     }
 
-    /**
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException
-     * @expectedExceptionMessage Transaction needs to be in state 4
-     */
-    public function testApproveRequiresAnActionForNewTransactions()
+    public function testApproveRequiresAnActionForNewTransactions(): void
     {
+        $this->expectException(ActionRequiredException::class);
+        $this->expectExceptionMessage('Transaction needs to be in state 4');
+
         $plugin = $this->createPluginMock();
-        $extendedData = array(
+        $extendedData = [
             'ORDERID' => 1234,
             'PAYID' => 9876,
             'CLIENTID' => 'CLIENT1',
             'ALIASID' => 'ALIASID',
-            'ARTICLES' => array(),
-        );
+            'ARTICLES' => [],
+        ];
 
         $transaction = $this->createTransaction(42, 'EUR', $extendedData);
         $transaction->getExtendedData()->set('lang', 'en_US');
@@ -145,20 +141,19 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $plugin->approve($transaction, 42);
     }
 
-    /**
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException
-     * @expectedExceptionMessage Transaction needs to be in state 4
-     */
-    public function testDepositRequiresAnActionForNewTransactions()
+    public function testDepositRequiresAnActionForNewTransactions(): void
     {
+        $this->expectException(ActionRequiredException::class);
+        $this->expectExceptionMessage('Transaction needs to be in state 4');
+
         $plugin = $this->createPluginMock();
-        $extendedData = array(
+        $extendedData = [
             'ORDERID' => 1234,
             'PAYID' => 9876,
             'CLIENTID' => 'CLIENT1',
             'ALIASID' => 'ALIASID',
-            'ARTICLES' => array(),
-        );
+            'ARTICLES' => [],
+        ];
 
         $transaction = $this->createTransaction(42, 'EUR', $extendedData);
         $transaction->getExtendedData()->set('lang', 'en_US');
@@ -166,36 +161,28 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $plugin->deposit($transaction, 42);
     }
 
-    /**
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Payment/Refund is still approving/refunding, status: 0
-     * @depends testNewTransactionRequiresAnAction
-     * @param FinancialTransaction $transaction
-     */
-    public function testNewRefundingTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testNewRefundingTransaction(FinancialTransaction $transaction): void
     {
+        $this->expectException(PaymentPendingException::class);
+        $this->expectExceptionMessage('Payment/Refund is still approving/refunding, status: 0');
+
         $plugin = $this->createPluginMock('new_refund');
         $plugin->approveAndDeposit($transaction, 42);
     }
 
-    /**
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Payment/Refund is still approving/refunding, status: 81
-     * @depends testNewTransactionRequiresAnAction
-     * @param FinancialTransaction $transaction
-     */
-    public function testRefundingTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testRefundingTransaction(FinancialTransaction $transaction): void
     {
+        $this->expectException(PaymentPendingException::class);
+        $this->expectExceptionMessage('Payment/Refund is still approving/refunding, status: 81');
+
         $plugin = $this->createPluginMock('refunding');
         $plugin->approveAndDeposit($transaction, 42);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     */
-    public function testRefundedTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testRefundedTransaction(FinancialTransaction $transaction): void
     {
         $plugin = $this->createPluginMock('refunded');
 
@@ -208,25 +195,21 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Ogone-Response was not successful: A technical problem has occurred. Please try again.
      * @depends testNewTransactionRequiresAnAction
-     * @param FinancialTransaction $transaction
      * @group refund
      */
-    public function testRefundWithErrorTransaction(FinancialTransaction $transaction)
+    public function testRefundWithErrorTransaction(FinancialTransaction $transaction): void
     {
+        $this->expectException(FinancialException::class);
+        $this->expectExceptionMessage('Ogone-Response was not successful: A technical problem has occurred. Please try again.');
+
         $transaction->getExtendedData()->set('ISREFUND', true);
         $plugin = $this->createPluginMock('refund_error');
         $plugin->approveAndDeposit($transaction, 42);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     */
-    public function testApproveAndDepositWhenDeposited(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testApproveAndDepositWhenDeposited(FinancialTransaction $transaction): void
     {
         $plugin = $this->createPluginMock('deposited');
 
@@ -237,26 +220,19 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('none', $transaction->getReasonCode());
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Payment/Refund is still approving/refunding, status: 51.
-     */
-    public function testApprovingTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testApprovingTransaction(FinancialTransaction $transaction): void
     {
+        $this->expectException(PaymentPendingException::class);
+        $this->expectExceptionMessage('Payment/Refund is still approving/refunding, status: 51.');
+
         $plugin = $this->createPluginMock('approving');
 
         $plugin->approve($transaction, false);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     */
-    public function testApprovedTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testApprovedTransaction(FinancialTransaction $transaction): void
     {
         $plugin = $this->createPluginMock('approved');
 
@@ -267,26 +243,19 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('none', $transaction->getReasonCode());
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Payment is still pending, status: 91.
-     */
-    public function testDepositingTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testDepositingTransaction(FinancialTransaction $transaction): void
     {
+        $this->expectException(PaymentPendingException::class);
+        $this->expectExceptionMessage('Payment is still pending, status: 91.');
+
         $plugin = $this->createPluginMock('depositing');
 
         $plugin->deposit($transaction, false);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     */
-    public function testDepositedTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testDepositedTransaction(FinancialTransaction $transaction): void
     {
         $plugin = $this->createPluginMock('deposited');
 
@@ -297,66 +266,51 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('none', $transaction->getReasonCode());
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Status "74" is not valid for approvment
-     */
-    public function testApproveWithUnknowStateGenerateAnException(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testApproveWithUnknowStateGenerateAnException(FinancialTransaction $transaction): void
     {
+        $this->expectException(FinancialException::class);
+        $this->expectExceptionMessage('Status "74" is not valid for approvment');
+
         $plugin = $this->createPluginMock('not_managed');
 
         $plugin->approve($transaction, false);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Payment status "74" is not valid for depositing/refunding
-     */
-    public function testDepositWithUnknowStateGenerateAnException(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testDepositWithUnknowStateGenerateAnException(FinancialTransaction $transaction): void
     {
+        $this->expectException(FinancialException::class);
+        $this->expectExceptionMessage('Payment status "74" is not valid for depositing/refunding');
+
         $plugin = $this->createPluginMock('not_managed');
 
         $plugin->deposit($transaction, false);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Ogone-Response was not successful: Some of the data entered is incorrect. Please retry.
-     */
-    public function testInvalidStateGenerateAnException(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testInvalidStateGenerateAnException(FinancialTransaction $transaction): void
     {
+        $this->expectException(FinancialException::class);
+        $this->expectExceptionMessage('Ogone-Response was not successful: Some of the data entered is incorrect. Please retry.');
+
         $plugin = $this->createPluginMock('caa_invalid');
 
         $plugin->deposit($transaction, false);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
-     * @expectedExceptionMessage The API request was not successful (Status: 500):
-     */
-    public function testSendApiRequestFail(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testSendApiRequestFail(FinancialTransaction $transaction): void
     {
+        $this->expectException(CommunicationException::class);
+        $this->expectExceptionMessage('The API request was not successful (Status: 500):');
+
         $plugin = $this->createPluginMock('500');
 
         $plugin->approve($transaction, false);
     }
 
-    /**
-     * Test the processes function
-     */
-    public function testProcesses()
+    public function testProcesses(): void
     {
         $plugin = $this->createPluginMock('not_managed');
 
@@ -367,11 +321,8 @@ class OgoneBatchGatewayPluginTest extends \PHPUnit\Framework\TestCase
     /**
      * @param string $amount
      * @param string $currency
-     * @param array  $extendedDataValues
-     *
-     * @return \JMS\Payment\CoreBundle\Entity\FinancialTransaction
      */
-    protected function createTransaction($amount, $currency, array $extendedDataValues = array('CN' => 'Foo Bar'))
+    protected function createTransaction($amount, $currency, array $extendedDataValues = ['CN' => 'Foo Bar']): FinancialTransaction
     {
         $transaction = new FinancialTransaction();
         $transaction->setRequestedAmount($amount);

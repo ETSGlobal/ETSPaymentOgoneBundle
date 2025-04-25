@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ETS\Payment\OgoneBundle\Tests\Client;
 
 use ETS\Payment\OgoneBundle\Client\Token;
@@ -20,17 +22,10 @@ use ETS\Payment\OgoneBundle\Client\Token;
  * limitations under the License.
  */
 
-/**
- * Token class test
- *
- * @author ETSGlobal <ecs@etsglobal.org>
- */
+/** @author ETSGlobal <ecs@etsglobal.org> */
 class TokenTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * Test the object construction
-     */
-    public function testConstruct()
+    public function testConstruct(): void
     {
         $pspid = 'foobar';
         $apiPassword = 'fooapipass';
