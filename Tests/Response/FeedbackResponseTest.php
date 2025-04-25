@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ETS\Payment\OgoneBundle\Tests\Response;
 
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
@@ -9,38 +11,31 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class FeedbackResponseTest extends TestCase
 {
-    /**
-     * @var RequestStubber
-     */
-    private $requestStubber;
+    private RequestStubber $requestStubber;
 
-    /**
-     * @var RequestStack
-     */
-    private $requestStack;
+    private RequestStack $requestStack;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->requestStubber = new RequestStubber(array(
-            array('orderID', null, false, 42),
-            array('amount', null, false, '42'),
-            array('currency', null, false, 'EUR'),
-            array('PM', null, false, 'credit card'),
-            array('STATUS', null, false, 5),
-            array('CARDNO', null, false, 4567123478941234),
-            array('PAYID', null, false, 43),
-            array('SHASign', null, false, 'fzgzgzghz4648zh6z5h')
-        ));
+        $this->requestStubber = new RequestStubber([
+            ['orderID', null, false, 42],
+            ['amount', null, false, '42'],
+            ['currency', null, false, 'EUR'],
+            ['PM', null, false, 'credit card'],
+            ['STATUS', null, false, 5],
+            ['CARDNO', null, false, 4567123478941234],
+            ['PAYID', null, false, 43],
+            ['SHASign', null, false, 'fzgzgzghz4648zh6z5h'],
+        ]);
 
         $this->requestStack = new RequestStack();
     }
 
-    /**
-     * @expectedException        \BadMethodCallException
-     * @expectedExceptionMessage already set
-     */
-    public function testAddValueFieldAlreadySetEvenIfDifferentCase()
+    public function testAddValueFieldAlreadySetEvenIfDifferentCase(): void
     {
+        $this->expectException(\BadMethodCallException::class);
+        $this->expectExceptionMessage('already set');
+
         $this->requestStack->push($this->requestStubber->getStubbedRequest());
         $feedbackResponse = new FeedbackResponse($this->requestStack);
 
@@ -48,15 +43,14 @@ class FeedbackResponseTest extends TestCase
         $addValueMethod = $class->getMethod('addValue');
         $addValueMethod->setAccessible(true);
 
-        $addValueMethod->invokeArgs($feedbackResponse, array('ORDERid', 48));
+        $addValueMethod->invokeArgs($feedbackResponse, ['ORDERid', 48]);
     }
 
-    /**
-     * @expectedException        \OutOfRangeException
-     * @expectedExceptionMessage was not sent with the Request
-     */
-    public function testGetValueUnsetField()
+    public function testGetValueUnsetField(): void
     {
+        $this->expectException(\OutOfRangeException::class);
+        $this->expectExceptionMessage('was not sent with the Request');
+
         $this->requestStack->push($this->requestStubber->getStubbedRequest());
         $feedbackResponse = new FeedbackResponse($this->requestStack);
 
@@ -67,7 +61,7 @@ class FeedbackResponseTest extends TestCase
         $getValueMethod->invokeArgs($feedbackResponse, array('dummyField'));
     }
 
-    public function testConstructor()
+    public function testConstructor(): void
     {
         $this->requestStack->push($this->requestStubber->getStubbedRequest());
         $feedbackResponse = new FeedbackResponse($this->requestStack);

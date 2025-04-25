@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ETS\Payment\OgoneBundle\Tests\Response;
 
 use ETS\Payment\OgoneBundle\Response\DirectResponse;
 use ETS\Payment\OgoneBundle\Response\ResponseInterface;
+use PHPUnit\Framework\TestCase;
 
 /*
  * Copyright 2013 ETSGlobal <ecs@etsglobal.org>
@@ -21,17 +24,10 @@ use ETS\Payment\OgoneBundle\Response\ResponseInterface;
  * limitations under the License.
  */
 
-/**
- * Response test class
- *
- * @author ETSGlobal <ecs@etsglobal.org>
- */
-class DirectResponseTest extends \PHPUnit\Framework\TestCase
+/** @author ETSGlobal <ecs@etsglobal.org> */
+class DirectResponseTest extends TestCase
 {
-    /**
-     * Test an invalid response
-     */
-    public function testInvalidXml()
+    public function testInvalidXml(): void
     {
         $response = $this->createResponse('invalid');
 
@@ -46,10 +42,7 @@ class DirectResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('Some of the data entered is incorrect. Please retry.', $response->getErrorDescription());
     }
 
-    /**
-     * Test a response for an approving payment
-     */
-    public function testApproving()
+    public function testApproving(): void
     {
         $response = $this->createResponse('approving');
 
@@ -66,10 +59,7 @@ class DirectResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertNotEmpty($response->getAmount());
     }
 
-    /**
-     * Test a response for an approving payment
-     */
-    public function testApproved()
+    public function testApproved(): void
     {
         $response = $this->createResponse('approved');
 
@@ -83,10 +73,7 @@ class DirectResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertEmpty($response->getErrorCode());
     }
 
-    /**
-     * Test a response for an approving payment
-     */
-    public function testDepositing()
+    public function testDepositing(): void
     {
         $response = $this->createResponse('depositing');
 
@@ -100,10 +87,7 @@ class DirectResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertEmpty($response->getErrorCode());
     }
 
-    /**
-     * Test a response for an approving payment
-     */
-    public function testDeposited()
+    public function testDeposited(): void
     {
         $response = $this->createResponse('deposited');
 
@@ -117,10 +101,7 @@ class DirectResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertEmpty($response->getErrorCode());
     }
 
-    /**
-     * Test a response for an approving payment
-     */
-    public function testNotManaged()
+    public function testNotManaged(): void
     {
         $response = $this->createResponse('not_managed');
 
@@ -131,10 +112,7 @@ class DirectResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($response->isDepositing());
     }
 
-    /**
-     * Test a response for an approving payment
-     */
-    public function testNotApproved()
+    public function testNotApproved(): void
     {
         $response = $this->createResponse('not_approved');
 
@@ -148,10 +126,7 @@ class DirectResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertNotEmpty($response->getErrorDescription());
     }
 
-    /**
-     * Test a response for an approving payment
-     */
-    public function testNotDeposited()
+    public function testNotDeposited(): void
     {
         $response = $this->createResponse('not_deposited');
 

@@ -17,6 +17,10 @@ use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPlugin;
 use ETS\Payment\OgoneBundle\Plugin\OgoneGatewayPluginMock;
 use ETS\Payment\OgoneBundle\Response\FeedbackResponse;
 use ETS\Payment\OgoneBundle\Test\RequestStubber;
+use JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException;
+use JMS\Payment\CoreBundle\Plugin\Exception\FinancialException;
+use JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -35,43 +39,34 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * limitations under the License.
  */
 
-/**
- * OgoneGatewayPlugin tests
- */
-class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
+class OgoneGatewayPluginTest extends TestCase
 {
-    /**
-     * @var \ETS\Payment\OgoneBundle\Test\RequestStubber
-     */
-    private $requestStubber;
+    private RequestStubber $requestStubber;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->requestStubber = new RequestStubber(array(
-            array('orderID', null, false, 42),
-            array('amount', null, false, '42'),
-            array('currency', null, false, 'EUR'),
-            array('PM', null, false, 'credit card'),
-            array('STATUS', null, false, 5),
-            array('CARDNO', null, false, 4567123478941234),
-            array('PAYID', null, false, 43),
-            array('SHASign', null, false, 'fzgzgzghz4648zh6z5h')
-        ));
+        $this->requestStubber = new RequestStubber([
+            ['orderID', null, false, 42],
+            ['amount', null, false, '42'],
+            ['currency', null, false, 'EUR'],
+            ['PM', null, false, 'credit card'],
+            ['STATUS', null, false, 5],
+            ['CARDNO', null, false, 4567123478941234],
+            ['PAYID', null, false, 43],
+            ['SHASign', null, false, 'fzgzgzghz4648zh6z5h'],
+        ]);
     }
 
-    /**
-     * @return array
-     */
-    public function provideTestTestRequestUrls()
+    public static function provideTestTestRequestUrls(): array
     {
-        return array(
-            array(true, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/test/orderstandard.asp'),
-            array(false, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard.asp'),
-            array(false, true, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard_utf8.asp'),
-            array(true, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/test/querydirect.asp'),
-            array(false, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect.asp'),
-            array(false, true, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect_utf8.asp'),
-        );
+        return [
+            [true, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/test/orderstandard.asp'],
+            [false, false, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard.asp'],
+            [false, true, 'getStandardOrderUrl', 'https://secure.ogone.com/ncol/prod/orderstandard_utf8.asp'],
+            [true, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/test/querydirect.asp'],
+            [false, false, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect.asp'],
+            [false, true, 'getDirectQueryUrl', 'https://secure.ogone.com/ncol/prod/querydirect_utf8.asp'],
+        ];
     }
 
     /**
@@ -82,7 +77,7 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
      *
      * @dataProvider provideTestTestRequestUrls
      */
-    public function testRequestUrls($debug, $utf8, $method, $expected)
+    public function testRequestUrls($debug, $utf8, $method, $expected): void
     {
         $plugin = $this->createPluginMock(null, $debug, $utf8);
 
@@ -110,7 +105,7 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
                 $this->fail("The exception's action should be of type 'VisitUrl'.");
             }
 
-            $this->assertRegExp('#https://secure.ogone.com/ncol/test/orderstandard.asp\?AMOUNT=4200&CN=Foo\+Bar&CURRENCY=EUR&LANGUAGE=en_US&ORDERID=.*&SHASIGN=.*#', $action->getUrl());
+            $this->assertMatchesRegularExpression('#https://secure.ogone.com/ncol/test/orderstandard.asp\?AMOUNT=4200&CN=Foo\+Bar&CURRENCY=EUR&LANGUAGE=en_US&ORDERID=.*&SHASIGN=.*#', $action->getUrl());
         }
 
         $transaction->setState(FinancialTransactionInterface::STATE_PENDING);
@@ -120,12 +115,11 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
         return $transaction;
     }
 
-    /**
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException
-     * @expectedExceptionMessage User must authorize the transaction
-     */
-    public function testApproveRequiresAnActionForNewTransactions()
+    public function testApproveRequiresAnActionForNewTransactions(): void
     {
+        $this->expectException(ActionRequiredException::class);
+        $this->expectExceptionMessage('User must authorize the transaction');
+
         $plugin = $this->createPluginMock();
 
         $transaction = $this->createTransaction(42, 'EUR');
@@ -134,12 +128,11 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $plugin->approve($transaction, 42);
     }
 
-    /**
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\ActionRequiredException
-     * @expectedExceptionMessage User must authorize the transaction
-     */
-    public function testDepositRequiresAnActionForNewTransactions()
+    public function testDepositRequiresAnActionForNewTransactions(): void
     {
+        $this->expectException(ActionRequiredException::class);
+        $this->expectExceptionMessage('User must authorize the transaction');
+
         $plugin = $this->createPluginMock();
 
         $transaction = $this->createTransaction(42, 'EUR');
@@ -148,12 +141,8 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $plugin->deposit($transaction, 42);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     */
-    public function testApproveAndDepositWhenDeposited(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testApproveAndDepositWhenDeposited(FinancialTransaction $transaction): void
     {
         $plugin = $this->createPluginMock('deposited');
 
@@ -164,26 +153,19 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('none', $transaction->getReasonCode());
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Payment is still approving, status: 51.
-     */
-    public function testApprovingTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testApprovingTransaction(FinancialTransaction $transaction): void
     {
+        $this->expectException(PaymentPendingException::class);
+        $this->expectExceptionMessage('Payment is still approving, status: 51.');
+
         $plugin = $this->createPluginMock('approving');
 
         $plugin->approve($transaction, false);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     */
-    public function testApprovedTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testApprovedTransaction(FinancialTransaction $transaction): void
     {
         $plugin = $this->createPluginMock('approved');
 
@@ -194,26 +176,19 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('none', $transaction->getReasonCode());
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\PaymentPendingException
-     * @expectedExceptionMessage Payment is still pending, status: 91.
-     */
-    public function testDepositingTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testDepositingTransaction(FinancialTransaction $transaction): void
     {
+        $this->expectException(PaymentPendingException::class);
+        $this->expectExceptionMessage('Payment is still pending, status: 91.');
+
         $plugin = $this->createPluginMock('depositing');
 
         $plugin->deposit($transaction, false);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     */
-    public function testDepositedTransaction(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testDepositedTransaction(FinancialTransaction $transaction): void
     {
         $plugin = $this->createPluginMock('deposited');
 
@@ -224,78 +199,62 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('none', $transaction->getReasonCode());
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Payment status "74" is not valid for approvment
-     */
-    public function testApproveWithUnknowStateGenerateAnException(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testApproveWithUnknowStateGenerateAnException(FinancialTransaction $transaction): void
     {
+        $this->expectException(FinancialException::class);
+        $this->expectExceptionMessage('Payment status "74" is not valid for approvment');
+
         $plugin = $this->createPluginMock('not_managed');
 
         $plugin->approve($transaction, false);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Payment status "74" is not valid for depositing
-     */
-    public function testDepositWithUnknowStateGenerateAnException(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testDepositWithUnknowStateGenerateAnException(FinancialTransaction $transaction): void
     {
+        $this->expectException(FinancialException::class);
+        $this->expectExceptionMessage('Payment status "74" is not valid for depositing');
+
         $plugin = $this->createPluginMock('not_managed');
 
         $plugin->deposit($transaction, false);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage Ogone-Response was not successful: Some of the data entered is incorrect. Please retry.
-     */
-    public function testInvalidStateGenerateAnException(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testInvalidStateGenerateAnException(FinancialTransaction $transaction): void
     {
+        $this->expectException(FinancialException::class);
+        $this->expectExceptionMessage('Ogone-Response was not successful: Some of the data entered is incorrect. Please retry.');
+
         $plugin = $this->createPluginMock('invalid');
 
         $plugin->deposit($transaction, false);
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\CommunicationException
-     * @expectedExceptionMessage The API request was not successful (Status: 500):
-     */
-    public function testSendApiRequestFail(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testSendApiRequestFail(FinancialTransaction $transaction): void
     {
+        $this->expectException(CommunicationException::class);
+        $this->expectExceptionMessage('The API request was not successful (Status: 500):');
+
         $plugin = $this->createPluginMock('500');
 
         $plugin->approve($transaction, false);
     }
 
-    /**
-     * @expectedException        \JMS\Payment\CoreBundle\Plugin\Exception\FinancialException
-     * @expectedExceptionMessage The payment instruction is invalid.
-     */
-    public function testInvalidCheckPaymentInstruction()
+    public function testInvalidCheckPaymentInstruction(): void
     {
+        $this->expectException(FinancialException::class);
+        $this->expectExceptionMessage('The payment instruction is invalid.');
+
         $plugin = $this->createPluginMock('not_managed');
         $transaction = $this->createTransaction(42, 'EUR');
 
         $plugin->checkPaymentInstruction($transaction->getPayment()->getPaymentInstruction());
     }
 
-    /**
-     * Test the Check payment instruction with valid datas
-     */
-    public function testValidCheckPaymentInstruction()
+    public function testValidCheckPaymentInstruction(): void
     {
         $plugin = $this->createPluginMock('not_managed');
         $transaction = $this->createTransaction(42, 'EUR');
@@ -305,14 +264,11 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
         try {
             $plugin->checkPaymentInstruction($transaction->getPayment()->getPaymentInstruction());
         } catch (\Exception $ex) {
-            $this->fail("Exception should not be throw here.");
+            $this->fail('Exception should not be throw here.');
         }
     }
 
-    /**
-     * Test the processes function
-     */
-    public function testProcesses()
+    public function testProcesses(): void
     {
         $plugin = $this->createPluginMock('not_managed');
 
@@ -320,12 +276,8 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($plugin->processes('paypal_express_checkout'));
     }
 
-    /**
-     * @param FinancialTransaction $transaction
-     *
-     * @depends testNewTransactionRequiresAnAction
-     */
-    public function testGetResponseReturnsFeedbackResponse(FinancialTransaction $transaction)
+    /** @depends testNewTransactionRequiresAnAction */
+    public function testGetResponseReturnsFeedbackResponse(FinancialTransaction $transaction): void
     {
         $requestStack = new RequestStack();
         $requestStack->push($this->requestStubber->getStubbedRequest());
@@ -394,40 +346,31 @@ class OgoneGatewayPluginTest extends \PHPUnit\Framework\TestCase
         return $pluginMock;
     }
 
-    /**
-     * @return array
-     */
-    public function provideAdditionalData()
+    public function provideAdditionalData(): array
     {
-        return array(
-            array(
-                array("EMAIL" => "aa.bb@test.com", "OWNERCTY" => "city"),
-                array("EMAIL" => "aa.bb@test.com"),
-            ),
-            array(
-                array("EMAIL" => "aa.bb@test.com", "OWNERADDRESS" => "main street"),
-                array("EMAIL" => "aa.bb@test.com", "OWNERADDRESS" => "main street"),
-            ),
-        );
+        return [
+            [
+                ['EMAIL' => 'aa.bb@test.com', 'OWNERCTY' => 'city'],
+                ['EMAIL' => 'aa.bb@test.com'],
+            ],
+            [
+                ['EMAIL' => 'aa.bb@test.com', 'OWNERADDRESS' => 'main street'],
+                ['EMAIL' => 'aa.bb@test.com', 'OWNERADDRESS' => "main street"],
+            ],
+        ];
     }
 
-    /**
-     * @param array $additionalData
-     * @param array $exected
-     *
-     * @dataProvider provideAdditionalData
-     */
-    public function testNormalize(array $additionalData, array $exected)
+    /** @dataProvider provideAdditionalData */
+    public function testNormalize(array $additionalData, array $exected): void
     {
        $this->assertSame($exected, OgoneGatewayPlugin::normalize($additionalData));
     }
 
-    /**
-     * @expectedException        \InvalidArgumentException
-     * @expectedExceptionMessage Additional data "foo" not supported. Expected values: PM, BRAND, CN, EMAIL, OWNERZIP, OWNERADDRESS, OWNERCTY, OWNERTOWN, OWNERTELNO, OWNERTELNO2
-     */
-    public function testNormalizeException()
+    public function testNormalizeException(): void
     {
-        OgoneGatewayPlugin::normalize(array('foo' => 'bar'));
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Additional data "foo" not supported. Expected values: PM, BRAND, CN, EMAIL, OWNERZIP, OWNERADDRESS, OWNERCTY, OWNERTOWN, OWNERTELNO, OWNERTELNO2');
+
+        OgoneGatewayPlugin::normalize(['foo' => 'bar']);
     }
 }

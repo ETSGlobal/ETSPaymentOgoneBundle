@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ETS\Payment\OgoneBundle\Tests\Hash;
 
 use ETS\Payment\OgoneBundle\Hash\Sha1Out;
@@ -20,25 +22,21 @@ use ETS\Payment\OgoneBundle\Hash\Sha1Out;
  * limitations under the License.
  */
 
-/**
- * Sha-1 In test
- *
- * @author ETSGlobal <ecs@etsglobal.org>
- */
+/** @author ETSGlobal <ecs@etsglobal.org> */
 class Sha1OutTest extends \PHPUnit\Framework\TestCase
 {
-    public function testGetStringToHashFollowsOgoneRules()
+    public function testGetStringToHashFollowsOgoneRules(): void
     {
-        $params = array(
+        $params = [
             'PayId'    => 123456,
             'CURRENCY' => 'EUR',
             'NCERROR'  => 0,
             'BRAND'    => '',
-        );
+        ];
 
         $sha1outGen = new Sha1Out($this->createTokenMock());
 
-        $class                 = new \ReflectionClass($sha1outGen);
+        $class = new \ReflectionClass($sha1outGen);
         $getStringToHashMethod = $class->getMethod('getStringToHash');
         $getStringToHashMethod->setAccessible(true);
 
@@ -55,14 +53,14 @@ class Sha1OutTest extends \PHPUnit\Framework\TestCase
         $this->assertGreaterThan($secondParamPos, $thirdParamPos, 'All parameters must be sorted following the order in Sha1Out::$acceptableFields.');
     }
 
-    public function testGenerate()
+    public function testGenerate(): void
     {
-        $params = array(
+        $params = [
             'PayId'    => 123456,
             'CURRENCY' => 'EUR',
             'NCERROR'  => 0,
-            'BRAND'    => ''
-        );
+            'BRAND'    => '',
+        ];
 
         $sha1outGen = new Sha1Out($this->createTokenMock());
 
